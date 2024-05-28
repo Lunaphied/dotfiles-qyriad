@@ -3,6 +3,7 @@
 { config, pkgs, qyriad, ... }:
 
 {
+/*
 	fileSystems = let
 		mountOpts = qyriad.genMountOpts {
 			# Try to automatically mount, but don't block boot on it.
@@ -31,6 +32,7 @@
 			options = [ mountOpts ];
 		};
 	};
+*/
 
 	# On Yuki this costs less than a GiB. Let's try it for now.
 	#environment.enableDebugInfo = true;
@@ -117,6 +119,7 @@
 		"electron-25.9.0" # For Obsidian
 	];
 
+	# services.espanso.enable = true;
 
 	environment.systemPackages = with pkgs; [
 		alacritty

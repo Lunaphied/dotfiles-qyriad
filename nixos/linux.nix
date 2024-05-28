@@ -6,7 +6,7 @@
 	boot.loader = {
 		systemd-boot.enable = true;
 		efi.canTouchEfiVariables = true;
-		efi.efiSysMountPoint = "/boot/efi";
+		efi.efiSysMountPoint = "/boot";
 	};
 
 	# Yes mount /tmp as a tmpfs.
@@ -103,7 +103,19 @@
 		description = "Qyriad";
 		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
 		shell = pkgs.zsh;
+
+		openssh.authorizedKeys.keys = [
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDI6Tdxcbr3XSD2Ok2tUb4RJ3nOszqKklkqXUrgnFM1F cardno:26 907 287"
+		];
 	};
+
+	users.users.lunaphied = {
+		isNormalUser = true;
+		description = "Lunaphied";		
+		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
+		shell = pkgs.zsh;
+	};
+
 	users.groups.plugdev = { };
 	users.groups.video = { };
 	users.groups.cdrom = { };

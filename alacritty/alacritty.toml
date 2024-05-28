@@ -25,7 +25,8 @@ background = "0x000000"
 foreground = "0xeaeaea"
 
 [font.normal]
-family = "InconsolataGo Nerd Font Mono"
+#family = "InconsolataGo Nerd Font Mono"
+family = "MonoLisa"
 
 [[keyboard.bindings]]
 chars = "\u001B08"

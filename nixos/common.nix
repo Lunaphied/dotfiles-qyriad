@@ -22,6 +22,7 @@
 
 			allowed-users = [
 				"qyriad"
+				"lunaphied"
 			];
 		};
 
