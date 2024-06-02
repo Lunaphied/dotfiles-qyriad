@@ -8,7 +8,6 @@
 			url = "github:LnL7/nix-darwin";
 			inputs.nixpkgs.follows = "nixpkgs";
 		};
-		nur.url = "github:nix-community/NUR";
 		qyriad-nur = {
 			url = "github:Qyriad/nur-packages";
 			inputs.nixpkgs.follows = "nixpkgs";
@@ -23,22 +22,6 @@
 			url = "github:Qyriad/log2compdb";
 			inputs.nixpkgs.follows = "nixpkgs";
 			inputs.flake-utils.follows = "flake-utils";
-		};
-		caligula = {
-			url = "github:ifd3f/caligula";
-			inputs.nixpkgs.follows = "nixpkgs";
-			inputs.flake-utils.follows = "flake-utils";
-			inputs.rust-overlay.follows = "rust-overlay";
-			inputs.naersk.follows = "naersk";
-		};
-		rust-overlay = {
-			url = "github:oxalica/rust-overlay";
-			inputs.nixpkgs.follows = "nixpkgs";
-			inputs.flake-utils.follows = "flake-utils";
-		};
-		naersk = {
-			url = "github:nix-community/naersk";
-			inputs.nixpkgs.follows = "nixpkgs";
 		};
 		pzl = {
 			url = "github:Qyriad/pzl";
@@ -72,13 +55,13 @@
 		nixpkgs,
 		flake-utils,
 		nix-darwin,
-		nur,
 		...
 	}: let
-		inherit (nixpkgs.lib.attrsets) recursiveUpdate;
+		inherit (nixpkgs) lib;
+		inherit (lib.attrsets) recursiveUpdate;
 
 		qlib = import ./nixos/qlib.nix {
-			inherit (nixpkgs) lib;
+			inherit lib;
 		};
 
 		# Wraps nixpkgs.lib.nixosSystem to generate a NixOS configuration, adding common modules
@@ -89,31 +72,36 @@
 			# NixOS modules to add to this NixOS system configuration :: list
 			nixosModules: let
 
-				system' = nixpkgs.lib.systems.elaborate system;
+				system' = lib.systems.elaborate system;
+
+				flake-module = { ... }: {
+					nixpkgs.overlays = [ self.overlays.default ];
+
+					# Point "qyriad" to this here flake.
+					nix.registry.qyriad = {
+						from = { id = "qyriad"; type = "indirect"; };
+						flake = self;
+					};
+				};
 
 				# Use nixpkgs.lib.nixosSystem on Linux
 				mkConfigFn = {
-					linux = nixpkgs.lib.nixosSystem;
+					linux = lib.nixosSystem;
 					darwin = nix-darwin.lib.darwinSystem;
 				};
 
-				specialArgs = {
-					inherit inputs;
-					qyriad = recursiveUpdate self.outputs.packages.${system} self.outputs.lib;
-				};
-
 				modules = nixosModules ++ [
-					nur.nixosModules.nur
 					inputs.lix-module.nixosModules.default
+					flake-module
 				];
 
 			in mkConfigFn.${system'.parsed.kernel.name} {
-				inherit system specialArgs modules;
+				inherit system modules;
 			}
 		;
 
 		mkPerSystemOutputs = system: import ./nixos/per-system.nix {
-			inherit system inputs qlib;
+			inherit system inputs;
 		};
 
 		# Package outputs, which we want to define for multiple systems.
@@ -122,6 +110,18 @@
 		# NixOS configuration outputs, which are each for one specific system.
 		universalOutputs = {
 			lib = qlib;
+
+			overlays.default = import ./nixos/make-overlay.nix {
+				inherit (nixpkgs) lib;
+				inherit (inputs)
+					qyriad-nur
+					niz
+					log2compdb
+					pzl
+					git-point
+					xil
+				;
+			};
 
 			nixosConfigurations = rec {
 				futaba = mkConfig "x86_64-linux" [
@@ -143,10 +143,16 @@
 				#	./nixos/minimal.nix
 				#];
 			};
-			darwinConfigurations = {
+			darwinConfigurations = rec {
 				Aigis = mkConfig "aarch64-darwin" [
 					./nixos/darwin.nix
 				];
+				aigis = Aigis;
+
+				Keyleth = mkConfig "aarch64-darwin" [
+					./nixos/keyleth.nix
+				];
+				keyleth = Keyleth;
 			};
 
 			templates = {

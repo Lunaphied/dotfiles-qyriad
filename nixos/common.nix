@@ -1,9 +1,16 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, inputs, qyriad, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
 	# Configuration for things related to Nix itself.
 	nixpkgs.config.allowUnfree = true;
+	# Commented out because I don't want them by default, but they're handy.
+	#nixpkgs.config.showDerivationWarnings = [
+	#	"maintainerless"
+	#	"unknown-meta"
+	#	"broken-outputs"
+	#	"non-source"
+	#];
 	nix = {
 		settings = {
 			experimental-features = [ "nix-command" "flakes" ];
@@ -20,36 +27,15 @@
 
 			trusted-users = [
 				"root"
-			];
-
-			allowed-users = [
 				"qyriad"
 				"lunaphied"
 			];
-		};
 
-		#package = pkgs.nixVersions.unstable;
+			keep-outputs = true;
+			keep-derivations = true;
 
-		# Let me do things like `nix shell "qyriad#xonsh"`.
-		registry.qyriad = {
-			from = {
-				id = "qyriad";
-				type = "indirect";
-			};
-			flake = inputs.self;
+			repl-overlays = [ ../nix/repl-overlay.nix ];
 		};
-		# Pin nixpkgs.
-		registry.nixpkgs = {
-			from = {
-				id = "nixpkgs";
-				type = "indirect";
-			};
-			flake = inputs.nixpkgs;
-		};
-		nixPath = [
-			"nixpkgs=flake:nixpkgs"
-			"/nix/var/nix/profiles/per-user/root/channels"
-		];
 	};
 
 	time.timeZone = "America/Denver";
@@ -136,5 +122,6 @@
 		ranger
 		nix-output-monitor
 		qyriad.git-point
+		git-branchless
 	];
 }

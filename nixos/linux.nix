@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, lib, qyriad, ... }:
+{ config, pkgs, lib, ... }:
 
 {
 	# Bootloader.
@@ -132,7 +132,7 @@
 
 	programs.xonsh = {
 		enable = true;
-		package = qyriad.xonsh;
+		package = pkgs.qyriad.xonsh;
 	};
 
 	environment.sessionVariables = {
@@ -155,7 +155,7 @@
 	programs.command-not-found.enable = false;
 
 	services.udev.packages = [
-		qyriad.udev-rules
+		pkgs.qyriad.udev-rules
 	];
 
 	services.nixseparatedebuginfod.enable = true;
@@ -172,16 +172,15 @@
 		heh
 		sysstat
 		# apksigner dependency fails to build on macOS
-		# https://github.com/NixOS/nixpkgs/pull/307337
-		#(diffoscope.overrideAttrs {
-		#	doCheck = false;
-		#	dontUsePytestCheck = true;
-		#	dontUseSetuptoolsCheck = true;
-		#})
+		diffoscope
 		rpm
 		binutils
 		lsof
+		iotop
 		difftastic
 		qyriad.xonsh.python
+		qyriad.strace-with-colors
+		exfatprogs
+		caligula
 	];
 }

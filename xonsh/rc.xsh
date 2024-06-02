@@ -4,6 +4,7 @@ import zoneinfo
 from zoneinfo import ZoneInfo
 from pathlib import Path
 
+import xonsh
 from xonsh.events import events
 
 # These variables are set to lambdas, and are not exported to subprocesses
@@ -156,7 +157,7 @@ edit = lambda path : $EDITOR + ' ' + str(path)
 # "Edit tmux"
 aliases['et'] = edit(p'~/.config/tmux/tmux.conf')
 # "Edit vim"
-aliases['ev'] = f"{$EDITOR} -S ~/.config/Session-nvim.vim"
+aliases['ev'] = f"$EDITOR -S ~/.config/Session-nvim.vim"
 # "Edit alacritty"
 aliases['ea'] = edit(p'~/.config/alacritty/alacritty.yml')
 # "Edit xonsh"
@@ -166,7 +167,7 @@ aliases['ew'] = [$EDITOR, "-O", p"~/.config/wezterm/wezterm.lua", p"~/.config/we
 # "Source xonsh"
 aliases['sx'] = 'source ~/.config/xonsh/rc.xsh'
 # "Edit Nix"
-aliases['en'] = f"{$EDITOR} -S ~/.config/Session-nix.vim"
+aliases['en'] = f"$EDITOR -S ~/.config/Session-nix.vim"
 
 aliases['yt-dlp'] = 'yt-dlp --compat-options filename,format-spec,multistreams'
 
@@ -263,10 +264,13 @@ aliases['hyfetch'] = 'env SHELL=xonsh hyfetch'
 aliases['dedent'] = lambda args, stdin: textwrap.dedent(stdin.read())
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
+aliases['nopager'] = 'env PAGER=cat'
 
 
 aliases['cm'] = 'cmake -B build'
 aliases['cmb'] = 'cmake --build build'
+
+$YTDLP_YOUTUBE = '%(channel)s/%(upload_date>%Y-%m-%d,release_date>%Y-%m-%d)s - %(title)s [%(id)s].%(ext)s'
 
 xontrib load abbrevs
 if 'abbrevs' not in globals():
@@ -282,7 +286,7 @@ else:
 
 def _wine32(args):
 	overrides = {
-		'WINEPREFIX': f"{$HOME}/.wine32",
+		'WINEPREFIX': f"$HOME/.wine32",
 		'WINEARCH': 'win32',
 	}
 
@@ -450,7 +454,7 @@ aliases['nix-json-to-raw'] = [
 ]
 
 
-aliases['hlas'] = 'bat --paging never -l'
+aliases['hlas'] = 'bat --paging never --tabs=4 --style=plain -l'
 
 def _gac(name):
 	git cherry-pick -n @(name)
@@ -751,6 +755,23 @@ class ToZone:
 			raise TypeError()
 
 zone = ToZone
+
+class ShortcutAutovar:
+	def __init__(self, callback):
+		self.callback = callback
+		self.value = None
+
+	def __repr__(self):
+		self.value = self.callback()
+		return str(self.value)
+
+	def __getattr__(self, key):
+		return getattr(self.value, key)
+
+# Git dir
+from xonsh.prompt import gitstatus
+$gitd = ShortcutAutovar(lambda : Path($PROMPT_FIELDS['gitstatus.branch'].value).resolve())
+$gitb = ShortcutAutovar(xonsh.prompt.vc.current_branch)
 
 #$LIB = EnvPath([
 #	'/home/qyriad/.local/opt/xwin/crt/lib/x64/',
