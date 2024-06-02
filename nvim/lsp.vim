@@ -137,6 +137,10 @@ function on_lsp_attach(bufnr, client_id)
 		vim.keymap.set(mode, lhs, func, bufopts)
 	end
 
+	if client.server_capabilities.inlayHintProvider then
+		vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })	
+	end
+
 	if client.name == "clangd" then
 		vim.keymap.set("n", "<leader>sh", vim.cmd.ClangdSwitchSourceHeader)
 		require("clangd_extensions.inlay_hints").setup_autocmd()
@@ -273,14 +277,9 @@ use { 'nanotee/nvim-lsp-basics', lazy = true }
 use { 'weilbith/nvim-code-action-menu', lazy = true }
 use { 'tamago324/nlsp-settings.nvim', event = "LspAttach" }
 use {
-	'simrat39/rust-tools.nvim',
+	'mrcjkb/rustaceanvim',
 	ft = "rust",
-	opts = {
-		cmd = { "rust_analyzer" },
-		server = {
-			standalone = true,
-		},
-	},
+	lazy = false,
 }
 use { 'simrat39/symbols-outline.nvim', event = "LspAttach" }
 use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach" }

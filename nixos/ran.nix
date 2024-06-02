@@ -19,6 +19,8 @@
 
 	services.fwupd.enable = true;
 	services.tailscale.enable = true;
+	services.resolved.enable = true;
+	systemd.network.enable = true;
 
 	# Options from our custom NixOS module in ./resources.nix
 	resources = {
@@ -27,6 +29,10 @@
 	};
 
 	environment.systemPackages = [ pkgs.tailscale pkgs.cider ];
+
+	programs.steam.enable = true;
+
+	boot.kernelPackages = pkgs.linuxKernel.packages.linux_lqx;
 
 	# Non-NixOS-generated hardware configuration.
 	hardware.cpu.amd.updateMicrocode = true;
