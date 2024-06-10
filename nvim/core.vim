@@ -75,6 +75,14 @@ if hostname() =~? "^keyleth"
 endif
 
 
+lua << EOF
+
+if vim.g.neovide then
+	vim.o.guifont = "InconsolataGo Nerd Font:h12"
+end
+
+EOF
+
 """
 """ Core autocommands
 """

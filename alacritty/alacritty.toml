@@ -26,6 +26,7 @@ foreground = "0xeaeaea"
 
 [font.normal]
 family = "InconsolataGo Nerd Font Mono"
+#family = "Intel One Mono"
 
 [[keyboard.bindings]]
 chars = "\u001B08"

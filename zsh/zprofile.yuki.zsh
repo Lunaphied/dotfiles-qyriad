@@ -1,1 +1,1 @@
-export PATH="/home/qyriad/.config/bin:/home/qyriad/.local/bin:/home/qyriad/.local/share/cargo/bin:/home/qyriad/.dotnet:/home/qyriad/go/bin:$PATH"
+export PATH="/home/lunaphied/.config/bin:/home/lunaphied/.local/bin:/home/lunaphied/.local/share/cargo/bin:/home/lunaphied/.dotnet:/home/lunaphied/go/bin:$PATH"

@@ -142,6 +142,11 @@
 				#minimal-aarch64-linux = mkConfig "aarch64-linux" [
 				#	./nixos/minimal.nix
 				#];
+
+				lain = mkConfig "x86_64-linux" [
+					./nixos/lain.nix
+				];
+				Lain = lain;
 			};
 			darwinConfigurations = rec {
 				Aigis = mkConfig "aarch64-darwin" [

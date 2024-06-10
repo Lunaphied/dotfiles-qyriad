@@ -3,6 +3,7 @@
 { config, pkgs, ... }:
 
 {
+	/*
 	fileSystems = let
 		mountOpts = pkgs.qlib.genMountOpts {
 			# Try to automatically mount, but don't block boot on it.
@@ -30,7 +31,7 @@
 			fsType = "cifs";
 			options = [ mountOpts ];
 		};
-	};
+	};*/
 
 	# On Yuki this costs less than a GiB. Let's try it for now.
 	#environment.enableDebugInfo = true;
@@ -116,7 +117,6 @@
 	nixpkgs.config.permittedInsecurePackages = [
 		"electron-25.9.0" # For Obsidian
 	];
-
 
 	environment.systemPackages = with pkgs; [
 		alacritty

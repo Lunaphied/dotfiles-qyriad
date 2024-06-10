@@ -6,7 +6,6 @@
 	boot.loader = {
 		systemd-boot.enable = true;
 		efi.canTouchEfiVariables = true;
-		efi.efiSysMountPoint = "/boot/efi";
 	};
 
 	# Yes mount /tmp as a tmpfs.
@@ -104,6 +103,14 @@
 		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
 		shell = pkgs.zsh;
 	};
+
+	users.users.lunaphied = {
+		isNormalUser = true;
+		description = "Lunaphied";
+		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
+		shell = pkgs.zsh;
+	};
+
 	users.groups.plugdev = { };
 	users.groups.video = { };
 	users.groups.cdrom = { };
