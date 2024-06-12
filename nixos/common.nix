@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, ... }:
 
 {
 	# Configuration for things related to Nix itself.
@@ -70,6 +70,7 @@
 		cpio
 		curl
 		wget
+		progress
 		man-pages
 		man-pages-posix
 		stdmanpages
@@ -107,7 +108,6 @@
 		chars
 		zenith
 		git-imerge
-		python3Packages.jsondiff
 		pinfo
 		gron
 		git-series
@@ -123,5 +123,6 @@
 		nix-output-monitor
 		qyriad.git-point
 		git-branchless
+		btop
 	];
 }

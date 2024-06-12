@@ -178,9 +178,11 @@
 		lsof
 		iotop
 		difftastic
-		qyriad.xonsh.python
 		qyriad.strace-with-colors
+		ltrace
+		bpftrace
 		exfatprogs
 		caligula
+		trash-cli
 	];
 }

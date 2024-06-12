@@ -60,8 +60,14 @@ end
 
 local config = wezterm.config_builder()
 
-config.tab_bar_at_bottom = true
-config.use_fancy_tab_bar = true
+utils.table.merge(config, {
+	tab_bar_at_bottom = true,
+	use_fancy_tab_bar = true,
+	hide_tab_bar_if_only_one_tab = true,
+	use_ime = true,
+	log_unknown_escape_sequences = true,
+	alternate_buffer_wheel_scroll_speed = 5,
+})
 
 function format_tab_title(tab, tabs, panes, config, hover, max_width)
 	local title = utils.tab_title(tab)
@@ -88,31 +94,45 @@ end
 
 wezterm.on("format-tab-title", format_tab_title)
 
-config.default_prog = { "zsh", "--login", "-c", "exec xonsh" }
+wezterm.on('update-right-status', function(window, pane)
+	--local dt = wezterm.stftime('%Y-%m')
+	local display = wezterm.to_string
+	local dn = display(pane:get_domain_name())
+	local title = display(pane:get_title())
+	window:set_right_status(wezterm.format{
+		--{ Foreground = { AnsiColor = "magenta" } },
+		{ Text = string.format('%s | %s', display(pane), title)}
+	})
+end)
 
-config.font = wezterm.font_with_fallback(font_list)
-config.font_size = 13
-config.font_rules = {
-	{
-		intensity = "Bold",
-		font = wezterm.font_with_fallback(
-			font_list,
-			{
-				foreground = "#fffeff",
-				bold = true,
-			}
-		)
-	}
-}
+utils.table.merge(config, {
+	default_prog = { "zsh", "--login", "-c", "exec xonsh" },
+	font = wezterm.font_with_fallback(font_list),
+	font_size = 11.5,
+	font_rules = {
+		{
+			intensity = "Bold",
+			font = wezterm.font_with_fallback(
+				font_list,
+				{
+					foreground = "#fffeff",
+					bold = true,
+				}
+			)
+		},
+	},
+	bold_brightens_ansi_colors = "BrightAndBold"
+})
 
-config.bold_brightens_ansi_colors = "BrightAndBold"
 
 
 -- Multiplexing.
-config.unix_domains = {
-	{ name = "unix" },
-}
-config.default_gui_startup_args = { "connect", "unix" }
+--config.unix_domains = {
+--	{ name = "unix" },
+--}
+--config.default_gui_startup_args = { "connect", "unix" }
+--config.default_gui_startup_args = { "connect", "SSHMUX:localhost" }
+config.default_domain = "local"
 
 ssh_domain_overrides = {
 	["SSHMUX:yuki"] = {
@@ -135,74 +155,79 @@ for _, domain in ipairs(config.ssh_domains) do
 end
 
 -- Main keybindings. Set up to act kind of like our tmux config.
-config.leader = {
-	key = "`"
-}
+--config.leader = {
+--	key = "`"
+--}
 
 config.keys = {
-	-- Equivalent to `bind-key -T prefix "`" send-prefix`
-	bind_leader("`", wezterm.action.SendString("`")),
-
-	-- Equivalent to `bind-key -T prefix '"' split-window -v`
-	-- domain = "CurrentPaneDomain" is the default.
-	bind_leader('"', wezterm.action.SplitVertical { }, "SHIFT"),
-
-	-- Equivalent to `bind-key -T prefix "%" split-window -h`
-	bind_leader("%", wezterm.action.SplitHorizontal { }, "SHIFT"),
-
-	-- Equivalent to `bind-key -T prefix "c" new-window
-	bind_leader("c", wezterm.action.SpawnTab("CurrentPaneDomain")),
-
-	-- Equivalent to `bind-key -T prefix "n" next-window
-	bind_leader("n", wezterm.action.ActivateTabRelative(1)),
-
-	-- Equivalent to `bind-key -T prefix "p" previous-window
-	bind_leader("p", wezterm.action.ActivateTabRelative(-1)),
-
-	-- Equivalent to bind-key -T prefix "x" confirm-before -p "kill-pane #P? (y-n) kill-pane"
-	bind_leader("x", wezterm.action.CloseCurrentPane { confirm = true }),
-
-	-- Equivalent to bind-key -T prefix "h" select-pane -L
-	bind_leader("h", wezterm.action.ActivatePaneDirection("Left")),
-
-	-- Equivalent to bind-key -T prefix "j" select-pane -D
-	bind_leader("j", wezterm.action.ActivatePaneDirection("Down")),
-
-	-- Equivalent to bind-key -T prefix "k" select-pane -U
-	bind_leader("k", wezterm.action.ActivatePaneDirection("Up")),
-
-	-- Equivalent to bind-key -T prefix "l" select-pane -L
-	bind_leader("l", wezterm.action.ActivatePaneDirection("Right")),
-
-	-- Equivalent to `bind-key -T prefix "-" select-window -l`
-	bind_leader("-", wezterm.action.ActivateLastTab),
-
-	-- Equivalent to `bind-key -T prefix "z" resize-pane -Z`
-	bind_leader("z", wezterm.action.TogglePaneZoomState),
-
-	-- Equivalent to `bind-key -T prefix "[" copy-mode`
-	bind_leader("[", wezterm.action.ActivateCopyMode),
-
-	bind_leader("d", wezterm.action.DetachDomain "CurrentPaneDomain"),
-
-	bind_leader(":", wezterm.action.ActivateCommandPalette),
-	bind_leader(";", wezterm.action.ActivateCommandPalette),
-
-	bind_leader("1", wezterm.action.ActivateTab(0)),
-	bind_leader("2", wezterm.action.ActivateTab(1)),
-	bind_leader("3", wezterm.action.ActivateTab(2)),
-	bind_leader("4", wezterm.action.ActivateTab(3)),
-	bind_leader("5", wezterm.action.ActivateTab(4)),
-	bind_leader("6", wezterm.action.ActivateTab(5)),
-	bind_leader("7", wezterm.action.ActivateTab(6)),
-	bind_leader("8", wezterm.action.ActivateTab(7)),
-	bind_leader("9", wezterm.action.ActivateTab(8)),
-	bind_leader("0", wezterm.action.ActivateTab(0)),
+	---- Equivalent to `bind-key -T prefix "`" send-prefix`
+	--bind_leader("`", wezterm.action.SendString("`")),
+	--
+	---- Equivalent to `bind-key -T prefix '"' split-window -v`
+	---- domain = "CurrentPaneDomain" is the default.
+	--bind_leader('"', wezterm.action.SplitVertical { }, "SHIFT"),
+	--
+	---- Equivalent to `bind-key -T prefix "%" split-window -h`
+	--bind_leader("%", wezterm.action.SplitHorizontal { }, "SHIFT"),
+	--
+	---- Equivalent to `bind-key -T prefix "c" new-window
+	--bind_leader("c", wezterm.action.SpawnTab("CurrentPaneDomain")),
+	--
+	---- Equivalent to `bind-key -T prefix "n" next-window
+	--bind_leader("n", wezterm.action.ActivateTabRelative(1)),
+	--
+	---- Equivalent to `bind-key -T prefix "p" previous-window
+	--bind_leader("p", wezterm.action.ActivateTabRelative(-1)),
+	--
+	---- Equivalent to bind-key -T prefix "x" confirm-before -p "kill-pane #P? (y-n) kill-pane"
+	--bind_leader("x", wezterm.action.CloseCurrentPane { confirm = true }),
+	--
+	---- Equivalent to bind-key -T prefix "h" select-pane -L
+	--bind_leader("h", wezterm.action.ActivatePaneDirection("Left")),
+	--
+	---- Equivalent to bind-key -T prefix "j" select-pane -D
+	--bind_leader("j", wezterm.action.ActivatePaneDirection("Down")),
+	--
+	---- Equivalent to bind-key -T prefix "k" select-pane -U
+	--bind_leader("k", wezterm.action.ActivatePaneDirection("Up")),
+	--
+	---- Equivalent to bind-key -T prefix "l" select-pane -L
+	--bind_leader("l", wezterm.action.ActivatePaneDirection("Right")),
+	--
+	---- Equivalent to `bind-key -T prefix "-" select-window -l`
+	--bind_leader("-", wezterm.action.ActivateLastTab),
+	--
+	---- Equivalent to `bind-key -T prefix "z" resize-pane -Z`
+	--bind_leader("z", wezterm.action.TogglePaneZoomState),
+	--
+	---- Equivalent to `bind-key -T prefix "[" copy-mode`
+	--bind_leader("[", wezterm.action.ActivateCopyMode),
+	--
+	--bind_leader("d", wezterm.action.DetachDomain "CurrentPaneDomain"),
+	--
+	--bind_leader(":", wezterm.action.ActivateCommandPalette),
+	--bind_leader(";", wezterm.action.ActivateCommandPalette),
+	--
+	--bind_leader("1", wezterm.action.ActivateTab(0)),
+	--bind_leader("2", wezterm.action.ActivateTab(1)),
+	--bind_leader("3", wezterm.action.ActivateTab(2)),
+	--bind_leader("4", wezterm.action.ActivateTab(3)),
+	--bind_leader("5", wezterm.action.ActivateTab(4)),
+	--bind_leader("6", wezterm.action.ActivateTab(5)),
+	--bind_leader("7", wezterm.action.ActivateTab(6)),
+	--bind_leader("8", wezterm.action.ActivateTab(7)),
+	--bind_leader("9", wezterm.action.ActivateTab(8)),
+	--bind_leader("0", wezterm.action.ActivateTab(0)),
 
 	bind_os("c", wezterm.action.CopyTo("Clipboard"), { ctrl_shift = true }),
 	bind_os("v", wezterm.action.PasteFrom("Clipboard"), { ctrl_shift = true }),
 
 	bind_os("-", wezterm.action.DecreaseFontSize),
+}
+
+config.key_tables = { }
+
+config.key_tables.copy_mode = {
 }
 
 config.mouse_bindings = {
@@ -247,7 +272,7 @@ config.colors = {
 }
 
 wezterm.on("mux-is-process-stateful", function(process)
-	is_xonsh = process.argv[1] == "xonsh"
+	local is_xonsh = process.argv[1] == "xonsh"
 	if is_xonsh then
 		return false
 	end

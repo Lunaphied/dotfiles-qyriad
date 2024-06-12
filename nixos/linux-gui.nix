@@ -142,6 +142,7 @@
 		ffmpeg
 		aegisub
 		cifs-utils
+		nfs-utils
 		ntfs3g
 		sequoia
 		sioyek
