@@ -184,5 +184,6 @@
 		exfatprogs
 		caligula
 		trash-cli
+		socat
 	];
 }

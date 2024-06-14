@@ -68,6 +68,19 @@
 			inherit lib;
 		};
 
+		/** NixOS module for configs defined in this flake.
+		 This is the only module that relies on flakeyness directly.
+		*/
+		flake-module = { ... }: {
+			nixpkgs.overlays = [ self.overlays.default ];
+
+			# Point "qyriad" to this here flake.
+			nix.registry.qyriad = {
+				from = { id = "qyriad"; type = "indirect"; };
+				flake = self;
+			};
+		};
+
 		# Wraps nixpkgs.lib.nixosSystem to generate a NixOS configuration, adding common modules
 		# and special arguments.
 		mkConfig =
@@ -78,19 +91,9 @@
 
 				system' = lib.systems.elaborate system;
 
-				flake-module = { ... }: {
-					nixpkgs.overlays = [ self.overlays.default ];
-
-					# Point "qyriad" to this here flake.
-					nix.registry.qyriad = {
-						from = { id = "qyriad"; type = "indirect"; };
-						flake = self;
-					};
-				};
-
 				# Use nixpkgs.lib.nixosSystem on Linux
 				mkConfigFn = {
-					linux = lib.nixosSystem;
+					linux = nixpkgs.lib.nixosSystem;
 					darwin = nix-darwin.lib.darwinSystem;
 				};
 
@@ -104,12 +107,22 @@
 			}
 		;
 
-		mkPerSystemOutputs = system: import ./nixos/per-system.nix {
-			inherit system inputs;
-		};
-
 		# Package outputs, which we want to define for multiple systems.
-		perSystemOutputs = flake-utils.lib.eachDefaultSystem mkPerSystemOutputs;
+		perSystemOutputs = flake-utils.lib.eachDefaultSystem (system: let
+			pkgs = import nixpkgs {
+				inherit system;
+				overlays = [ self.overlays.default ];
+			};
+			filterDerivations = lib.filterAttrs (lib.const lib.isDerivation);
+		in {
+			# This flake's packages output is just a re-export of the stuff
+			# our overlay adds.
+			packages = filterDerivations pkgs.qyriad;
+			# Truly dirty hack. This will let us transparently refer to overriden
+			# or not overriden packages in nixpkgs, as flake.packages.foo is preferred over
+			# flake.legacyPackages.foo by commands like `nix build`.
+			legacyPackages = pkgs;
+		});
 
 		# NixOS configuration outputs, which are each for one specific system.
 		universalOutputs = {
