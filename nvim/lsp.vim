@@ -138,13 +138,13 @@ function on_lsp_attach(bufnr, client_id)
 	end
 
 	if client.server_capabilities.inlayHintProvider then
-		vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })	
+		vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 	end
 
 	if client.name == "clangd" then
 		vim.keymap.set("n", "<leader>sh", vim.cmd.ClangdSwitchSourceHeader)
-		require("clangd_extensions.inlay_hints").setup_autocmd()
-		require("clangd_extensions.inlay_hints").set_inlay_hints()
+		--require("clangd_extensions.inlay_hints").setup_autocmd()
+		--require("clangd_extensions.inlay_hints").set_inlay_hints()
 	end
 
 	if client.name == 'nil_ls' then
@@ -207,6 +207,12 @@ vim.g.coq_settings = {
 	},
 }
 
+--vim.g.rustaceanvim = {
+--	server = {
+--		on_attach = on_lsp_attach,
+--	},
+--}
+
 function client_by_name(name)
 	if type(name) ~= "string" then
 		error("client_by_name(name): name must be a string")
@@ -255,6 +261,15 @@ use {
 		lspconfig = require("lspconfig")
 	end,
 }
+--use {
+--  "j-hui/fidget.nvim",
+--  opts = {
+--	notification = {
+--		override_vim_notify = true,
+--	},
+--  },
+--  priority = 60,
+--}
 use {
 	'rcarriga/nvim-notify',
 	config = function()
@@ -278,8 +293,8 @@ use { 'weilbith/nvim-code-action-menu', lazy = true }
 use { 'tamago324/nlsp-settings.nvim', event = "LspAttach" }
 use {
 	'mrcjkb/rustaceanvim',
-	ft = "rust",
 	lazy = false,
+	version = "^4",
 }
 use { 'simrat39/symbols-outline.nvim', event = "LspAttach" }
 use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach" }

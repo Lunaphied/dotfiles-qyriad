@@ -185,5 +185,8 @@
 		caligula
 		trash-cli
 		socat
+		glasgow
 	];
+
+	hardware.glasgow.enable = true;
 }

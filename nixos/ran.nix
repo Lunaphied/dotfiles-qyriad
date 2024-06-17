@@ -17,6 +17,9 @@
 	nixpkgs.config.allowUnfree = true;
 	
 
+	hardware.bluetooth.enable = true;
+	hardware.enableAllFirmware = true;
+
 	services.fwupd.enable = true;
 	services.tailscale.enable = true;
 	services.resolved.enable = true;
@@ -31,8 +34,12 @@
 	environment.systemPackages = [ pkgs.tailscale pkgs.cider ];
 
 	programs.steam.enable = true;
+	services.hardware.openrgb.enable = true;
+	
 
 	boot.kernelPackages = pkgs.linuxKernel.packages.linux_lqx;
+	# Needed for RGB RAM to be visible to OpenRGB, but maybe breaks sleep entirely oops.
+	#boot.kernelParams = [ "acpi_enforce_resources=lax" ];
 
 	# Non-NixOS-generated hardware configuration.
 	hardware.cpu.amd.updateMicrocode = true;

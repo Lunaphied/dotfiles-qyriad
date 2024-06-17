@@ -83,7 +83,7 @@
 [url "ssh://git@github.com"]
 	pushInsteadOf = "https://github.com"
 [git-extras "get"]
-	clone-path = /Users/lunaphied/code/builds
+	clone-path = /home/lunaphied/code/builds
 [rerere]
 	enabled = true
 [log]

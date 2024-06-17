@@ -27,7 +27,8 @@ use {
 	priority = 100,
 }
 use "gko/vim-coloresque"
-use "luochen1990/rainbow"
+--use "luochen1990/rainbow"
+use 'hiphish/rainbow-delimiters.nvim'
 -- Briefly highlight text that changes during an undo or redo.
 use {
 	"tzachar/highlight-undo.nvim",
