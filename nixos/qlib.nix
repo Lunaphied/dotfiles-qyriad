@@ -8,6 +8,11 @@
 }:
 
 let
+
+	trimString = str: let
+		result = builtins.match "[[:space:]]*(.*[^[:space:]])[[:space:]]*";
+	in lib.optionalString (result != null) (lib.head result);
+
 	# This gets used in linux-gui.nix
 	mkDebug = pkg: (pkg.overrideAttrs { separateDebugInfo = true; }).debug;
 	mkDebugForEach = map mkDebug;
@@ -72,6 +77,16 @@ let
 			lib.listToAttrs (lib.forEach list (drv: { name = drv.pname or drv.name; value = drv; }))
 	;
 
+	/** Like lib.genAttrs, but allows the name to be changed. */
+	genAttrs' =
+		list:
+		mkPair:
+		lib.listToAttrs (lib.concatMap (name: [ (mkPair name) ]) list);
+
+	removeAttrs' = lib.flip builtins.removeAttrs;
+
+	cleanMeta = removeAttrs' [ "maintainers" "platforms" ];
+
 in {
 	inherit
 		mkDebug
@@ -82,5 +97,8 @@ in {
 		getPythonAttrs
 		genMountOpts
 		drvListByName
+		genAttrs'
+		cleanMeta
+		trimString
 	;
 }
