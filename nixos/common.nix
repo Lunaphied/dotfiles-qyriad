@@ -66,6 +66,7 @@
 		unzip
 		xz
 		zstd
+		pv
 		unrar
 		cpio
 		curl
@@ -126,5 +127,8 @@
 		btop
 		numbat
 		dust
+		gdu
+		hwatch
+		litecli
 	];
 }
