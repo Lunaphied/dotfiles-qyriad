@@ -153,6 +153,9 @@
 		pkgs.qyriad.udev-rules
 	];
 
+	# Let us use our yubikey with age.
+	services.pcscd.enable = true;
+
 	services.nixseparatedebuginfod.enable = true;
 
 	# Other packages we want available on Linux systems.
@@ -180,5 +183,9 @@
 		caligula
 		trash-cli
 		socat
+		# Let us use our yubikey with age.
+		age-plugin-yubikey
+		yubikey-manager
+		systeroid
 	];
 }

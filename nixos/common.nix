@@ -128,5 +128,7 @@
 		gdu
 		hwatch
 		litecli
+		fcp
+		mediainfo
 	];
 }
