@@ -23,7 +23,10 @@
 	services.fwupd.enable = true;
 	services.tailscale.enable = true;
 	services.resolved.enable = true;
+
 	systemd.network.enable = true;
+	networking.useNetworkd = true;
+
 
 	# Options from our custom NixOS module in ./resources.nix
 	resources = {
@@ -31,9 +34,11 @@
 		cpus = 32;
 	};
 
-	environment.systemPackages = [ pkgs.tailscale pkgs.cider ];
+	environment.systemPackages = [ pkgs.tailscale pkgs.cider pkgs.google-chrome ];
 
 	programs.steam.enable = true;
+	programs.steam.gamescopeSession.enable = true;
+	programs.gamescope.enable = true;
 	services.hardware.openrgb.enable = true;
 	
 

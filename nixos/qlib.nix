@@ -17,6 +17,38 @@ let
 	mkDebug = pkg: (pkg.overrideAttrs { separateDebugInfo = true; }).debug;
 	mkDebugForEach = map mkDebug;
 
+	/** This basically doesn't work yet. But its here to save our WIP state. */
+	flakeInputToUrl = { type, ... } @ input: let
+		mkFromGithub = { type, owner, repo, rev, ... }:
+			assert type == "github";
+			"https://github.com/${owner}/${repo}/archive/${rev}.tar.gz";
+		mkFromGit = { type, url, rev, ... }:
+			assert type == "git";
+			url;
+
+		typeMap = {
+			github = mkFromGithub;
+			git = mkFromGit;
+		};
+	in
+		typeMap.${type} input;
+
+	#getFlakeInputs = lockJson: let
+
+	/** Fallable alternative to <nixpkgs> syntax.
+	 * Returns the path if found, or null if not.
+	*/
+	tryLookupPath = lookupPath: let
+		# This covers both pure evaluation mode and the path not being in nixPath.
+		tried = builtins.tryEval (
+			builtins.findFile builtins.nixPath lookupPath
+		);
+	in if tried.success then tried.value else null;
+
+	lookupPathOr = lookupPath: fallback: let
+		tried = tryLookupPath lookupPath;
+	in if tried != null then tried else fallback;
+
 	overrideStdenvForDrv = newStdenv: drv:
 		newStdenv.mkDerivation (drv.overrideAttrs (self: { passthru.attrs = self; })).attrs
 	;
@@ -56,17 +88,30 @@ let
 				overriden.__attrs
 	;
 
+	/** Assumes that your overrides compose in any order. Which is *probably* true. */
+	mkOverrides = overrideSets: pkg: let
+		folder = acc: overrider: overrideArgs: let
+			overrideFn = acc.${overrider} or (throw "package ${pkg.name} does not an override method '${overrider}'");
+		in overrideFn overrideArgs;
+	in lib.foldlAttrs folder pkg overrideSets;
+
+	/**
+	Generate a suitable for passing to `mount -o` or the fs_mntops field of fstab entries
+	from a structured representation of the options.
+
+	Each option accepted by `mount -o`/fs_mntops is either a single keyword,
+	*/
 	genMountOpts =
-		# `null` values are interpreted as singleton option names, like `noauto`.
+		# `null` values are interpreted as keyword option names, like `noauto`.
 		optionsAttrs: let
-			singletonOrIni = name: value:
+			keywordOrIni = name: value:
 				if isNull value
 				then name
 				else "${name}=${toString value}"
 			;
 		in
 			lib.pipe optionsAttrs [
-				(lib.mapAttrsToList singletonOrIni)
+				(lib.mapAttrsToList keywordOrIni)
 				(lib.concatStringsSep ",")
 			]
 	;
@@ -85,7 +130,93 @@ let
 
 	removeAttrs' = lib.flip builtins.removeAttrs;
 
-	cleanMeta = removeAttrs' [ "maintainers" "platforms" ];
+	# TODO: map meta.license to (map (getAttr meta.license.shortName)) or something.
+	cleanMeta = removeAttrs' [ "maintainers" "platforms" "license" ];
+
+	/** Gives a nice overview of a derivation's attributes that aren't details for building
+	 * said derivation.
+	 */
+	nonDrvAttrs = drv: let
+		# name, pname, and version are included in `drvAttrs`, but they're useful.
+		# And `outputs` is handy since it can subtly change a lot of behavior.
+		toKeep = [ "name" "pname" "version" "outputs" ];
+		inDrvAttrsToRemove = let
+			initialAcc = lib.attrNames drv.drvAttrs;
+			# A little counter-intuitive. We're building the list of names to remove from
+			# the derivation attrset, and we want to *keep* some attrs, so we need to remove
+			# the names we want to keep from the list of attrs to remove. lol.
+		in lib.foldl' (acc: elemToKeep: lib.lists.remove elemToKeep acc) initialAcc toKeep;
+
+		# These ones aren't included in `drvAttrs`, but we still want to remove them.
+		allDrvAttrs = [
+			"type"
+			"outPath"
+			"drvPath"
+			"drvAttrs" # We also want to remove drvAttrs itself.
+		] ++ inDrvAttrsToRemove;
+
+	in (removeAttrs' allDrvAttrs drv) // {
+		# This really is highly specific to us, but these meta attrs just take too much screen output.
+		# If I want it, I'll ask for it.
+		meta = cleanMeta (drv.meta or { });
+	};
+
+
+	/** Partial application for lambdas with formals!
+	 * Why isn't this in nixpkgs lib…?
+	*/
+	partial = partialArgs: fn: {
+		__functor = self: fnArgs: fn (fnArgs // partialArgs);
+		# Hurray for lib.functionArgs using __functionArgs for functors.
+		__functionArgs = removeAttrs' (lib.attrNames partialArgs) (lib.functionArgs fn);
+	};
+
+
+	/** Like nixpkgs.lib.nixosSystem, but doesn't assume it's being called
+	from a flake.
+	*/
+	nixosSystem = {
+		nixpkgs ? <nixpkgs>,
+		system ? builtins.currentSystem or null,
+		configuration,
+	}: let
+		nixos = nixpkgs + "/nixos";
+	in import nixos {
+		inherit system configuration;
+	};
+
+	evalNixos = {
+		nixpkgs ? <nixpkgs>,
+		system ? builtins.currentSystem or null,
+		modules,
+	}: let
+		nixos = nixpkgs + "/nixos";
+		eval-config = nixos + "/lib/eval-config.nix";
+	in import eval-config {
+		inherit system modules;
+	};
+
+	/** Like nix-darwin.lib.darwinSystem, but doesn't assume it's being called
+	from a flake.
+	*/
+	darwinSystem = {
+		nixpkgs ? <nixpkgs>,
+		nix-darwin ? lookupPathOr "nix-darwin" (fetchGit "https://github.com/LnL7/nix-darwin"),
+		system ? builtins.currentSystem or null,
+		configuration,
+	}: import nix-darwin {
+		inherit nixpkgs system configuration;
+	};
+
+	evalDarwin = {
+		nix-darwin ? lookupPathOr "nix-darwin" (fetchGit "https://github.com/LnL7/nix-darwin"),
+		system ? builtins.currentSystem or null,
+		modules,
+	}: let
+		eval-config = nix-darwin + "/eval-config.nix";
+	in import eval-config {
+		inherit system modules;
+	};
 
 in {
 	inherit
@@ -97,8 +228,16 @@ in {
 		getPythonAttrs
 		genMountOpts
 		drvListByName
+		flakeInputToUrl
 		genAttrs'
 		cleanMeta
+		nonDrvAttrs
 		trimString
+		partial
+		nixosSystem
+		evalNixos
+		darwinSystem
+		evalDarwin
+		mkOverrides
 	;
 }

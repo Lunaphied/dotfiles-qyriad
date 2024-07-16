@@ -18,6 +18,7 @@
 	'';
 
 	systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
+	systemd.network.wait-online.enable = lib.mkForce false;
 
 	systemd.slices.system-builder.sliceConfig = config.resources.builderSliceConfig;
 	systemd.user.slices.user-builder.sliceConfig = config.resources.builderSliceConfig;
@@ -175,7 +176,7 @@
 		heh
 		sysstat
 		# apksigner dependency fails to build on macOS
-		diffoscope
+		#diffoscope # Broken (again) in Nixpkgs. Check back later.
 		rpm
 		binutils
 		lsof
@@ -193,7 +194,7 @@
 		yubikey-manager
 		systeroid
 		glasgow
-	];
+	] ++ config.systemd.packages; # I want system services to also be in /run/current-system please.
 
 	hardware.glasgow.enable = true;
 }

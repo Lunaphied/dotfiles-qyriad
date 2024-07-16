@@ -26,6 +26,7 @@ if exists('g:tagbar_sort')
 	unlet g:tagbar_sort
 endif
 
+nnoremap <leader>gr <Cmd>Telescope lsp_references<CR>
 
 lua << EOF
 
@@ -193,7 +194,8 @@ vim.g.coq_settings = {
 	clients = {
 		snippets = {
 			-- Disable warnings about snippets.
-			warn = { }
+			warn = { },
+			enabled = false,
 		},
 		buffers = {
 			enabled = false,

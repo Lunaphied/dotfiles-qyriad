@@ -30,6 +30,11 @@
 		"sg"
 	];
 
+	environment.enableDebugInfo = true;
+	environment.extraOutputsToInstall = [
+		"dev"
+	];
+
 	services.freshrss = {
 	};
 
@@ -74,6 +79,7 @@
 
 	environment.systemPackages = with pkgs; [
 		makemkv
+		valgrind
 	];
 
 	# This value determines the NixOS release from which the default

@@ -35,16 +35,8 @@
 	};
 */
 
-	# On Yuki this costs less than a GiB. Let's try it for now.
-	#environment.enableDebugInfo = true;
-	#environment.extraOutputsToInstall = [
-	#	"dev"
-	#];
-
 
 	# Enable GUI stuff.
-	# Yes this says xserver. Yes this we're using Wayland. That's correct.
-	# https://github.com/NixOS/nixpkgs/issues/94799
 	services.displayManager = {
 		sddm.enable = true;
 		sddm.autoNumlock = true;
@@ -130,7 +122,7 @@
 		ksshaskpass
 		opera
 		obsidian
-		discord
+		vesktop
 		calibre
 		kicad
 		krita
@@ -163,10 +155,15 @@
 		darling
 		glibc.debug
 		qt6.qtbase
-		qemu_full
-		qemu-utils
+		# Broken after the Python 3.12 migration for some reason. Check back later.
+		#qemu_full
+		#qemu-utils
 		xorg.xlsclients
 		kooha
+		waypipe
+		wayvnc
+		wev
+		seer
 	];
 
 	# GUI programs with NixOS modules that we can enable, instead of using environment.systemPackages.
