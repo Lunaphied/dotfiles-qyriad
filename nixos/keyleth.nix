@@ -18,5 +18,11 @@
     qyriad.xil
     qyriad.niz
     qyriad.git-point
+    nixpkgs-review
+    nixfmt-rfc-style
+    nil
+    nix-output-monitor
+    nix-index
+    rustup
   ];
 }

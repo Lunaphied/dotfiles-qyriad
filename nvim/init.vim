@@ -67,16 +67,6 @@ nnoremap ]g <Cmd>lua gitsigns.next_hunk({ preview = true })<CR>
 nnoremap [g <Cmd>lua gitsigns.prev_hunk({ preview = true })<CR>
 nnoremap gs <Cmd>lua gitsigns.preview_hunk()<CR>
 
-
-function CopyOnWrite() abort
-	augroup CopyFile
-		" Yank the entire file into "+
-		autocmd! BufWritePost <buffer> silent %yank +
-	augroup END
-endfunction
-
-command! CopyOnWrite call CopyOnWrite()
-
 lua << EOF
 -- Highlight the cursor's column, briefly
 vim.keymap.set("n", "<leader>hh", function()
@@ -293,6 +283,9 @@ lazy.setup(plugin_spec, {
 		colorscheme = { "solorized8_grey" },
 	},
 })
+
+-- Let us use :Lazy commands right after startup, like for `nvim -c`.
+require('lazy.view.commands').setup()
 
 -- With the below autocommand, will record Neovim's startup time.
 --function record()

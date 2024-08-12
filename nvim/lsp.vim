@@ -14,6 +14,13 @@ endfunction
 
 set completeopt=menu,menuone,preview,noselect,noinsert
 
+inoremap <expr> <tab> pumvisible() ? "\<C-n>" : "\<tab>"
+inoremap <expr> <S-tab> pumvisible() ? "\<C-p>" : "\<S-tab>"
+" Hm, Eunich is messing this up
+inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+inoremap <C-Space> <C-x><C-o>
+"inoremap <expr> <C-e> pumvisible() ? "\<C-e>" : v:lua.close_all_float()
+
 nnoremap <leader><BS> <Cmd>:pclose<CR>
 nnoremap <leader>xx :Trouble <C-i>
 nnoremap <leader>xc <Cmd>TroubleToggle<CR>
@@ -28,19 +35,80 @@ endif
 
 nnoremap <leader>gr <Cmd>Telescope lsp_references<CR>
 
+function! JumpDeclaration() abort
+	if exists('b:lsp_client')
+		call v:lua.vim.lsp.buf.declaration()
+	elseif !empty(taglist(expand('<cword>')))
+		echo "jumped to tag"
+		normal! g
+	else
+		normal! gD
+	endif
+endfunction
+
+function! JumpDefinition() abort
+	if exists('b:lsp_client')
+		call v:lua.vim.lsp.buf.definition()
+	elseif !empty(taglist(expand('<cword>')))
+		echo "jumped to tag"
+		normal! g
+	else
+		normal! gD
+	endif
+endfunction
+
+nnoremap gD <Cmd>call JumpDeclaration()<CR>
+nnoremap gd <Cmd>call JumpDefinition()<CR>
+nnoremap K <Cmd>call v:lua.vim.lsp.buf.hover()<CR>
+nnoremap <CR> <Cmd>call v:lua.vim.lsp.buf.hover()<CR>
+nnoremap gi <Cmd>Telescope lsp_implementations<CR>
+inoremap <C-k> <Cmd>call v:lua.vim.lsp.buf.signature_help()<CR>
+"lua vim.keymap.set('i', '<C-k>', vim.lsp.buf.signature_help)
+nnoremap <leader>D <Cmd>Telescope lsp_type_definitions<CR>
+nnoremap <leader>a <Cmd>call v:lua.vim.lsp.buf.code_action()<CR>
+nnoremap <leader>tw <Cmd>Telescope lsp_dynamic_workspace_symbols<CR>
+nnoremap <leader>e <Cmd>call v:lua.vim.diagnostic.open_float()<CR>
+nnoremap <leader>td <Cmd>Telescope diagnostics<CR>
+nnoremap <leader>tr <Cmd>Telescope lsp_references<CR>
+nnoremap [d <Cmd>call v:lua.diagnostic.goto_prev()<CR>
+nnoremap ]d <Cmd>call v:lua.diagnostic.goto_next()<CR>
+nnoremap <leader>h <Cmd>v:lua.lsp.buf.document_highlight()<CR>
+nnoremap <leader>c <Cmd>v:lua.lsp.buf.clear_references()<CR>
+nnoremap <leader>sh <Cmd>ClangdSwitchSourceHeader<CR>
+
 lua << EOF
 
+function close_all_float()
+	local wins = vim.api.nvim_list_wins()
+	for _, winid in ipairs(wins) do
+		local win = vim.api.nvim_win_get_config(winid)
+		if win.relative ~= "" then
+			vim.api.nvim_win_close(winid, false)
+		end
+	end
+end
+
+vim.keymap.set('i', '<C-f>', close_all_float)
+
 vim.lsp.log = require('vim.lsp.log')
+vim.lsp.protocol = require('vim.lsp.protocol')
 function lsp_format(...)
 	return ...
 end
 vim.lsp.log.set_format_func(lsp_format)
+
+-- We are using lsp_lines for virtual text instead.
+vim.diagnostic.config {
+	virtual_text = false,
+	virtal_lines = false,
+}
 
 lsp_filetypes = {
 	"vim",
 	"c",
 	"cpp",
 	"rust",
+	"zig",
 	"python",
 	"swift",
 	"java",
@@ -51,7 +119,25 @@ lsp_filetypes = {
 	"nix",
 }
 
-lsp_opts = { }
+lsp_opts = {
+	clangd = {
+		trace = {
+			server = "verbose"
+		},
+		cmd = {
+			"clangd",
+			"--rename-file-limit=100",
+		},
+	},
+	lua_ls = {
+		diagnostics = {
+			globals = { 'vim' },
+		},
+		workspace = {
+			library = vim.api.nvim_get_runtime_file("", true),
+		},
+	},
+}
 
 lspconfig_modules = {
 	vim = "vimls",
@@ -61,10 +147,13 @@ lspconfig_modules = {
 	java = "jdtls",
 	html = "html",
 	swift = "sourcekit",
-	javascript = "tsserver",
-	typescript = "tsserver",
+	--javascript = "tsserver",
+	--typescript = "tsserver",
+	javascript = "denols",
+	typescript = "denols",
 	lua = "lua_ls",
 	nix = "nil_ls",
+	zig = "zls",
 }
 
 -- Create autocommands to call setup() on the corresponding module when that filetype is detected.
@@ -83,14 +172,6 @@ for i, filetype in ipairs(lsp_filetypes) do
 					-- TODO: allow server-specific config.
 					vim.notify("lspconfig." .. submodule_name .. ".setup()", vim.log.levels.TRACE)
 					local opts = lsp_opts[submodule_name] or {}
-					opts.capabilities = require("coq").lsp_ensure_capabilities({})
-					opts.capabilities.textDocument = {
-						completion = {
-							completionItem = {
-								snippetSupport = false,
-							},
-						},
-					}
 					submodule.setup(opts)
 				end
 			end
@@ -106,47 +187,10 @@ end
 
 function on_lsp_attach(bufnr, client_id)
 	local client = vim.lsp.get_client_by_id(client_id)
+	vim.b[bufnr].lsp_client = client_id
 	vim.notify(string.format("LSP %s attached to %d", client.name or "<unknown>", bufnr))
 
-	local bufopts = { noremap = true, buffer = bufnr }
-	local mappings = {
-		{ 'gD', vim.lsp.buf.declaration },
-		{ 'gd', telescope.builtin.lsp_definitions },
-		{ 'K',  vim.lsp.buf.hover },
-		{ '<CR>',  vim.lsp.buf.hover },
-		{ 'gi', telescope.builtin.lsp_implementations },
-		--{ '<C-k>', vim.lsp.buf.signature_help, "i" },
-		{ '<leader>D', telescope.builtin.lsp_type_definitions },
-		{ '<leader>a', require("code_action_menu").open_code_action_menu },
-		-- tw for "telescope workspace"
-		{ '<leader>tw', telescope.builtin.lsp_dynamic_workspace_symbols },
-		-- Diagnostics.
-		{ '<leader>e', vim.diagnostic.open_float }, -- 'e' for 'error'
-		{ '<leader>td', telescope_diagnostics },
-		{ '<leader>tD', telescope.builtin.diagnostics },
-		{ '<leader>tr', telescope.builtin.lsp_references },
-		{ '[d', vim.diagnostic.goto_prev },
-		{ ']d', vim.diagnostic.goto_next },
-		{ '<leader>h', vim.lsp.buf.document_highlight },
-		{ '<leader>c', vim.lsp.buf.clear_references },
-	}
-
-	for i, mapspec in ipairs(mappings) do
-		local lhs = mapspec[1]
-		local func = mapspec[2]
-		local mode = mapspec[3] or "n"
-		vim.keymap.set(mode, lhs, func, bufopts)
-	end
-
-	if client.server_capabilities.inlayHintProvider then
-		vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-	end
-
-	if client.name == "clangd" then
-		vim.keymap.set("n", "<leader>sh", vim.cmd.ClangdSwitchSourceHeader)
-		--require("clangd_extensions.inlay_hints").setup_autocmd()
-		--require("clangd_extensions.inlay_hints").set_inlay_hints()
-	end
+	require('lsp_compl').attach(client, bufnr)
 
 	if client.name == 'nil_ls' then
 		client.server_capabilities.semanticTokensProvider = nil
@@ -159,22 +203,12 @@ function on_lsp_attach(bufnr, client_id)
 		end,
 	})
 
-	vim.diagnostic.config({
-		-- We are using lsp_lines for virtual text instead.
-		virtual_text = false,
-		virtual_lines = true,
-	})
-
 	require("lsp_basics").make_lsp_commands(client, bufnr)
-	if vim.g.loaded_coq ~= true then
-		require("coq").Now("-s")
-		vim.g.loaded_coq = true
-	end
 
 	-- Make `vim.lsp.log` available for our convenience.
-	if vim.lsp.log == nil then
-		vim.lsp.log = require("vim.lsp.log")
-	end
+	--if vim.lsp.log == nil then
+	--	vim.lsp.log = require("vim.lsp.log")
+	--end
 
 	-- The LSP-provided tagfunc causes more problems than it solves.
 	-- It takes precedence over tag files, and if we *have* tag files in a workspace where we have LSP,
@@ -189,31 +223,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		on_lsp_attach(args.buf, args.data.client_id)
 	end,
 })
-
-vim.g.coq_settings = {
-	clients = {
-		snippets = {
-			-- Disable warnings about snippets.
-			warn = { },
-			enabled = false,
-		},
-		buffers = {
-			enabled = false,
-		},
-		tmux = {
-			enabled = false,
-		},
-		tags = {
-			enabled = false,
-		},
-	},
-}
-
---vim.g.rustaceanvim = {
---	server = {
---		on_attach = on_lsp_attach,
---	},
---}
 
 function client_by_name(name)
 	if type(name) ~= "string" then
@@ -263,15 +272,6 @@ use {
 		lspconfig = require("lspconfig")
 	end,
 }
---use {
---  "j-hui/fidget.nvim",
---  opts = {
---	notification = {
---		override_vim_notify = true,
---	},
---  },
---  priority = 60,
---}
 use {
 	'rcarriga/nvim-notify',
 	config = function()
@@ -281,22 +281,35 @@ use {
 	priority = 60,
 }
 use {
-	'ms-jpq/coq_nvim',
-	event = "LspAttach",
-	--ft = lsp_filetypes,
+	'mfussenegger/nvim-lsp-compl',
+	event = 'LspAttach',
 }
 -- Make LSP stuff for Neovim's Lua work correctly.
 use {
 	'folke/neodev.nvim',
+	ft = { "vim", "lua" },
+	opts = { },
+}
+use { 'nanotee/nvim-lsp-basics', event = "LspAttach" }
+use { 'weilbith/nvim-code-action-menu', event = "LspAttach" }
+use {
+	'dgagn/diagflow.nvim',
+	event = 'LspAttach',
 	opts = { },
 }
 use { 'nanotee/nvim-lsp-basics', lazy = true }
-use { 'weilbith/nvim-code-action-menu', lazy = true }
+--use { 'weilbith/nvim-code-action-menu', lazy = true }
 use { 'tamago324/nlsp-settings.nvim', event = "LspAttach" }
 use {
-	'mrcjkb/rustaceanvim',
-	lazy = false,
-	version = "^4",
+	'simrat39/rust-tools.nvim',
+	lazy = true,
+	ft = "rust",
+	opts = {
+		cmd = { "rust_analyzer" },
+		server = {
+			standalone = true,
+		},
+	},
 }
 use { 'simrat39/symbols-outline.nvim', event = "LspAttach" }
 use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach" }
@@ -313,7 +326,11 @@ use {
 use {
   "ray-x/lsp_signature.nvim",
   event = "VeryLazy",
-  opts = {},
+  opts = {
+	toggle_key = '<C-s>',
+	floating_window_above_cur_line = true,
+	fix_pos = true,
+  },
   config = function(_, opts) require'lsp_signature'.setup(opts) end
 }
 EOF

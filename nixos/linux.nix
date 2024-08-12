@@ -36,6 +36,9 @@
 			IOWeight = 20;
 			MemoryAccounting = true;
 			IOAccounting = true;
+			# Make the nix-daemon not kill our computer, at all costs.
+			IOSchedulingClass = lib.mkForce "idle";
+			IOSchedulingPriority = lib.mkForce 7; # Lowest priority.
 		};
 	};
 
@@ -194,6 +197,7 @@
 		yubikey-manager
 		systeroid
 		glasgow
+		poke
 	] ++ config.systemd.packages; # I want system services to also be in /run/current-system please.
 
 	hardware.glasgow.enable = true;

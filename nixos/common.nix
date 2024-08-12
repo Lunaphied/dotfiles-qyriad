@@ -50,6 +50,7 @@
 
 	# Other packages we want available on all systems.
 	environment.systemPackages = with pkgs; [
+		# Include xonsh's Python
 		# The normal bash isn't bash-interactive lol.
 		bashInteractive
 		tmux
@@ -100,7 +101,7 @@
 		any-nix-shell
 		qyriad.niz
 		qyriad.pzl
-		qyriad.xil
+		#qyriad.xil
 		bat
 		ncdu
 		lnav
@@ -132,5 +133,11 @@
 		litecli
 		fcp
 		mediainfo
+		qyriad.glances
+		qyriad.otree
+		qyriad.cyme
+		srgn
+		jujutsu
+		repgrep
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

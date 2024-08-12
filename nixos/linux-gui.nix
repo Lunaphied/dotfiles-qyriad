@@ -53,6 +53,10 @@
 	# "A stop job is running for X11—" fuck off.
 	systemd.services.display-manager.serviceConfig.TimeoutStopSec = "10";
 
+	# Enabling a display manager automatically enables a text to speech daemon, in NixOS,
+	# but we don't need this.
+	services.speechd.enable = false;
+
 	xdg.portal = {
 		enable = true;
 		#extraPortals = [
@@ -67,7 +71,6 @@
 	};
 
 	# Enable sound with Pipewire.
-	sound.enable = true;
 	hardware.pulseaudio.enable = false;
 	security.rtkit.enable = true;
 	services.pipewire = {
@@ -89,15 +92,15 @@
 
 	# Input method stuff.
 	i18n.inputMethod = {
-		enabled = "fcitx5";
+		enable = true;
+		type = "fcitx5";
 
 		fcitx5.waylandFrontend = true;
 
 		fcitx5.addons = with pkgs; [
 			fcitx5-mozc
 			fcitx5-gtk
-			#fcitx-configtool
-			#plasma5Packages.fci5x5-qt
+			kdePackages.fcitx5-qt
 		];
 	};
 
@@ -122,7 +125,7 @@
 		ksshaskpass
 		opera
 		obsidian
-		vesktop
+		qyriad.vesktop
 		calibre
 		kicad
 		krita
@@ -136,7 +139,7 @@
 		cifs-utils
 		nfs-utils
 		ntfs3g
-		sequoia
+		#sequoia
 		sioyek
 		neochat
 		fluffychat
@@ -152,7 +155,7 @@
 		#mattermost-desktop
 		qyriad.cinny
 		firefoxpwa
-		darling
+		#darling
 		glibc.debug
 		qt6.qtbase
 		# Broken after the Python 3.12 migration for some reason. Check back later.
@@ -164,6 +167,9 @@
 		wayvnc
 		wev
 		seer
+		obs-studio
+		v4l-utils
+		gajim
 	];
 
 	# GUI programs with NixOS modules that we can enable, instead of using environment.systemPackages.

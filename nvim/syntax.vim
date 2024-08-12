@@ -2,6 +2,9 @@
 " Configuration of Neovim-builtin syntax stuff.
 "
 
+" Highlighted as an error in our colorscheme.
+match TrailingWhitespace /\s\+$/
+
 " Fold augroups, functions, Lua, and Python
 let g:vimsyn_folding = 'aflP'
 " Support embedded Lua and Python.
@@ -22,6 +25,9 @@ let g:python_highlight_indent_errors = 1
 let g:python_highlight_space_errors = 1
 let g:python_highlight_class_vars = 1
 "let g:python_highlight_func_calls = 1
+
+" Fuck off.
+let g:zig_fmt_autosave = v:false
 
 lua <<EOF
 vim.g.python_indent = {
@@ -53,7 +59,7 @@ treesitter_configs_setup = {
 		additional_vim_regex_highlighting = true,
 	},
 	indent = {
-		enable = true,
+		enable = false,
 	},
 	autotag = {
 		enable = true,
@@ -83,13 +89,6 @@ treesitter_configs_setup = {
 	context_commentstring = true,
 }
 EOF
-
-
-augroup winenter_whitespaceeol
-	autocmd!
-	autocmd WinEnter * match Error /\s\+$/
-	"autocmd WinEnter * highlight link WhitespaceEOL Error
-augroup END
 
 lua << EOF
 use { 'Shirk/vim-gas', ft = "gas" }
@@ -147,6 +146,11 @@ use {
 	lazy = false,
 	opts = {
 		max_lines = 3,
+		on_attach = function(bufnr)
+			if vim.bo[bufnr].filetype == "markdown" then
+				return false
+			end
+		end,
 	},
 }
 use {
@@ -156,6 +160,22 @@ use {
 use {
 	'nvim-treesitter/nvim-treesitter-textobjects',
 	after = 'nvim-treesitter',
+}
+use {
+	'phelipetls/jsonpath.nvim',
+	ft = {"json"},
+	config = function()
+		jsonpath = require("jsonpath")
+		-- FIXME: we're planning on switching statusline plugins;
+		-- we'll setup how we do winbar stuff properly then.
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = "json",
+			once = true,
+			callback = function(details)
+				vim.opt_local.winbar = "%#jsonKeyword#%{%v:lua.jsonpath.get()%}"
+			end,
+		})
+	end,
 }
 
 EOF

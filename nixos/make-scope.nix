@@ -24,6 +24,8 @@ in lib.makeScope pkgs.newScope (self: {
 		strace-process-tree
 		strace-with-colors
 		cinny
+		otree
+		cyme
 		python-pipe
 		xontrib-abbrevs
 		xonsh-direnv
@@ -83,6 +85,22 @@ in lib.makeScope pkgs.newScope (self: {
 	#	sha256 = hash;
 	#});
 	#unpackDrvSrc = drv: self.unpackSource { inherit (drv.src) url; };
+
+	glances = pkgs.glances.overridePythonAttrs (prev: {
+		propagatedBuildInputs = with pkgs.python3Packages; prev.propagatedBuildInputs ++ [
+			batinfo
+			nvidia-ml-py
+			pysmart-smartx
+			wifi
+			zeroconf
+		];
+	});
+
+	vesktop = pkgs.vesktop.overrideAttrs (prev: {
+		desktopItems = lib.forEach prev.desktopItems (item: item.override {
+			exec = "vesktop --enable-features=UseOzonePlatform --ozone-platform=wayland --use-wayland-ime %U";
+		});
+	});
 
 	qlib = import ./qlib.nix { inherit lib; };
 })
