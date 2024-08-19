@@ -120,6 +120,17 @@
 		shell = pkgs.zsh;
 	};
 
+	users.users.puckipedia = {
+		isNormalUser = true;
+		description = "puck";
+		shell = pkgs.zsh;
+
+		openssh.authorizedKeys.keys = [
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII8MUpzP9HB8xgDRZNPTCEZjSP9ntwn7GFyMbsmKrOQM"
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAi59cUbyB8ZWarlP2arpgz040a+KnhNNOIh8Plp3Nlf"
+		];
+	};
+
 	users.groups.plugdev = { };
 	users.groups.video = { };
 	users.groups.cdrom = { };
