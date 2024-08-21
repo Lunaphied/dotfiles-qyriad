@@ -3,39 +3,6 @@
 { config, pkgs, ... }:
 
 {
-/*
-	fileSystems = let
-		mountOpts = pkgs.qlib.genMountOpts {
-			# Try to automatically mount, but don't block boot on it.
-			auto = null;
-			nofail = null;
-			_netdev = null;
-			"x-systemd.idle-timeout" = "300s";
-			"x-systemd.mount-timeout" = "5s";
-			"x-systemd.requires" = "network-online.target";
-			"x-systemd.after" = "network-online.target";
-			credentials = "/etc/secrets/shizue.cred";
-			gid = "users";
-			file_mode = "0764";
-			dir_mode = "0775";
-			vers = "3";
-			#unix = null;
-		};
-	in {
-		"/media/shizue/archive" = {
-			device = "//shizue/Archive";
-			fsType = "cifs";
-			options = [ mountOpts ];
-		};
-		"/media/shizue/media" = {
-			device = "//shizue/Media";
-			fsType = "cifs";
-			options = [ mountOpts ];
-		};
-	};
-*/
-
-
 	# Enable GUI stuff.
 	services.displayManager = {
 		sddm.enable = true;
@@ -52,6 +19,19 @@
 
 	# "A stop job is running for X11—" fuck off.
 	systemd.services.display-manager.serviceConfig.TimeoutStopSec = "10";
+
+	# Plasma Shell also seems to not deal well with other user services
+	# crashing instead of stopping properly.
+	# Leave the start timeout at the default 40 seconds, but decrease the
+	# stop timeout to something real short.
+	systemd.user.services.plasma-plasmashell.serviceConfig = {
+		TimeoutStartSec = "40";
+		TimeoutStopSec = "10";
+	};
+	# And tbh let's just shorten the stop timeout for all user units a bit.
+	systemd.user.extraConfig = ''
+		DefaultTimeoutStopSec=20
+	'';
 
 	# Enabling a display manager automatically enables a text to speech daemon, in NixOS,
 	# but we don't need this.

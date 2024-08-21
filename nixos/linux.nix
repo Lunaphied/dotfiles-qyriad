@@ -9,6 +9,9 @@
 		efi.efiSysMountPoint = "/boot";
 	};
 
+	# We want sysrqs to work.
+	boot.kernelParams = [ "sysrq_always_enabled" ];
+
 	# Yes mount /tmp as a tmpfs.
 	boot.tmp.useTmpfs = true;
 
@@ -53,6 +56,11 @@
 	services.tailscale = {
 		enable = true;
 		useRoutingFeatures = "both";
+	};
+	systemd.services.tailscaled.serviceConfig = {
+		# Tailscaled is a biiiit too logspamy, and it's pretty stable.
+		# We'll shove its logs to /var/log instead of our system journal.
+		StandardOutput = "file:/var/log/tailscaled.log";
 	};
 
 	services.xserver.xkb = {
@@ -209,7 +217,11 @@
 		systeroid
 		glasgow
 		poke
-	] ++ config.systemd.packages; # I want system services to also be in /run/current-system please.
+	]
+	++ config.systemd.packages # I want system services to also be in /run/current-system please.
+	++ config.services.udev.packages # Same for udev...
+	++ config.fonts.packages # and fonts...
+	++ config.console.packages; # and including console fonts too.
 
 	hardware.glasgow.enable = true;
 }

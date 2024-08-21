@@ -1,3 +1,13 @@
+# XXX VERY HACK for NixOS
+import xonsh
+if xonsh.__path__[0].startswith('/nix/store'):
+	to_delete = []
+	for elem in $PATH:
+		if pf'{elem}/xonsh'.is_file() and not elem.startswith('/run'):
+			to_delete.append(elem)
+	for elem in to_delete:
+		$PATH.remove(elem)
+
 import os, sys, io, json, struct, re, shlex, typing, textwrap
 from datetime import datetime, timedelta
 import zoneinfo
