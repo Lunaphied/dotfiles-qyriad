@@ -10,7 +10,10 @@
 	};
 
 	# We want sysrqs to work.
-	boot.kernelParams = [ "sysrq_always_enabled" ];
+	#boot.kernelParams = [ "sysrq_always_enabled" ];
+	boot.kernel.sysctl = {
+		"kernel.sysrq" = "1";
+	};
 
 	# Yes mount /tmp as a tmpfs.
 	boot.tmp.useTmpfs = true;
@@ -147,7 +150,7 @@
 		# Include -dev manpages
 		#dev.enable = true;
 		# Make apropos(1) work.
-		man.generateCaches = true;
+		#man.generateCaches = true;
 		# This fails with `cannot lookup '<nixpkgs>' in pure evaluation mode.
 		# TODO: debug
 		#nixos.includeAllModules = true;
@@ -185,6 +188,16 @@
 	services.pcscd.enable = true;
 
 	services.nixseparatedebuginfod.enable = true;
+
+	systemd.user.services.waydroid-session = lib.mkIf config.virtualisation.waydroid.enable {
+		serviceConfig = {
+			Type = "simple";
+			ExecStart = "${lib.getExe pkgs.waydroid} session start";
+			ExecStop = "${lib.getExe pkgs.waydroid} session stop";
+		};
+		enable = false;
+		wantedBy = [ "default.target" ];
+	};
 
 	# Other packages we want available on Linux systems.
 	environment.systemPackages = with pkgs; [
