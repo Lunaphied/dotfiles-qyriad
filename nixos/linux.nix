@@ -188,6 +188,27 @@
 	services.pcscd.enable = true;
 
 	services.nixseparatedebuginfod.enable = true;
+	systemd.services.nixseparatedebuginfod.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.ModemManager.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.cups.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.power-profiles-daemon.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.upower.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.nscd.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.geoclue.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
 
 	systemd.user.services.waydroid-session = lib.mkIf config.virtualisation.waydroid.enable {
 		serviceConfig = {
@@ -195,8 +216,14 @@
 			ExecStart = "${lib.getExe pkgs.waydroid} session start";
 			ExecStop = "${lib.getExe pkgs.waydroid} session stop";
 		};
-		enable = false;
-		wantedBy = [ "default.target" ];
+	};
+
+	security.wrappers."dmesg" = {
+		owner = "root";
+		group = "users";
+		source = lib.getExe' pkgs.util-linux "dmesg";
+		capabilities = "cap_syslog+ep";
+		permissions = "u+r,g+rx,o+r";
 	};
 
 	# Other packages we want available on Linux systems.
