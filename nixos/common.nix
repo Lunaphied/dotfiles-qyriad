@@ -124,7 +124,7 @@
 		ranger
 		nix-output-monitor
 		qyriad.git-point
-		git-branchless
+		#git-branchless
 		btop
 		numbat
 		dust
@@ -139,5 +139,8 @@
 		srgn
 		jujutsu
 		repgrep
+		rink
+		dysk
+		uni
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

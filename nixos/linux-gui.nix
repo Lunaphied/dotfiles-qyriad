@@ -43,6 +43,7 @@
 		#	pkgs.xdg-desktop-portal-gtk
 		#	pkgs.xdg-desktop-portal-kde
 		#];
+		xdgOpenUsePortal = true;
 	};
 
 	# And also let Blink stuffs use Wayland.
@@ -151,7 +152,7 @@
 		wayvnc
 		wev
 		seer
-		obs-studio
+		qyriad.obs-studio
 		v4l-utils
 		gajim
 		#inlyne
