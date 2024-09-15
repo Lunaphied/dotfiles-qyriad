@@ -15,7 +15,7 @@
 	networking.hostName = "Ran";
 
 	nixpkgs.config.allowUnfree = true;
-	
+
 
 	hardware.bluetooth.enable = true;
 	hardware.enableAllFirmware = true;
@@ -34,15 +34,22 @@
 		cpus = 32;
 	};
 
-	environment.systemPackages = [ pkgs.tailscale pkgs.cider pkgs.google-chrome ];
+	environment.systemPackages = [
+		pkgs.tailscale
+		pkgs.cider
+		pkgs.google-chrome
+		pkgs.helix
+		pkgs.ryujinx
+	];
 
 	programs.steam.enable = true;
 	programs.steam.gamescopeSession.enable = true;
-	programs.gamescope.enable = true;
 	services.hardware.openrgb.enable = true;
-	
 
-	boot.kernelPackages = pkgs.linuxKernel.packages.linux_lqx;
+	virtualisation.waydroid.enable = true;
+
+	# Oops this doesn't support binder lol.
+	#boot.kernelPackages = pkgs.linuxKernel.packages.linux_lqx;
 	# Needed for RGB RAM to be visible to OpenRGB, but maybe breaks sleep entirely oops.
 	#boot.kernelParams = [ "acpi_enforce_resources=lax" ];
 
