@@ -55,6 +55,9 @@ set cinoptions=l1,j1,(4,W4
 set formatoptions=cj
 " Don't display . on folds.
 let &fillchars = "fold: "
+" Use » to indicate tabs, a - for trailing whitespace, and · for multiple leading spaces.
+set list
+let &listchars = "tab:\u00bb ,trail:-,nbsp:+,leadmultispace:\u00b7"
 set diffopt=algorithm:patience
 set fsync " Syncs the filesystem after :write.
 
@@ -116,8 +119,8 @@ function! PagerMode() abort
 endfunction
 
 function! NoPagerMode() abort
-	nunmap <buffer> J
-	nunmap <buffer> K
+	silent nunmap <buffer> J
+	silent nunmap <buffer> K
 endfunction
 
 command! PagerMode call PagerMode()
@@ -128,11 +131,8 @@ command! NoPagerMode call NoPagerMode()
 augroup PagerMode
 	autocmd!
 	autocmd OptionSet modifiable if v:option_new == v:false | call PagerMode() | endif
-	autocmd OptionSet modifiable if v:option_new == v:false | call PagerMode() | endif
+	"autocmd OptionSet modifiable if v:option_new == v:true | call NoPagerMode() | endif
 augroup END
-
-"let &listchars = "tab:\u21e5 ,trail:-,nbsp:+"
-set listchars=tab:\\u21e5\ ,trail:-,nbsp:+
 
 
 """ Filetype overrides.
@@ -176,6 +176,9 @@ nnoremap <expr> k (v:count > 0 ? "m'" . v:count . 'k' : 'gk')
 
 " Stop highlighting last search with \/
 nnoremap <leader>/ <Cmd>nohlsearch<CR>
+
+" In visual mode, press v again to change to line-select.
+vnoremap v V
 
 " Have the visual-selection indent commands re-highlight the last visual selection after indenting.
 vnoremap > >gv
@@ -242,8 +245,11 @@ nnoremap <leader>sh <Cmd>call SwitchSourceHeader()<CR>
 " Wired:
 cnoremap <C-r> %:r<tab>
 noremap <A-r> %:r<tab>
-cnoremap <C-e> %:h/<tab>
-cnoremap <A-e> %:h/<tab>
+" Expands to the directory of the current filename, using ~ for $HOME,
+" and using path relative to the current directory if applicable.
+" `help fnamemodify()`
+cnoremap <C-e> %:.:h/<tab>
+cnoremap <A-e> %:.:h/<tab>
 
 " Use escape to exit terminal mode.
 tnoremap <Esc> <C-\><C-n>
@@ -291,6 +297,9 @@ nmap dst dt<<Plug>Dsurround>
 " 'Delete after comma'
 nnoremap <leader>da, viwf,ld
 
+ "Visual select to after <noun>.
+"nnoremap <leader>vt
+
 " Delete an assignment.
 nnoremap da= vf=ld
 
@@ -319,6 +328,16 @@ function! InvertR() abort
 	if &formatoptions =~# "r"
 		setlocal formatoptions-=r
 	else
+		setlocal formatoptions+=r
+	endif
+endfunction
+
+function! InvertRAndEcho() abort
+	if &formatoptions =~# "r"
+		echomsg "Comment continuation off"
+		setlocal formatoptions-=r
+	else
+		echomsg "Comment continuation on"
 		setlocal formatoptions+=r
 	endif
 endfunction
@@ -370,6 +389,36 @@ augroup END
 "nnoremap <expr> o (v:lua.doc_format_options() ? "i\<esc>o" : "o") " Need to decide if I want this one
 inoremap <expr> <CR> (v:lua.doc_format_options() ? "\<CR>" : "\<CR>")
 
+
+" Okay okay wait, let's try a more flexible version of the "I only want fo+=r for a sec"
+let g:insert_r_inverted = v:false
+function! CheckInvertedR() abort
+	if g:insert_r_inverted == v:true
+		setlocal formatoptions-=r
+		echomsg "Comment continuation off"
+	endif
+endfunction
+augroup CheckInvertedR
+	autocmd! InsertLeave * call CheckInvertedR()
+augroup END
+lua << EOF
+function invert_r_temporarily()
+	local current_r = vim.opt_local.formatoptions:get().r
+	-- Will be either nil or false, the two falsey values.
+	if not current_r then
+		vim.cmd.echomsg [["Comment continuation on"]]
+		vim.opt_local.formatoptions:append { r = true }
+	else
+		vim.cmd.echomsg [["Comment continuation off"]]
+		vim.opt_local.formatoptions:append { r = false }
+	end
+	vim.g.insert_r_inverted = true
+end
+
+-- <A-d> for "_D_oc-comment... or something"
+vim.keymap.set('i', '<A-d>', invert_r_temporarily)
+EOF
+
 command! -range=% Interleave execute 'keeppatterns' (<line2>-<line1>+1)/2+<line1> ',' <line2> 'g/^/<line1> move -1'
 
 function! Redir(command)
@@ -379,12 +428,22 @@ endfunction
 
 command! -nargs=+ -complete=command Redir call Redir(<Q-Args>)
 
-function! Notify(command) abort
-	call v:lua.vim.notify(execute(a:command))
-endfunction
+"function! Notify(command) abort
+"	" vim.api.nvim_exec2('jumps', { output = true })
+"	lua vim.notify(vim.api.nvim_exec2(command, { output = true }).output)
+"	"call v:lua.vim.notify(execute(a:command))
+"endfunction
+
+lua <<EOF
+function notify_impl(command)
+	vim.print({ command = command })
+	vim.notify(vim.api.nvim_exec2(command, { output = true }).output)
+end
+EOF
 
 " Run a command and show its output as a notification.
-command! -nargs=+ -complete=command Notify call Notify(<Q-Args>)
+command! -nargs=+ -complete=command Notify call v:lua.notify_impl(<Q-Args>)
+command! Jumps Notify jumps
 
 """ Implementation for :Bload
 function! Bload(...) abort

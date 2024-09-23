@@ -25,14 +25,22 @@
 		nodePackages.vim-language-server
 		javascript-typescript-langserver
 		nil
+		nixd
 		lua-language-server
+		zls
 		bear
 		universal-ctags
+		patchelf
 		nix-doc
 		lazygit
 		#rust-analyzer
 		#rustfmt
 		#cargo
+		cargo-limit
+		cargo-info
+		cargo-clone
+		cargo-outdated
+		cargo-edit
 		#rustc
 		git-gr
 		git-imerge
@@ -41,10 +49,15 @@
 		rr
 		nixfmt-rfc-style
 		nixpkgs-review
-		quickemu
+		# Broken after the Python 3.12 migration for some reason. Check back later.
+		#quickemu
 		gh
+		gql
 		shellcheck
 		nodePackages.prettier
 		awscli2
+		pkgdiff
+		ast-grep
+		nmap
 	];
 }

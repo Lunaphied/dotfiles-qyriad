@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, modulesPath, ... }:
+{ config, lib, pkgs, modulesPath, ... }:
 
 {
 	imports = [
@@ -9,6 +9,7 @@
 		./linux-gui.nix
 		./dev.nix
 		./resources.nix
+		./mount-shizue.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
@@ -30,7 +31,25 @@
 		"sg"
 	];
 
+	environment.enableDebugInfo = true;
+	environment.extraOutputsToInstall = [
+		"dev"
+	];
+
 	services.freshrss = {
+	};
+
+	virtualisation.waydroid.enable = true;
+
+	systemd.user.services.capturecard-loopback = let
+		pw-loopback = lib.getExe' config.services.pipewire.package "pw-loopback";
+		capture = "alsa_input.usb-AVerMedia_Live_Gamer_Ultra-Video_5202418300266-02.analog-stereo";
+		playback = "alsa_output.usb-Focusrite_Scarlett_Solo_USB_Y7Y663P27FB970-00.HiFi__Line1__sink";
+	in {
+		serviceConfig = {
+			Type = "simple";
+			ExecStart = "${pw-loopback} -C ${capture} -P ${playback} -n loopback.capturecard";
+		};
 	};
 
 	services.samba = {
@@ -44,19 +63,19 @@
 			};
 		};
 		nsswins = true;
-		extraConfig = ''
-		    workgroup = WORKGROUP
-			server string = yuki
-			netbios name = yuki
-			security = user
-			#use sendfile = yes
-			#max protocol = smb2
-			# note: localhost is the ipv6 localhost ::1
-			hosts allow = 192.168.50. 127.0.0.1 localhost
-			hosts deny = 0.0.0.0/0
-			guest account = nobody
-			map to guest = bad user
-		'';
+		#extraConfig = ''
+		#    workgroup = WORKGROUP
+		#	server string = yuki
+		#	netbios name = yuki
+		#	security = user
+		#	#use sendfile = yes
+		#	#max protocol = smb2
+		#	# note: localhost is the ipv6 localhost ::1
+		#	hosts allow = 192.168.50. 127.0.0.1 localhost
+		#	hosts deny = 0.0.0.0/0
+		#	guest account = nobody
+		#	map to guest = bad user
+		#'';
 	};
 
 	nix.buildMachines = let
@@ -74,6 +93,7 @@
 
 	environment.systemPackages = with pkgs; [
 		makemkv
+		valgrind
 	];
 
 	# This value determines the NixOS release from which the default

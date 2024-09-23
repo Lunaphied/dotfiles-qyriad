@@ -8,6 +8,12 @@
 		efi.canTouchEfiVariables = true;
 	};
 
+	# We want sysrqs to work.
+	#boot.kernelParams = [ "sysrq_always_enabled" ];
+	boot.kernel.sysctl = {
+		"kernel.sysrq" = "1";
+	};
+
 	# Yes mount /tmp as a tmpfs.
 	boot.tmp.useTmpfs = true;
 
@@ -34,6 +40,9 @@
 			IOWeight = 20;
 			MemoryAccounting = true;
 			IOAccounting = true;
+			# Make the nix-daemon not kill our computer, at all costs.
+			IOSchedulingClass = lib.mkForce "idle";
+			IOSchedulingPriority = lib.mkForce 7; # Lowest priority.
 		};
 	};
 
@@ -48,6 +57,11 @@
 	services.tailscale = {
 		enable = true;
 		useRoutingFeatures = "both";
+	};
+	systemd.services.tailscaled.serviceConfig = {
+		# Tailscaled is a biiiit too logspamy, and it's pretty stable.
+		# We'll shove its logs to /var/log instead of our system journal.
+		StandardOutput = "file:/var/log/tailscaled.log";
 	};
 
 	services.xserver.xkb = {
@@ -119,7 +133,7 @@
 		# Include -dev manpages
 		#dev.enable = true;
 		# Make apropos(1) work.
-		man.generateCaches = true;
+		#man.generateCaches = true;
 		# This fails with `cannot lookup '<nixpkgs>' in pure evaluation mode.
 		# TODO: debug
 		#nixos.includeAllModules = true;
@@ -157,6 +171,43 @@
 	services.pcscd.enable = true;
 
 	services.nixseparatedebuginfod.enable = true;
+	systemd.services.nixseparatedebuginfod.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.ModemManager.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.cups.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.power-profiles-daemon.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.upower.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.nscd.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+	systemd.services.geoclue.serviceConfig = {
+		PrivateTmp = lib.mkForce false;
+	};
+
+	systemd.user.services.waydroid-session = lib.mkIf config.virtualisation.waydroid.enable {
+		serviceConfig = {
+			Type = "simple";
+			ExecStart = "${lib.getExe pkgs.waydroid} session start";
+			ExecStop = "${lib.getExe pkgs.waydroid} session stop";
+		};
+	};
+
+	security.wrappers."dmesg" = {
+		owner = "root";
+		group = "users";
+		source = lib.getExe' pkgs.util-linux "dmesg";
+		capabilities = "cap_syslog+ep";
+		permissions = "u+r,g+rx,o+r";
+	};
 
 	# Other packages we want available on Linux systems.
 	environment.systemPackages = with pkgs; [
@@ -170,7 +221,7 @@
 		heh
 		sysstat
 		# apksigner dependency fails to build on macOS
-		diffoscope
+		#diffoscope # Broken (again) in Nixpkgs. Check back later.
 		rpm
 		binutils
 		lsof
@@ -187,5 +238,12 @@
 		age-plugin-yubikey
 		yubikey-manager
 		systeroid
-	];
+		poke
+		libtree
+		lurk
+	]
+	++ config.systemd.packages # I want system services to also be in /run/current-system please.
+	++ config.services.udev.packages # Same for udev...
+	++ config.fonts.packages # and fonts...
+	++ config.console.packages; # and including console fonts too.
 }

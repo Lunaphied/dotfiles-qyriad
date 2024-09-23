@@ -13,7 +13,7 @@
 	#];
 	nix = {
 		settings = {
-			experimental-features = [ "nix-command" "flakes" ];
+			experimental-features = [ "nix-command" "flakes" "pipe-operator" ];
 
 			extra-substituters = [
 				"https://cache.lix.systems"
@@ -48,6 +48,7 @@
 
 	# Other packages we want available on all systems.
 	environment.systemPackages = with pkgs; [
+		# Include xonsh's Python
 		# The normal bash isn't bash-interactive lol.
 		bashInteractive
 		tmux
@@ -98,7 +99,7 @@
 		any-nix-shell
 		qyriad.niz
 		qyriad.pzl
-		qyriad.xil
+		#qyriad.xil
 		bat
 		ncdu
 		lnav
@@ -121,7 +122,7 @@
 		ranger
 		nix-output-monitor
 		qyriad.git-point
-		git-branchless
+		#git-branchless
 		btop
 		numbat
 		dust
@@ -130,5 +131,15 @@
 		litecli
 		fcp
 		mediainfo
-	];
+		qyriad.glances
+		qyriad.otree
+		qyriad.cyme
+		srgn
+		jujutsu
+		repgrep
+		rink
+		dysk
+		uni
+		xcp
+	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

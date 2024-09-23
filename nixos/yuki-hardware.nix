@@ -21,15 +21,17 @@
 	boot.kernelModules = [
 		"kvm-amd"
 		"nvidia"
+		"v4l2loopback"
 	];
-	boot.extraModulePackages = [ ];
+	boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+	environment.systemPackages = with config.boot.kernelPackages; [ v4l2loopback ];
 	services.xserver.videoDrivers = [
 		"nvidia"
 	];
 
 	hardware.nvidia = {
 		modesetting.enable = true;
-		package = config.boot.kernelPackages.nvidiaPackages.stable;
+		package = config.boot.kernelPackages.nvidiaPackages.beta;
 		open = false;
 	};
 	# This is causing buildfailures that I don't feel like debugging right now.

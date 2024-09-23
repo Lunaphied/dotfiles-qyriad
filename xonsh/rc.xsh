@@ -1,3 +1,13 @@
+# XXX VERY HACK for NixOS
+import xonsh
+if xonsh.__path__[0].startswith('/nix/store'):
+	to_delete = []
+	for elem in $PATH:
+		if pf'{elem}/xonsh'.is_file() and not elem.startswith('/run'):
+			to_delete.append(elem)
+	for elem in to_delete:
+		$PATH.remove(elem)
+
 import os, sys, io, json, struct, re, shlex, typing, textwrap
 from datetime import datetime, timedelta
 import zoneinfo
@@ -135,6 +145,7 @@ aliases['tolist'] = 'Pipe(list)'
 aliases['ls'] = 'eza -l --header --group --group-directories-first --classify --binary'
 # You know. For mODified.
 aliases['lsod'] = 'eza -l --header --group --group-directories-first --classify --binary --sort=modified'
+aliases['lsg'] = 'eza -l --header --group --group-directories-first --classify --binary --git --git-ignore'
 aliases['cp'] = 'cp -vi'
 aliases['mv'] = 'mv -vi'
 aliases['rm'] = 'rm -vI'
@@ -258,10 +269,12 @@ aliases['userctl'] = 'systemctl --user'
 aliases["busctl"] = ["busctl", "--full", "--verbose"]
 aliases['ins'] = 'insect'
 aliases['silicon'] = 'silicon --no-window-controls --pad-horiz=20 --pad-vert=20'
+aliases["moaro"] = [$PAGER, "-quit-if-one-screen"]
 aliases['jg'] = 'jj'
 aliases['jgn'] = 'jj --ignore-working-copy --no-pager'
 aliases['hyfetch'] = 'env SHELL=xonsh hyfetch'
 aliases['dedent'] = lambda args, stdin: textwrap.dedent(stdin.read())
+aliases['striptext'] = lambda args, stdin: stdin.read().strip()
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
 aliases['nopager'] = 'env PAGER=cat'
@@ -439,9 +452,6 @@ def _xonsh_dev_env(installable):
 			![xonsh --rc ~/.config/xonsh/rc.xsh @(xonshrc.name)]
 
 aliases['nix-devenv'] = _xonsh_dev_env
-#aliases['nix-json-to-raw'] = """
-#	jq '. | map(.fields[0]) | map(select(type == "string")) | join("\n")' --raw-output --slurp
-#""".strip()
 aliases['nix-internal-to-json'] = [
 	'sed',
 	's/^@nix //',
@@ -494,7 +504,6 @@ bashcomp = __xonsh__.completers['bash']
 #__xonsh__.completers["gac"] = _gac_complete
 #__xonsh__.completers.move_to_end("gac", last=False)
 
-import xonsh
 from xonsh.completers.tools import *
 from xonsh.parsers.completion_context import CommandArg
 @contextual_completer

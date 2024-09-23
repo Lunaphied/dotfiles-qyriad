@@ -3,47 +3,7 @@
 { config, pkgs, ... }:
 
 {
-	/*
-	fileSystems = let
-		mountOpts = pkgs.qlib.genMountOpts {
-			# Try to automatically mount, but don't block boot on it.
-			auto = null;
-			nofail = null;
-			_netdev = null;
-			"x-systemd.idle-timeout" = "300s";
-			"x-systemd.mount-timeout" = "5s";
-			"x-systemd.requires" = "network-online.target";
-			"x-systemd.after" = "network-online.target";
-			credentials = "/etc/secrets/shizue.cred";
-			gid = "users";
-			file_mode = "0764";
-			dir_mode = "0775";
-			vers = "3";
-			#unix = null;
-		};
-	in {
-		"/media/shizue/archive" = {
-			device = "//shizue/Archive";
-			fsType = "cifs";
-			options = [ mountOpts ];
-		};
-		"/media/shizue/media" = {
-			device = "//shizue/Media";
-			fsType = "cifs";
-			options = [ mountOpts ];
-		};
-	};*/
-
-	# On Yuki this costs less than a GiB. Let's try it for now.
-	#environment.enableDebugInfo = true;
-	#environment.extraOutputsToInstall = [
-	#	"dev"
-	#];
-
-
 	# Enable GUI stuff.
-	# Yes this says xserver. Yes this we're using Wayland. That's correct.
-	# https://github.com/NixOS/nixpkgs/issues/94799
 	services.displayManager = {
 		sddm.enable = true;
 		sddm.autoNumlock = true;
@@ -60,12 +20,30 @@
 	# "A stop job is running for X11—" fuck off.
 	systemd.services.display-manager.serviceConfig.TimeoutStopSec = "10";
 
+	# Plasma Shell also seems to not deal well with other user services
+	# crashing instead of stopping properly.
+	# Leave the start timeout at the default 40 seconds, but decrease the
+	# stop timeout to something real short.
+	#systemd.user.services.plasma-plasmashell.serviceConfig = {
+	#	TimeoutStartSec = "40";
+	#	TimeoutStopSec = "10";
+	#};
+	# And tbh let's just shorten the stop timeout for all user units a bit.
+	systemd.user.extraConfig = ''
+		DefaultTimeoutStopSec=20
+	'';
+
+	# Enabling a display manager automatically enables a text to speech daemon, in NixOS,
+	# but we don't need this.
+	#services.speechd.enable = false;
+
 	xdg.portal = {
 		enable = true;
 		#extraPortals = [
 		#	pkgs.xdg-desktop-portal-gtk
 		#	pkgs.xdg-desktop-portal-kde
 		#];
+		xdgOpenUsePortal = true;
 	};
 
 	# And also let Blink stuffs use Wayland.
@@ -74,7 +52,6 @@
 	};
 
 	# Enable sound with Pipewire.
-	sound.enable = true;
 	hardware.pulseaudio.enable = false;
 	security.rtkit.enable = true;
 	services.pipewire = {
@@ -96,15 +73,15 @@
 
 	# Input method stuff.
 	i18n.inputMethod = {
-		enabled = "fcitx5";
+		enable = true;
+		type = "fcitx5";
 
 		fcitx5.waylandFrontend = true;
 
 		fcitx5.addons = with pkgs; [
 			fcitx5-mozc
 			fcitx5-gtk
-			#fcitx-configtool
-			#plasma5Packages.fci5x5-qt
+			kdePackages.fcitx5-qt
 		];
 	};
 
@@ -117,9 +94,13 @@
 
 	nixpkgs.config.permittedInsecurePackages = [
 		"electron-25.9.0" # For Obsidian
+		"olm-3.2.16" # For Cinny
+		"jitsi-meet-1.0.8043" # For Element
 	];
 
 	environment.systemPackages = with pkgs; [
+		libinput
+		libva-utils
 		alacritty
 		wezterm
 		mpv
@@ -127,10 +108,11 @@
 		ksshaskpass
 		opera
 		obsidian
-		discord
+		qyriad.vesktop
 		calibre
 		kicad
 		krita
+		olive-editor
 		# TODO: possibly switch to sddm.extraPackages if it's added
 		# https://github.com/NixOS/nixpkgs/pull/242009 (nixos/sddm: enable Wayland support)
 		weston
@@ -141,15 +123,16 @@
 		cifs-utils
 		nfs-utils
 		ntfs3g
-		sequoia
+		#sequoia
 		sioyek
 		neochat
-		fluffychat
+		#fluffychat
 		nheko
 		element-desktop
 		bitwig-studio
 		curl
 		kcachegrind
+		flamegraph
 		signal-desktop
 		thunderbird
 		wtype
@@ -157,13 +140,28 @@
 		#mattermost-desktop
 		qyriad.cinny
 		firefoxpwa
-		darling
+		#darling
 		glibc.debug
 		qt6.qtbase
-		qemu_full
-		qemu-utils
+		# Broken after the Python 3.12 migration for some reason. Check back later.
+		#qemu_full
+		#qemu-utils
 		xorg.xlsclients
 		kooha
+		waypipe
+		wayvnc
+		wev
+		seer
+		qyriad.obs-studio
+		v4l-utils
+		gajim
+		#inlyne
+		smile
+	] ++ lib.optionals config.services.pipewire.enable [
+		pavucontrol
+		lxqt.pavucontrol-qt
+		pwvucontrol
+		wayfarer
 	];
 
 	# GUI programs with NixOS modules that we can enable, instead of using environment.systemPackages.

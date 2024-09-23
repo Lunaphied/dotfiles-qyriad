@@ -67,26 +67,27 @@ nnoremap ]g <Cmd>lua gitsigns.next_hunk({ preview = true })<CR>
 nnoremap [g <Cmd>lua gitsigns.prev_hunk({ preview = true })<CR>
 nnoremap gs <Cmd>lua gitsigns.preview_hunk()<CR>
 
+nnoremap <leader>tg <Cmd>Telescope git_files<CR>
+nnoremap <leader>tb <Cmd>Telescope buffers<CR>
+nnoremap <C-p> <Cmd>lua telescope.builtin.buffers { sort_mru = true }<CR>
+nnoremap <C-p> <Cmd>Telescope buffers sort_mru=true<CR>
+nnoremap <leader>tm <Cmd>Telescope marks<CR>
+nnoremap <leader>tt <Cmd>Telescope tags<CR>
+nnoremap <leader>tl <Cmd>Telescope loclist<CR>
 
-function CopyOnWrite() abort
-	augroup CopyFile
-		" Yank the entire file into "+
-		autocmd! BufWritePost <buffer> silent %yank +
-	augroup END
-endfunction
+lua <<EOF
+function _hl_cursor_col()
+	vim.wo.cursorcolumn = true
+	local function curcol_off()
+		vim.wo.cursorcolumn = false
+	end
+	vim.defer_fn(curcol_off, vim.o.timeoutlen)
+end
 
-command! CopyOnWrite call CopyOnWrite()
-
-lua << EOF
 -- Highlight the cursor's column, briefly
-vim.keymap.set("n", "<leader>hh", function()
-		vim.wo.cursorcolumn = true
-		vim.defer_fn(function() vim.wo.cursorcolumn = false end, vim.o.timeoutlen)
-	end,
-	{
-		desc = "highlight the cursor's column, briefly"
-	}
-)
+vim.keymap.set("n", "<leader>hh", _hl_cursor_col, {
+	desc = "highlight the cursor's column, briefly"
+})
 
 function what_indent()
 	local lines = {}
@@ -201,37 +202,6 @@ use {
 		telescope.builtin = require('telescope.builtin')
 		telescope.sorters = require('telescope.sorters')
 		telescope.load_extension("ui-select")
-
-		local ctrlp = function()
-			return telescope.builtin.buffers {
-				--show_all_buffers = false,
-				sort_mru = true,
-				--sort_buffers = function(bufnr_a, bufnr_b)
-				--	local bufa_path = vim.fn.expand(string.format('#%d:p:h', bufnr_a))
-				--	local bufb_path = vim.fn.expand(string.format('#%d:p:h', bufnr_b))
-				--	local cwd = vim.fn.getcwd()
-				--	if bufa_path == cwd then
-				--		return true
-				--	end
-				--	return telescope.sorters.get_fzy_sorter(bufnr_a, bufnr_b)
-				--end,
-			}
-		end
-
-		local mappings = {
-			{ "<leader>tg", telescope.builtin.git_files },
-			{ "<leader>tb", telescope.builtin.buffers },
-			{ "<C-p>", ctrlp },
-			{ "<leader>tm", telescope.builtin.marks }, -- Let's see if we use this one.
-			{ "<leader>tt", telescope.builtin.tags },
-			{ "<leader>tl", telescope.builtin.loclist },
-		}
-
-		for _i, mapspec in ipairs(mappings) do
-			local lhs = mapspec[1]
-			local func = mapspec[2]
-			vim.keymap.set("n", lhs, func, { noremap = true })
-		end
 	end,
 }
 use {
@@ -253,6 +223,18 @@ use {
 	'ii14/neorepl.nvim',
 	lazy = true,
 	cmd = "Repl",
+}
+
+use {
+	'chentoast/marks.nvim',
+	opts = {
+		default_mappings = false,
+		default_marks = {
+			"'", -- position of the latest jump
+			"^", -- position of last InsertExit
+			".", -- position last change was made
+		},
+	},
 }
 
 --use 'Konfekt/vim-alias'
@@ -293,6 +275,9 @@ lazy.setup(plugin_spec, {
 		colorscheme = { "solorized8_grey" },
 	},
 })
+
+-- Let us use :Lazy commands right after startup, like for `nvim -c`.
+require('lazy.view.commands').setup()
 
 -- With the below autocommand, will record Neovim's startup time.
 --function record()
