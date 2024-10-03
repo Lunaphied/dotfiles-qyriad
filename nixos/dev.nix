@@ -30,6 +30,7 @@
 		zls
 		bear
 		universal-ctags
+		patchelf
 		nix-doc
 		lazygit
 		#rust-analyzer
@@ -57,5 +58,6 @@
 		awscli2
 		pkgdiff
 		ast-grep
+		nmap
 	];
 }

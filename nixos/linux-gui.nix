@@ -114,6 +114,7 @@
 		calibre
 		kicad
 		krita
+		olive-editor
 		# TODO: possibly switch to sddm.extraPackages if it's added
 		# https://github.com/NixOS/nixpkgs/pull/242009 (nixos/sddm: enable Wayland support)
 		weston
@@ -133,6 +134,7 @@
 		bitwig-studio
 		curl
 		kcachegrind
+		flamegraph
 		signal-desktop
 		thunderbird
 		wtype
@@ -156,6 +158,12 @@
 		v4l-utils
 		gajim
 		#inlyne
+		smile
+	] ++ lib.optionals config.services.pipewire.enable [
+		pavucontrol
+		lxqt.pavucontrol-qt
+		pwvucontrol
+		wayfarer
 	];
 
 	# GUI programs with NixOS modules that we can enable, instead of using environment.systemPackages.

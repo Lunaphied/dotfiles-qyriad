@@ -41,15 +41,50 @@
 
 	virtualisation.waydroid.enable = true;
 
-	systemd.user.services.capturecard-loopback = let
-		pw-loopback = lib.getExe' config.services.pipewire.package "pw-loopback";
-		capture = "alsa_input.usb-AVerMedia_Live_Gamer_Ultra-Video_5202418300266-02.analog-stereo";
-		playback = "alsa_output.usb-Focusrite_Scarlett_Solo_USB_Y7Y663P27FB970-00.HiFi__Line1__sink";
-	in {
-		serviceConfig = {
-			Type = "simple";
-			ExecStart = "${pw-loopback} -C ${capture} -P ${playback} -n loopback.capturecard";
-		};
+	services.pipewire.extraConfig.pipewire = {
+		# FIXME: figure out what of these are actually necessary/useful.
+		"10-capturecard-loopback-module"."context.modules" = let
+			capturecard-loopback-module = {
+				name = "libpipewire-module-loopback";
+				args = {
+					"capture.props" = {
+						"node.name" = "AverMediaCapture";
+						"node.nick" = "Capturecard Audio Loopback";
+						"node.description" = "loopback-capturecard-capture";
+						"stream.capture.source" = true;
+						"target.object" = "alsa_input.usb-AVerMedia_Live_Gamer_Ultra-Video_5202418300266-02.iec958-stereo";
+						"media.class" = "Stream/Input/Audio";
+						# "port.group" = "capture";
+						"application.name" = "QyriadConfig";
+						"application.id" = "QyriadConfig";
+						"media.role" = "Game";
+						"node.group" = "qyriad.loopback.capturecard";
+						"node.loop.name" = "data-loop.0";
+					};
+					"playback.props" = {
+						"node.name" = "AverMediaPlayback";
+						"node.nick" = "Capturecard Audio Loopback";
+						"node.description" = "AVerMedia Live Gamer Ultra (Audio Loopback)";
+						"node.virtual" = false;
+						"monitor.channel-volumes" = true;
+						"stream.capture.sink" = true;
+						"media.class" = "Stream/Output/Audio";
+						"media.type" = "Audio";
+						#"port.group" = "stream.0";
+						 "port.group" = "playback";
+						"application.name" = "QyriadConfig";
+						"application.id" = "QyriadConfig";
+						"media.category" = "Playback";
+						"media.name" = "AVerMedia Audio Loopback";
+						"media.role" = "Game";
+						"node.group" = "qyriad.loopback.capturecard";
+						"node.loop.name" = "data-loop.0";
+					};
+				};
+			};
+		in [
+			capturecard-loopback-module
+		];
 	};
 
 	services.samba = {
@@ -63,19 +98,19 @@
 			};
 		};
 		nsswins = true;
-		extraConfig = ''
-		    workgroup = WORKGROUP
-			server string = yuki
-			netbios name = yuki
-			security = user
-			#use sendfile = yes
-			#max protocol = smb2
-			# note: localhost is the ipv6 localhost ::1
-			hosts allow = 192.168.50. 127.0.0.1 localhost
-			hosts deny = 0.0.0.0/0
-			guest account = nobody
-			map to guest = bad user
-		'';
+		#extraConfig = ''
+		#    workgroup = WORKGROUP
+		#	server string = yuki
+		#	netbios name = yuki
+		#	security = user
+		#	#use sendfile = yes
+		#	#max protocol = smb2
+		#	# note: localhost is the ipv6 localhost ::1
+		#	hosts allow = 192.168.50. 127.0.0.1 localhost
+		#	hosts deny = 0.0.0.0/0
+		#	guest account = nobody
+		#	map to guest = bad user
+		#'';
 	};
 
 	nix.buildMachines = let
