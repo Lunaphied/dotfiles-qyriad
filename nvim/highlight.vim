@@ -12,7 +12,7 @@ let g:rainbow_active = 1 " luochen1990/rainbow
 
 " Disable rainbow for cmake, mediawiki, and tvtropes
 augroup ft_disable_rainbow
-	autocmd! FileType cmake,mediawiki,tvtropes RainbowToggleOff
+	"autocmd! FileType cmake,mediawiki,tvtropes RainbowToggleOff
 augroup END
 
 

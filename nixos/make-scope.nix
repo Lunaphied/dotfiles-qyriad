@@ -46,7 +46,7 @@ in {
 	;
 
 	obs-studio = pkgs.wrapOBS {
-		plugins = [
+		plugins = with pkgs.obs-studio-plugins; [
 			self.obs-chapter-marker-manager
 		] ++ lib.attrValues {
 			inherit (pkgs.obs-studio-plugins)

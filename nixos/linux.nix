@@ -126,7 +126,7 @@
 
 	users.users.lunaphied = {
 		isNormalUser = true;
-		description = "Lunaphied";		
+		description = "Lunaphied";
 		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
 		shell = pkgs.zsh;
 	};
@@ -261,7 +261,8 @@
 		lurk
 	]
 	++ config.systemd.packages # I want system services to also be in /run/current-system please.
-	++ config.services.udev.packages # Same for udev...
+	# Breaks rebuild with Steam enabled.
+	# ++ config.services.udev.packages # Same for udev...
 	++ config.fonts.packages # and fonts...
 	++ config.console.packages; # and including console fonts too.
 

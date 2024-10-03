@@ -23,6 +23,7 @@
 	services.fwupd.enable = true;
 	services.tailscale.enable = true;
 	services.resolved.enable = true;
+	programs.mosh.enable = true;
 
 	systemd.network.enable = true;
 	networking.useNetworkd = true;

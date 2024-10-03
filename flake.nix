@@ -52,6 +52,11 @@
 			url = "github:xonsh/xonsh";
 			flake = false;
 		};
+		helix-ext = {
+			url = "github:omentic/helix-ext";
+			inputs.nixpkgs.follows = "nixpkgs";
+			inputs.flake-utils.follows = "flake-utils";
+		};
 	};
 
 	outputs = inputs @ {
@@ -74,7 +79,7 @@
 		flake-module = { lib, ... }: {
 			imports = [ ./nixos/modules/keep-paths.nix ];
 
-			nixpkgs.overlays = [ self.overlays.default ];
+			nixpkgs.overlays = [ self.overlays.default inputs.helix-ext.overlays.default ];
 
 			# Prevent our flake input trees from being garbage collected.
 			storePathsToKeep = lib.attrValues inputs;
