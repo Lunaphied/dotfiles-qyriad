@@ -2,6 +2,7 @@
 {
 	pkgs,
 	lib,
+	agenix,
 	qyriad-nur,
 	niz,
 	log2compdb,
@@ -15,6 +16,7 @@
 
 	qyriad-nur' = import qyriad-nur { inherit pkgs; };
 	xil' = import xil { inherit pkgs; };
+	agenix' = import agenix { inherit pkgs; };
 
 in lib.makeScope pkgs.newScope (self: let
 	inherit (self) qlib;
@@ -22,7 +24,10 @@ in {
 	# Just like `pkgs.runCommandLocal`, but without stdenv's default hooks,
 	# which do things like check man pages and patch ELFs.
 	runCommandMinimal = name: attrs: text: let
-		userPreHook = if attrs ? preHook then attrs.preHook + "\n" else "";
+		userPreHook = if attrs ? preHook then
+			attrs.preHook + "\n"
+		else
+			"";
 		attrs' = attrs // {
 			preHook = userPreHook + ''
 				defaultNativeBuildInputs=()
@@ -30,8 +35,20 @@ in {
 		};
 	in pkgs.runCommandLocal name attrs' text;
 
+	steam-launcher-script = pkgs.writeShellScriptBin "launch-steam" ''
+		export STEAM_FORCE_DESKTOPUI_SCALING=2.0
+		export GDK_SCALE=2
+		# Fix crackling audio in Rivals 2.
+		export PULSE_LATENCY_MSEC=126
+		export PIPEWIRE_LATENCY="2048/48000"
+
+		exec /run/current-system/sw/bin/steam-run /run/current-system/sw/lib/steam/bin_steam.sh "$@"
+	'';
+
 	inherit xonsh-source;
 	xonsh = self.callPackage ./pkgs/xonsh { };
+
+	inherit (agenix') agenix;
 
 	inherit (qyriad-nur')
 		strace-process-tree
@@ -43,6 +60,7 @@ in {
 		xontrib-abbrevs
 		xonsh-direnv
 		obs-chapter-marker-manager
+		age-plugin-openpgp-card
 	;
 
 	obs-studio = pkgs.wrapOBS {
@@ -55,6 +73,12 @@ in {
 				obs-vkcapture
 			;
 		};
+	};
+
+	mpv = pkgs.mpv.override {
+		scripts = with pkgs.mpvScripts; [
+			mpv-webm
+		];
 	};
 
 	nerdfonts = self.callPackage ./pkgs/nerdfonts.nix { };

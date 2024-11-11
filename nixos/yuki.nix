@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, lib, pkgs, modulesPath, ... }:
+{ config, pkgs, modulesPath, ... }:
 
 {
 	imports = [
@@ -42,6 +42,9 @@
 	virtualisation.waydroid.enable = true;
 
 	services.pipewire.extraConfig.pipewire = {
+		"10-allowed-rates" = {
+			"default.clock.allowed-rates" = [ 44100 48000 ];
+		};
 		# FIXME: figure out what of these are actually necessary/useful.
 		"10-capturecard-loopback-module"."context.modules" = let
 			capturecard-loopback-module = {
@@ -86,6 +89,11 @@
 			capturecard-loopback-module
 		];
 	};
+	services.pipewire.extraConfig.pipewire-pulse = {
+		"10-min-req" = {
+			"pulse.min.req" = "1024/48000";
+		};
+	};
 
 	services.samba = {
 		enable = true;
@@ -98,37 +106,41 @@
 			};
 		};
 		nsswins = true;
-		#extraConfig = ''
-		#    workgroup = WORKGROUP
-		#	server string = yuki
-		#	netbios name = yuki
-		#	security = user
-		#	#use sendfile = yes
-		#	#max protocol = smb2
-		#	# note: localhost is the ipv6 localhost ::1
-		#	hosts allow = 192.168.50. 127.0.0.1 localhost
-		#	hosts deny = 0.0.0.0/0
-		#	guest account = nobody
-		#	map to guest = bad user
-		#'';
-	};
-
-	nix.buildMachines = let
-		ashyn = {
-			hostName = "ashyn";
-			system = "aarch64-linux";
-			protocol = "ssh-ng";
-
+		settings.global = {
+			workgroup = "WORKGROUP";
+			"server string" = "yuki";
+			"netbios name" = "yuki";
+			"security" = "user";
+			"hosts allow" = "192.168.50. 127.0.0.1 localhost";
+			"hosts deny" = "0.0.0.0/0";
+			"guest account" = "nobody";
+			"map to guest" = "bad user";
 		};
-	in [
-		ashyn
-	];
+	};
 
 	nix.distributedBuilds = true;
 
+	programs.gamemode.enable = true;
+
+	programs.steam = {
+		enable = true;
+		remotePlay.openFirewall = true;
+		dedicatedServer.openFirewall = true;
+	};
+
 	environment.systemPackages = with pkgs; [
+		qyriad.steam-launcher-script
+		config.programs.steam.package.run
 		makemkv
 		valgrind
+		ryujinx
+		shotcut
+		davinci-resolve
+		blender
+		jetbrains.rust-rover
+		config.boot.kernelPackages.perf
+		obs-cmd
+		odin2
 	];
 
 	# This value determines the NixOS release from which the default

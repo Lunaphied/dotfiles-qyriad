@@ -105,12 +105,13 @@
 		libva-utils
 		alacritty
 		wezterm
-		mpv
+		qyriad.mpv
 		wl-clipboard
 		ksshaskpass
-		opera
 		obsidian
 		qyriad.vesktop
+		# For voice.
+		discord
 		calibre
 		kicad
 		krita
@@ -145,10 +146,10 @@
 		#darling
 		glibc.debug
 		qt6.qtbase
-		# Broken after the Python 3.12 migration for some reason. Check back later.
-		#qemu_full
-		#qemu-utils
+		qemu_full
+		qemu-utils
 		xorg.xlsclients
+		xorg.xset # Make OBS shut up.
 		kooha
 		waypipe
 		wayvnc
@@ -159,6 +160,9 @@
 		gajim
 		#inlyne
 		smile
+		gst_all_1.gstreamer
+		libnotify
+		tenacity
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt
