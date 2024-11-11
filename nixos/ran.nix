@@ -41,9 +41,12 @@
 		pkgs.google-chrome
 		pkgs.helix
 		pkgs.ryujinx
+		pkgs.retroarch-assets
+		pkgs.retroarchFull
 	];
 
 	programs.steam.enable = true;
+	services.sunshine.enable = true;
 	programs.steam.gamescopeSession.enable = true;
 	services.hardware.openrgb.enable = true;
 

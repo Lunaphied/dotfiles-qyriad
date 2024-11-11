@@ -52,10 +52,15 @@
 			url = "github:xonsh/xonsh";
 			flake = false;
 		};
-		helix-ext = {
-			url = "github:omentic/helix-ext";
+		#helix-ext = {
+		#	url = "github:omentic/helix-ext";
+		#	inputs.nixpkgs.follows = "nixpkgs";
+		#	inputs.flake-utils.follows = "flake-utils";
+		#};
+		hdrvulkan = {
+			#url = "github:TheTallestJJ/vulkan-hdr-layer-flake";
+			url = "git+file:./nixos/pkgs/vulkan-hdr-layer-flake";
 			inputs.nixpkgs.follows = "nixpkgs";
-			inputs.flake-utils.follows = "flake-utils";
 		};
 	};
 
@@ -79,7 +84,8 @@
 		flake-module = { lib, ... }: {
 			imports = [ ./nixos/modules/keep-paths.nix ];
 
-			nixpkgs.overlays = [ self.overlays.default inputs.helix-ext.overlays.default ];
+			#nixpkgs.overlays = [ self.overlays.default inputs.helix-ext.overlays.default ];
+			nixpkgs.overlays = [ self.overlays.default ];
 
 			# Prevent our flake input trees from being garbage collected.
 			storePathsToKeep = lib.attrValues inputs;
@@ -164,6 +170,7 @@
 
 				ran = mkConfig "x86_64-linux" [
 					./nixos/ran.nix
+					({ pkgs, ... }: { environment.systemPackages = [ inputs.hdrvulkan.packages.${pkgs.system}.default ]; })
 				];
 				Ran = ran;
 

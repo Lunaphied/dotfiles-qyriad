@@ -15,27 +15,6 @@
         "type": "github"
       }
     },
-    "crane_2": {
-      "inputs": {
-        "nixpkgs": [
-          "helix-ext",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1709610799,
-        "narHash": "sha256-5jfLQx0U9hXbi2skYMGodDJkIgffrjIOgMRjZqms2QE=",
-        "owner": "ipetkov",
-        "repo": "crane",
-        "rev": "81c393c776d5379c030607866afef6406ca1be57",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ipetkov",
-        "repo": "crane",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -93,29 +72,23 @@
         "type": "github"
       }
     },
-    "helix-ext": {
+    "hdrvulkan": {
       "inputs": {
-        "crane": "crane_2",
-        "flake-utils": [
-          "flake-utils"
-        ],
         "nixpkgs": [
           "nixpkgs"
-        ],
-        "rust-overlay": "rust-overlay"
+        ]
       },
       "locked": {
-        "lastModified": 1714607681,
-        "narHash": "sha256-RAxnHoVe1yB9pXgf/A/VlVGBifZ1NYRgYrArtzb0d0I=",
-        "owner": "omentic",
-        "repo": "helix-ext",
-        "rev": "cd15f3d346196db5c0c7623b6c7cafcf350119ad",
-        "type": "github"
+        "dirtyRev": "11d002e52b87ddab3afbd99c8428f89331b7b2ac-dirty",
+        "dirtyShortRev": "11d002e-dirty",
+        "lastModified": 1709326060,
+        "narHash": "sha256-OtJPtSiEHfGBmRtDMuUU+9TIHoMgVR5aaOh1NKjudPo=",
+        "type": "git",
+        "url": "file:./nixos/pkgs/vulkan-hdr-layer-flake"
       },
       "original": {
-        "owner": "omentic",
-        "repo": "helix-ext",
-        "type": "github"
+        "type": "git",
+        "url": "file:./nixos/pkgs/vulkan-hdr-layer-flake"
       }
     },
     "lix": {
@@ -293,7 +266,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "git-point": "git-point",
-        "helix-ext": "helix-ext",
+        "hdrvulkan": "hdrvulkan",
         "lix": "lix",
         "lix-module": "lix-module",
         "log2compdb": "log2compdb",
@@ -304,31 +277,6 @@
         "qyriad-nur": "qyriad-nur",
         "xil": "xil",
         "xonsh-source": "xonsh-source"
-      }
-    },
-    "rust-overlay": {
-      "inputs": {
-        "flake-utils": [
-          "helix-ext",
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "helix-ext",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1709604635,
-        "narHash": "sha256-le4fwmWmjGRYWwkho0Gr7mnnZndOOe4XGbLw68OvF40=",
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "rev": "e86c0fb5d3a22a5f30d7f64ecad88643fe26449d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "type": "github"
       }
     },
     "systems": {
