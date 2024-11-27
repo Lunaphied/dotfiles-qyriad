@@ -188,6 +188,9 @@
 		kdePackages.sddm-kcm
 		kdePackages.flatpak-kcm
 		kdePackages.sweeper
+		mesa-demos
+		vulkan-tools
+		wayland-utils
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt

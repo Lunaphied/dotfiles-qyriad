@@ -358,21 +358,22 @@ nnoremap <leader>ra :call InsertInvertR()<CR>a
 nnoremap <leader>rA :call InsertInvertR()<CR>A
 
 lua << EOF
-vim.ui.clipboard = vim.tbl_deep_extend("keep", vim.ui.clipboard or {}, {
-	osc52 = require("vim.ui.clipboard.osc52"),
-})
--- Always use OSC 52 clipboard.
-vim.g.clipboard = {
-	name = "OSC 52",
-	copy = {
-		["+"] = vim.ui.clipboard.osc52.copy("+"),
-		["*"] = vim.ui.clipboard.osc52.copy("*"),
-	},
-	paste = {
-		["+"] = vim.ui.clipboard.osc52.paste("+"),
-		["*"] = vim.ui.clipboard.osc52.paste("*"),
-	},
-}
+
+-- vim.ui.clipboard = vim.tbl_deep_extend("keep", vim.ui.clipboard or {}, {
+-- 	osc52 = require("vim.ui.clipboard.osc52"),
+-- })
+-- -- Always use OSC 52 clipboard.
+-- vim.g.clipboard = {
+-- 	name = "OSC 52",
+-- 	copy = {
+-- 		["+"] = vim.ui.clipboard.osc52.copy("+"),
+-- 		["*"] = vim.ui.clipboard.osc52.copy("*"),
+-- 	},
+-- 	paste = {
+-- 		["+"] = vim.ui.clipboard.osc52.paste("+"),
+-- 		["*"] = vim.ui.clipboard.osc52.paste("*"),
+-- 	},
+-- }
 
 -- Returns true if this function inverted fo=r, and false if it did not.
 function doc_format_options()

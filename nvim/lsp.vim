@@ -308,22 +308,18 @@ use {
 	event = 'LspAttach',
 	opts = { },
 }
+use {
+    "MysticalDevil/inlay-hints.nvim",
+	event = "LspAttach",
+	dependencies = { "neovim/nvim-lspconfig" },
+	config = {}
+}
 use { 'nanotee/nvim-lsp-basics', lazy = true }
 --use { 'weilbith/nvim-code-action-menu', lazy = true }
 use { 'tamago324/nlsp-settings.nvim', event = "LspAttach" }
-use {
-	'simrat39/rust-tools.nvim',
-	lazy = true,
-	ft = "rust",
-	opts = {
-		cmd = { "rust_analyzer" },
-		server = {
-			standalone = true,
-		},
-	},
-}
+use 'mrcjkb/rustaceanvim'
 use { 'simrat39/symbols-outline.nvim', event = "LspAttach" }
-use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach" }
+use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach", config = {} }
 -- FIXME: this plugin is no longer maintained.
 use { 'folke/lsp-colors.nvim', event = "LspAttach" }
 use { 'https://git.sr.ht/~p00f/clangd_extensions.nvim', ft = { "c", "cpp" } }

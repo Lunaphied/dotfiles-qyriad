@@ -26,14 +26,24 @@ in
 
 	nixpkgs.config.allowUnfree = true;
 
-	programs.steam.enable = true;
+	programs.gamemode.enable = true;
 
-	environment.systemPackages = [
-		pkgs.neovide
-		pkgs.cider
-		pkgs.lutris
-		pkgs.retroarchFull
+	programs.steam = {
+		enable = true;
+		remotePlay.openFirewall = true;
+		dedicatedServer.openFirewall = true;
+	};
+
+	environment.systemPackages = with pkgs; [
+		qyriad.steam-launcher-script
+		config.programs.steam.package.run
+		neovide
+		cider
+		lutris
+		retroarchFull
 	];
+
+	services.jenkins.enable = true;
 
 	#services.searx = {
 	#	enable = true;
