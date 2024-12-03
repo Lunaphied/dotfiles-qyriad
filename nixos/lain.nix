@@ -1,10 +1,10 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, modulesPath, ... }:
+{ config, pkgs, lib, modulesPath, ... }:
 
 let
 	nixos-hardware = builtins.fetchTarball {
-		url = "https://github.com/NixOS/nixos-hardware/archive/refs/heads/master.tar.gz";
-		sha256 = "sha256:17pnp2rmjbg4b4nlh34r5lwd2531if87v00bb74zsvb894xjvyv2";
+		url = "https://github.com/NixOS/nixos-hardware/archive/c3e48cbd88414f583ff08804eb57b0da4c194f9e.tar.gz";
+		sha256 = "sha256:0h4x3xplr4awz7rmh27ksrbzf0np9ik0v3y24pac3inbxaaw2ipv";
 	};
 in
 {
@@ -21,6 +21,8 @@ in
 	];
 
 	zramSwap.enable = true;
+	# Too tiny for this oops.
+	boot.tmp.useTmpfs = lib.mkForce false;
 
 	nixpkgs.config.allowUnfree = true;
 
@@ -30,6 +32,7 @@ in
 		pkgs.neovide
 		pkgs.cider
 		pkgs.lutris
+		pkgs.retroarchFull
 	];
 
 	#services.searx = {
