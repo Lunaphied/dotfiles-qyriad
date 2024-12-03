@@ -2,6 +2,7 @@
 {
 	pkgs,
 	lib,
+	agenix,
 	qyriad-nur,
 	niz,
 	log2compdb,
@@ -15,6 +16,7 @@
 
 	qyriad-nur' = import qyriad-nur { inherit pkgs; };
 	xil' = import xil { inherit pkgs; };
+	agenix' = import agenix { inherit pkgs; };
 
 in lib.makeScope pkgs.newScope (self: let
 	inherit (self) qlib;
@@ -22,7 +24,10 @@ in {
 	# Just like `pkgs.runCommandLocal`, but without stdenv's default hooks,
 	# which do things like check man pages and patch ELFs.
 	runCommandMinimal = name: attrs: text: let
-		userPreHook = if attrs ? preHook then attrs.preHook + "\n" else "";
+		userPreHook = if attrs ? preHook then
+			attrs.preHook + "\n"
+		else
+			"";
 		attrs' = attrs // {
 			preHook = userPreHook + ''
 				defaultNativeBuildInputs=()
@@ -30,12 +35,25 @@ in {
 		};
 	in pkgs.runCommandLocal name attrs' text;
 
+	steam-launcher-script = pkgs.writeShellScriptBin "launch-steam" ''
+		export STEAM_FORCE_DESKTOPUI_SCALING=2.0
+		export GDK_SCALE=2
+		# Fix crackling audio in Rivals 2.
+		export PULSE_LATENCY_MSEC=126
+		export PIPEWIRE_LATENCY="2048/48000"
+
+		exec /run/current-system/sw/bin/steam-run /run/current-system/sw/lib/steam/bin_steam.sh "$@"
+	'';
+
 	inherit xonsh-source;
 	xonsh = self.callPackage ./pkgs/xonsh { };
+
+	inherit (agenix') agenix;
 
 	inherit (qyriad-nur')
 		strace-process-tree
 		strace-with-colors
+		intentrace
 		cinny
 		otree
 		cyme
@@ -43,6 +61,7 @@ in {
 		xontrib-abbrevs
 		xonsh-direnv
 		obs-chapter-marker-manager
+		age-plugin-openpgp-card
 	;
 
 	obs-studio = pkgs.wrapOBS {
@@ -55,6 +74,17 @@ in {
 				obs-vkcapture
 			;
 		};
+	};
+
+	nvtop-yuki = pkgs.nvtopPackages.full.override {
+		amd = true;
+		nvidia = true;
+	};
+
+	mpv = pkgs.mpv.override {
+		scripts = with pkgs.mpvScripts; [
+			mpv-webm
+		];
 	};
 
 	nerdfonts = self.callPackage ./pkgs/nerdfonts.nix { };
@@ -113,7 +143,7 @@ in {
 	#unpackDrvSrc = drv: self.unpackSource { inherit (drv.src) url; };
 
 	glances = pkgs.glances.overridePythonAttrs (prev: {
-		propagatedBuildInputs = with pkgs.python3Packages; prev.propagatedBuildInputs ++ [
+		propagatedBuildInputs = with pkgs.python3Packages; (prev.propagatedBuildInputs or [ ]) ++ [
 			batinfo
 			nvidia-ml-py
 			pysmart-smartx
@@ -124,9 +154,24 @@ in {
 
 	vesktop = pkgs.vesktop.overrideAttrs (prev: {
 		desktopItems = lib.forEach prev.desktopItems (item: item.override {
-			exec = "vesktop --enable-features=UseOzonePlatform --ozone-platform=wayland --use-wayland-ime %U";
+			exec = lib.concatStringsSep " " [
+				"--enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer"
+				"--ozone-platform-hint=wayland"
+				"--gtk-version=4"
+				"--enable-wayland-ime"
+				"--wayland-text-input-version=3"
+			];
+			#exec = "vesktop --enable-features=UseOzonePlatform --ozone-platform=wayland --use-wayland-ime %U";
 		});
 	});
 
-	qlib = import ./qlib.nix { inherit lib; };
+	qlib = let
+		qlib = import ./qlib.nix { inherit lib; };
+		# Nixpkgs lib with additions from qyriad-nur.
+		nurLib = qyriad-nur'.lib;
+		# The additions to lib from qyriad-nur without Nixpkgs lib.
+		nurAdditions = qlib.removeAttrs' (lib.attrNames lib) nurLib;
+		qlibWithAdditions = nurAdditions // qlib;
+		# And then finally we'll force the result. Nothing here should be recursive or fail evaluation.
+	in qlib.force qlibWithAdditions;
 })

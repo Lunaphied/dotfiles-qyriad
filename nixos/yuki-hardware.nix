@@ -31,7 +31,7 @@
 
 	hardware.nvidia = {
 		modesetting.enable = true;
-		package = config.boot.kernelPackages.nvidiaPackages.beta;
+		package = config.boot.kernelPackages.nvidiaPackages.stable;
 		open = false;
 	};
 	# This is causing buildfailures that I don't feel like debugging right now.
@@ -41,6 +41,7 @@
 	fileSystems."/" = {
 		device = "/dev/disk/by-uuid/4a86932f-5e2d-464e-9699-cde6d010847d";
 		fsType = "ext4";
+		options = [ "discard" ];
 	};
 
 	fileSystems."/boot/efi" = {

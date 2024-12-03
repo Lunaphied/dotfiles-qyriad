@@ -103,12 +103,12 @@
 		libva-utils
 		alacritty
 		wezterm
-		mpv
+		qyriad.mpv
 		wl-clipboard
-		ksshaskpass
-		opera
 		obsidian
 		qyriad.vesktop
+		# For voice.
+		discord
 		calibre
 		kicad
 		krita
@@ -143,10 +143,10 @@
 		#darling
 		glibc.debug
 		qt6.qtbase
-		# Broken after the Python 3.12 migration for some reason. Check back later.
-		#qemu_full
-		#qemu-utils
+		qemu_full
+		qemu-utils
 		xorg.xlsclients
+		xorg.xset # Make OBS shut up.
 		kooha
 		waypipe
 		wayvnc
@@ -157,6 +157,37 @@
 		gajim
 		#inlyne
 		smile
+		gst_all_1.gstreamer
+		libnotify
+		tenacity
+		chromium
+		kdePackages.dragon
+		kdePackages.filelight
+		kdePackages.ffmpegthumbs
+		kdePackages.kalgebra
+		kdePackages.kcalc
+		kdePackages.kcharselect
+		kdePackages.kcolorchooser
+		kdePackages.kcolorpicker
+		kdePackages.kde-dev-scripts
+		kdePackages.kde-dev-utils
+		kdePackages.kdebugsettings
+		kdePackages.kde-inotify-survey
+		kdePackages.kdeplasma-addons
+		kdePackages.kdf
+		kdePackages.kfind
+		kdePackages.kget
+		kdePackages.kimageannotator
+		kdePackages.kio-zeroconf
+		kdePackages.kompare
+		kdePackages.kontrast
+		kdePackages.krdc
+		kdePackages.ksshaskpass
+		kdePackages.ksystemlog
+		kdePackages.plasma-disks
+		kdePackages.sddm-kcm
+		kdePackages.flatpak-kcm
+		kdePackages.sweeper
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt

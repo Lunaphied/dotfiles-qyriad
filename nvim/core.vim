@@ -212,6 +212,9 @@ nnoremap <leader><CR> mzi<CR><Esc>`z
 " Useful for moving comments to their own line.
 nnoremap <leader>J mzr<CR>ddkP`z
 
+" <leader>l<BS> to closing the location list.
+nnoremap <leader>l<BS> <Cmd>lclose<CR>
+
 " Make <C-f> and <C-b> scroll 11 instead, by default.
 nnoremap <C-f> 11<c-e>
 nnoremap <C-b> 11<C-y>
@@ -265,11 +268,6 @@ cnoremap <C-y> <C-f>Vy<C-c>
 
 " Open the current file again in a new tab.
 nnoremap <leader>ts <Cmd>tab split<CR>
-
-" Edit and source init.vim shortcuts.
-nnoremap <leader>ev <Cmd>tabedit $MYVIMRC<CR>
-nnoremap <leader>sv <Cmd>source $MYVIMRC<CR>
-
 
 " Delete a Python type hint comment on the current line. ...Apparently I used this enough to make this a mapping?
 "nnoremap <leader>dt <Cmd>substitute/\s#\stype:.\+//<CR>
@@ -360,6 +358,22 @@ nnoremap <leader>ra :call InsertInvertR()<CR>a
 nnoremap <leader>rA :call InsertInvertR()<CR>A
 
 lua << EOF
+vim.ui.clipboard = vim.tbl_deep_extend("keep", vim.ui.clipboard or {}, {
+	osc52 = require("vim.ui.clipboard.osc52"),
+})
+-- Always use OSC 52 clipboard.
+vim.g.clipboard = {
+	name = "OSC 52",
+	copy = {
+		["+"] = vim.ui.clipboard.osc52.copy("+"),
+		["*"] = vim.ui.clipboard.osc52.copy("*"),
+	},
+	paste = {
+		["+"] = vim.ui.clipboard.osc52.paste("+"),
+		["*"] = vim.ui.clipboard.osc52.paste("*"),
+	},
+}
+
 -- Returns true if this function inverted fo=r, and false if it did not.
 function doc_format_options()
 	local pos = vim.inspect_pos(nil, nil, nil, { syntax = false, extmarks = false, semantic_tokens = false })
