@@ -53,6 +53,7 @@ in {
 	inherit (qyriad-nur')
 		strace-process-tree
 		strace-with-colors
+		intentrace
 		cinny
 		otree
 		cyme
@@ -73,6 +74,11 @@ in {
 				obs-vkcapture
 			;
 		};
+	};
+
+	nvtop-yuki = pkgs.nvtopPackages.full.override {
+		amd = true;
+		nvidia = true;
 	};
 
 	mpv = pkgs.mpv.override {
@@ -137,7 +143,7 @@ in {
 	#unpackDrvSrc = drv: self.unpackSource { inherit (drv.src) url; };
 
 	glances = pkgs.glances.overridePythonAttrs (prev: {
-		propagatedBuildInputs = with pkgs.python3Packages; prev.propagatedBuildInputs ++ [
+		propagatedBuildInputs = with pkgs.python3Packages; (prev.propagatedBuildInputs or [ ]) ++ [
 			batinfo
 			nvidia-ml-py
 			pysmart-smartx
@@ -148,9 +154,24 @@ in {
 
 	vesktop = pkgs.vesktop.overrideAttrs (prev: {
 		desktopItems = lib.forEach prev.desktopItems (item: item.override {
-			exec = "vesktop --enable-features=UseOzonePlatform --ozone-platform=wayland --use-wayland-ime %U";
+			exec = lib.concatStringsSep " " [
+				"--enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer"
+				"--ozone-platform-hint=wayland"
+				"--gtk-version=4"
+				"--enable-wayland-ime"
+				"--wayland-text-input-version=3"
+			];
+			#exec = "vesktop --enable-features=UseOzonePlatform --ozone-platform=wayland --use-wayland-ime %U";
 		});
 	});
 
-	qlib = import ./qlib.nix { inherit lib; };
+	qlib = let
+		qlib = import ./qlib.nix { inherit lib; };
+		# Nixpkgs lib with additions from qyriad-nur.
+		nurLib = qyriad-nur'.lib;
+		# The additions to lib from qyriad-nur without Nixpkgs lib.
+		nurAdditions = qlib.removeAttrs' (lib.attrNames lib) nurLib;
+		qlibWithAdditions = nurAdditions // qlib;
+		# And then finally we'll force the result. Nothing here should be recursive or fail evaluation.
+	in qlib.force qlibWithAdditions;
 })
