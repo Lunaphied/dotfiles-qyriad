@@ -87,8 +87,6 @@ in {
 		];
 	};
 
-	nerdfonts = self.callPackage ./pkgs/nerdfonts.nix { };
-
 	udev-rules = self.callPackage ./udev-rules { };
 
 	nix-helpers = self.callPackage ./pkgs/nix-helpers.nix { };
@@ -155,14 +153,30 @@ in {
 	vesktop = pkgs.vesktop.overrideAttrs (prev: {
 		desktopItems = lib.forEach prev.desktopItems (item: item.override {
 			exec = lib.concatStringsSep " " [
+				"vesktop"
 				"--enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer"
 				"--ozone-platform-hint=wayland"
 				"--gtk-version=4"
 				"--enable-wayland-ime"
 				"--wayland-text-input-version=3"
+				"%U"
 			];
 			#exec = "vesktop --enable-features=UseOzonePlatform --ozone-platform=wayland --use-wayland-ime %U";
 		});
+	});
+
+	obsidian = pkgs.obsidian.overrideAttrs (prev: {
+		desktopItem = prev.desktopItem.override {
+			exec = lib.concatStringsSep " " [
+				"obsidian"
+				"--enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer"
+				"--ozone-platform-hint=wayland"
+				"--gtk-version=4"
+				"--enable-wayland-ime"
+				"--wayland-text-input-version=3"
+				"%U"
+			];
+		};
 	});
 
 	qlib = let

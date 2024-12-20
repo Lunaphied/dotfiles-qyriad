@@ -105,9 +105,11 @@
 		libva-utils
 		alacritty
 		wezterm
+		# Backup.
+		#konsole
 		qyriad.mpv
 		wl-clipboard
-		obsidian
+		qyriad.obsidian
 		qyriad.vesktop
 		# For voice.
 		discord
@@ -209,7 +211,7 @@
 
 	# Setup the terminal font we use, and make CJK render nicely.
 	fonts.packages = with pkgs; [
-		qyriad.nerdfonts
+		nerd-fonts.inconsolata-go
 		noto-fonts-cjk-sans
 	];
 	fonts.fontconfig.defaultFonts.monospace = [
