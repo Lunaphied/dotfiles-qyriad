@@ -37,7 +37,7 @@ hide_when_typing = false
 [scrolling]
 multiplier = 1
 
-[shell]
+[terminal.shell]
 #args = ["--login", "-c", "xonsh"]
 args = ["--login"]
 program = "zsh"
@@ -45,3 +45,5 @@ program = "zsh"
 [window]
 dynamic_padding = false
 dynamic_title = true
+
+[terminal]

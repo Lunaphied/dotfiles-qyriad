@@ -16,12 +16,10 @@
 
 	nixpkgs.config.allowUnfree = true;
 
-
 	hardware.bluetooth.enable = true;
 	hardware.enableAllFirmware = true;
 
 	services.fwupd.enable = true;
-	services.tailscale.enable = true;
 	services.resolved.enable = true;
 	programs.mosh.enable = true;
 
@@ -35,19 +33,34 @@
 		cpus = 32;
 	};
 
-	environment.systemPackages = [
-		pkgs.tailscale
-		pkgs.cider
-		pkgs.google-chrome
-		pkgs.helix
-		pkgs.ryujinx
-		pkgs.retroarch-assets
-		pkgs.retroarchFull
+	programs.gamemode.enable = true;
+
+	programs.steam = {
+		enable = true;
+		remotePlay.openFirewall = true;
+		dedicatedServer.openFirewall = true;
+		gamescopeSession.enable = true;
+	};
+
+	environment.systemPackages = with pkgs; [
+		qyriad.steam-launcher-script
+		config.programs.steam.package.run
+		makemkv
+		valgrind
+		ryujinx
+		shotcut
+		davinci-resolve
+		blender
+		jetbrains.rust-rover
+		config.boot.kernelPackages.perf
+		obs-cmd
+		cider
+		odin2
+		qyriad.nvtop-yuki
+		retroarch-assets
+		retroarchFull
 	];
 
-	programs.steam.enable = true;
-	services.sunshine.enable = true;
-	programs.steam.gamescopeSession.enable = true;
 	services.hardware.openrgb.enable = true;
 
 	virtualisation.waydroid.enable = true;
