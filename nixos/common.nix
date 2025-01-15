@@ -124,7 +124,7 @@
 		ranger
 		nix-output-monitor
 		qyriad.git-point
-		#git-branchless
+		git-branchless
 		btop
 		numbat
 		dust

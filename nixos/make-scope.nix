@@ -42,7 +42,7 @@ in {
 		export PULSE_LATENCY_MSEC=126
 		export PIPEWIRE_LATENCY="2048/48000"
 
-		exec /run/current-system/sw/bin/steam-run /run/current-system/sw/lib/steam/bin_steam.sh "$@"
+		exec /run/current-system/sw/bin/steam-run /lib/steam/bin_steam.sh "$@"
 	'';
 
 	inherit xonsh-source;
@@ -142,11 +142,12 @@ in {
 
 	glances = pkgs.glances.overridePythonAttrs (prev: {
 		propagatedBuildInputs = with pkgs.python3Packages; (prev.propagatedBuildInputs or [ ]) ++ [
-			batinfo
 			nvidia-ml-py
 			pysmart-smartx
-			wifi
 			zeroconf
+		] ++ lib.optionals pkgs.stdenv.isLinux [
+			batinfo
+			wifi
 		];
 	});
 

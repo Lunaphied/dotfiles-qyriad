@@ -120,7 +120,7 @@
 		# TODO: possibly switch to sddm.extraPackages if it's added
 		# https://github.com/NixOS/nixpkgs/pull/242009 (nixos/sddm: enable Wayland support)
 		weston
-		dsview
+		#dsview
 		pulseview
 		ffmpeg-full
 		aegisub
@@ -129,7 +129,7 @@
 		ntfs3g
 		#sequoia
 		sioyek
-		neochat
+		#neochat
 		#fluffychat
 		nheko
 		element-desktop
@@ -147,8 +147,8 @@
 		#darling
 		glibc.debug
 		qt6.qtbase
-		qemu_full
-		qemu-utils
+		#qemu_full
+		#qemu-utils
 		xorg.xlsclients
 		xorg.xset # Make OBS shut up.
 		kooha
@@ -213,9 +213,6 @@
 	fonts.packages = with pkgs; [
 		nerd-fonts.inconsolata-go
 		noto-fonts-cjk-sans
-	];
-	fonts.fontconfig.defaultFonts.monospace = [
-		"InconsolataGo Nerd Font Mono"
 	];
 
 

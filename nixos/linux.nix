@@ -172,6 +172,9 @@
 	programs.neovim = {
 		enable = true;
 		defaultEditor = true;
+		package = pkgs.neovim-unwrapped.overrideAttrs {
+			separateDebugInfo = true;
+		};
 	};
 
 	programs.git = {
@@ -240,7 +243,7 @@
 		heh
 		sysstat
 		# apksigner dependency fails to build on macOS
-		#diffoscope # Broken (again) in Nixpkgs. Check back later.
+		diffoscope
 		rpm
 		binutils
 		lsof
