@@ -1,6 +1,6 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
 
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
 	# Enable GUI stuff.
@@ -98,14 +98,21 @@
 		"jitsi-meet-1.0.8043" # For Element
 	];
 
+	package-groups = {
+		music-production.enable = lib.mkDefault true;
+		wayland-tools.enable = lib.mkDefault true;
+	};
+
 	environment.systemPackages = with pkgs; [
 		libinput
 		libva-utils
 		alacritty
 		wezterm
+		# Backup.
+		#konsole
 		qyriad.mpv
-		wl-clipboard
-		obsidian
+		qyriad.obsidian
+		pandoc
 		qyriad.vesktop
 		# For voice.
 		discord
@@ -116,29 +123,29 @@
 		# TODO: possibly switch to sddm.extraPackages if it's added
 		# https://github.com/NixOS/nixpkgs/pull/242009 (nixos/sddm: enable Wayland support)
 		weston
-		dsview
+		#dsview
 		pulseview
 		ffmpeg-full
+		(lib.getBin x264)
+		(lib.getBin x265)
 		aegisub
 		cifs-utils
 		nfs-utils
 		ntfs3g
-		#sequoia
+		sequoia
 		sioyek
-		neochat
+		#neochat
 		#fluffychat
 		nheko
 		element-desktop
-		bitwig-studio
 		curl
 		kcachegrind
 		flamegraph
 		signal-desktop
 		thunderbird
-		wtype
 		seer
 		#mattermost-desktop
-		qyriad.cinny
+		#qyriad.cinny
 		firefoxpwa
 		#darling
 		glibc.debug
@@ -147,19 +154,15 @@
 		qemu-utils
 		xorg.xlsclients
 		xorg.xset # Make OBS shut up.
-		kooha
-		waypipe
-		wayvnc
-		wev
 		seer
 		qyriad.obs-studio
 		v4l-utils
 		gajim
-		#inlyne
+		inlyne
+		tesseract
 		smile
 		gst_all_1.gstreamer
 		libnotify
-		tenacity
 		chromium
 		kdePackages.dragon
 		kdePackages.filelight
@@ -210,11 +213,8 @@
 
 	# Setup the terminal font we use, and make CJK render nicely.
 	fonts.packages = with pkgs; [
-		qyriad.nerdfonts
+		nerd-fonts.inconsolata-go
 		noto-fonts-cjk-sans
-	];
-	fonts.fontconfig.defaultFonts.monospace = [
-		"InconsolataGo Nerd Font Mono"
 	];
 
 

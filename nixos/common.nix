@@ -37,7 +37,7 @@
 	};
 
 	# Default to Denver, let localtimed override it instantly when it is able to.
-	time.timeZone = lib.mkForce "America/Denver";
+	#time.timeZone = lib.mkForce "America/Denver";
 
 	programs.nix-index.enable = true;
 	programs.bash.completion.enable = true;
@@ -77,6 +77,7 @@
 		stdmanpages
 		xh
 		diskus
+		parallel-disk-usage
 		moreutils
 		grc
 		file
@@ -88,7 +89,6 @@
 		htop
 		inxi
 		hyfetch
-		nodePackages.insect
 		jq
 		yt-dlp
 		pstree
@@ -98,6 +98,7 @@
 		nix-prefetch
 		qyriad.nix-helpers
 		any-nix-shell
+		nix-du
 		qyriad.niz
 		qyriad.pzl
 		#qyriad.xil
@@ -123,7 +124,7 @@
 		ranger
 		nix-output-monitor
 		qyriad.git-point
-		#git-branchless
+		git-branchless
 		btop
 		numbat
 		dust
@@ -145,6 +146,6 @@
 		ansi2html
 		qyriad.agenix
 		qyriad.age-plugin-openpgp-card
-	#] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
-	];
+		abcmidi
+	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

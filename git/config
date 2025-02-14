@@ -4,6 +4,9 @@
 [merge]
 	tool = vimdiff
 	conflictStyle = diff3
+[merge "mergiraf"]
+	name = "mergiraf"
+	driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P
 [alias]
 	sub = submodule
 	subinit = submodule update --recursive --init
@@ -42,6 +45,7 @@
 	id = show --no-patch --pretty=%H
 	shid = show --no-patch --pretty=%h
 	where = name-rev --no-undefined --always --name-only
+	common = rev-parse --git-common-dir
 	#c = !tmux split-window -v "git commit && exit"
 [rebase]
 	autostash = true
@@ -64,6 +68,7 @@
 [core]
 	pager = delta
 	editor = nvim
+	attributesfile = ~/.config/git/gitattributes
 [delta]
 	dark = true
 	side-by-side = true

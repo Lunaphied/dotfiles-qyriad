@@ -17,6 +17,11 @@
 	# Yes mount /tmp as a tmpfs.
 	boot.tmp.useTmpfs = true;
 
+	services.smartd = {
+		enable = true;
+		autodetect = true;
+	};
+
 	# Make the systemd stop timeout more reasonable.
 	systemd.extraConfig = ''
 		DefaultTimeoutStopSec=20
@@ -155,6 +160,9 @@
 	programs.neovim = {
 		enable = true;
 		defaultEditor = true;
+		package = pkgs.neovim-unwrapped.overrideAttrs {
+			separateDebugInfo = true;
+		};
 	};
 
 	programs.git = {
@@ -223,7 +231,7 @@
 		heh
 		sysstat
 		# apksigner dependency fails to build on macOS
-		#diffoscope # Broken (again) in Nixpkgs. Check back later.
+		diffoscope
 		rpm
 		binutils
 		lsof
@@ -245,9 +253,11 @@
 		libtree
 		lurk
 	]
-	#++ config.systemd.packages # I want system services to also be in /run/current-system please.
-	#++ config.services.udev.packages # Same for udev...
-	;
-	#++ config.fonts.packages # and fonts...
-	#++ config.console.packages; # and including console fonts too.
+	++ lib.optionals config.services.smartd.enable [
+		pkgs.smartmontools
+	]
+	++ config.systemd.packages # I want system services to also be in /run/current-system please.
+	++ config.services.udev.packages # Same for udev...
+	++ config.fonts.packages # and fonts...
+	++ config.console.packages; # and including console fonts too.
 }
