@@ -16,6 +16,7 @@ in
 		./linux-gui.nix
 		./dev.nix
 		./resources.nix
+		./modules/package-groups.nix
 		(nixos-hardware + "/gpd/pocket-3")
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
