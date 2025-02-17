@@ -9,6 +9,7 @@
 		./linux-gui.nix
 		./dev.nix
 		./resources.nix
+		./modules/package-groups.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 

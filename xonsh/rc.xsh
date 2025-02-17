@@ -1,17 +1,19 @@
 # XXX VERY HACK for NixOS
 import xonsh
-if xonsh.__path__[0].startswith('/nix/store'):
-	to_delete = []
-	for elem in $PATH:
-		if pf'{elem}/xonsh'.is_file() and not elem.startswith('/run'):
-			to_delete.append(elem)
-	for elem in to_delete:
-		$PATH.remove(elem)
+if "IN_NIX_SHELL" not in ${...}:
+	if xonsh.__path__[0].startswith('/nix/store'):
+		to_delete = []
+		for elem in $PATH:
+			if pf'{elem}/xonsh'.is_file() and not elem.startswith('/run'):
+				to_delete.append(elem)
+		for elem in to_delete:
+			$PATH.remove(elem)
 
 import os, sys, io, json, struct, re, shlex, typing, textwrap
 from datetime import datetime, timedelta
 import zoneinfo
 from zoneinfo import ZoneInfo
+import pathlib
 from pathlib import Path
 
 import xonsh
@@ -158,15 +160,20 @@ aliases['grep'] = 'grep --color=auto'
 aliases['egrep'] = 'egrep --color=auto'
 aliases['sed'] = 'sed -E'
 aliases['less'] = 'less -R'
+aliases['tp'] = 'trash-put -v'
+aliases['lsof'] = 'grc lsof +c0'
+#aliases['man'] = ['env', 'MANWIDTH=@(min(int($(tput cols)), 120))',  'man']
 
 # Coreutils-alike
 aliases['rip'] = 'rip --seance'
 
 
 # Edit config shortcuts.
-edit = lambda path : $EDITOR + ' ' + str(path)
+#edit = lambda path : $EDITOR + ' ' + str(path)
+def edit(path):
+	return [$EDITOR, Path(path).as_posix()]
 # "Edit tmux"
-aliases['et'] = edit(p'~/.config/tmux/tmux.conf')
+aliases['et'] = [$EDITOR, p"~/.config/tmux/tmux.conf".as_posix()]
 # "Edit vim"
 aliases['ev'] = f"$EDITOR -S ~/.config/Session-nvim.vim"
 # "Edit alacritty"
