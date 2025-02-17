@@ -12,6 +12,61 @@
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
+	services.pipewire.extraConfig.pipewire = {
+		"10-allowed-rates" = {
+			"default.clock.allowed-rates" = [ 44100 48000 ];
+		};
+		# FIXME: figure out what of these are actually necessary/useful.
+		"10-capturecard-loopback-module"."context.modules" = let
+			capturecard-loopback-module = {
+				name = "libpipewire-module-loopback";
+				args = {
+					"capture.props" = {
+						"node.name" = "AverMediaCapture";
+						"node.nick" = "Capturecard Audio Loopback";
+						"node.description" = "loopback-capturecard-capture";
+						"stream.capture.source" = true;
+						"target.object" = "alsa_input.usb-AVerMedia_Live_Gamer_EXTREME_3_5204246000283-02.iec958-stereo";
+						"media.class" = "Stream/Input/Audio";
+						# "port.group" = "capture";
+						"application.name" = "LunaphiedConfig";
+						"application.id" = "LunaphiedConfig";
+						"media.role" = "Game";
+						"node.group" = "lunaphied.loopback.capturecard";
+						"node.loop.name" = "data-loop.0";
+					};
+					"playback.props" = {
+						"node.name" = "AverMediaPlayback";
+						"node.nick" = "Capturecard Audio Loopback";
+						"node.description" = "AVerMedia Live Gamer EXTREME 3 (Audio Loopback)";
+						"node.virtual" = false;
+						"monitor.channel-volumes" = true;
+						"stream.capture.sink" = true;
+						"media.class" = "Stream/Output/Audio";
+						"media.type" = "Audio";
+						#"port.group" = "stream.0";
+						 "port.group" = "playback";
+						"application.name" = "LunaphiedConfig";
+						"application.id" = "LunaphiedConfig";
+						"media.category" = "Playback";
+						"media.name" = "AVerMedia Audio Loopback";
+						"media.role" = "Game";
+						"node.group" = "lunaphied.loopback.capturecard";
+						"node.loop.name" = "data-loop.0";
+					};
+				};
+			};
+		in [
+			capturecard-loopback-module
+		];
+	};
+
+	services.pipewire.extraConfig.pipewire-pulse = {
+		"10-min-req" = {
+			"pulse.min.req" = "1024/48000";
+		};
+	};
+
 	networking.hostName = "Ran";
 
 	nixpkgs.config.allowUnfree = true;
@@ -56,9 +111,11 @@
 		obs-cmd
 		cider
 		odin2
-		qyriad.nvtop-yuki
 		retroarch-assets
 		retroarchFull
+		konversation
+		iodine
+		networkmanager-iodine
 	];
 
 	services.hardware.openrgb.enable = true;

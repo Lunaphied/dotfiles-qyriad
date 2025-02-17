@@ -97,7 +97,7 @@ vim.lsp.log.set_format_func(lsp_format)
 -- We are using lsp_lines for virtual text instead.
 vim.diagnostic.config {
 	virtual_text = false,
-	virtal_lines = false,
+	virtal_lines = true,
 }
 
 lsp_filetypes = {
@@ -187,7 +187,7 @@ function on_lsp_attach(bufnr, client_id)
 	vim.b[bufnr].lsp_client = client_id
 	vim.notify(string.format("LSP %s attached to %d", client.name or "<unknown>", bufnr))
 
-	require('lsp_compl').attach(client, bufnr)
+	--require('lsp_compl').attach(client, bufnr)
 
 	if client.name == 'nil_ls' then
 		client.server_capabilities.semanticTokensProvider = nil
@@ -264,7 +264,16 @@ command! FormatOnSave call SetupFormatOnSave("<buffer>")
 lua << EOF
 use {
 	'neovim/nvim-lspconfig',
+	lazy = false,
 	ft = lsp_filetypes,
+	dependencies = {
+		{ 'ms-jpq/coq_nvim', branch = 'coq' },
+	},
+	init = function()
+		vim.g.coq_settings = {
+			auto_start = true,
+		}
+	end,
 	config = function()
 		lspconfig = require("lspconfig")
 	end,
@@ -277,10 +286,10 @@ use {
 	-- Setup after high priority stuff, but before lspconfig.
 	priority = 60,
 }
-use {
-	'mfussenegger/nvim-lsp-compl',
-	event = 'LspAttach',
-}
+--use {
+--	'mfussenegger/nvim-lsp-compl',
+--	event = 'LspAttach',
+--}
 -- Make LSP stuff for Neovim's Lua work correctly.
 --use {
 --	'folke/neodev.nvim',

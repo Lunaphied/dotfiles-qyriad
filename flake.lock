@@ -149,6 +149,25 @@
         "type": "github"
       }
     },
+    "hdrvulkan": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "dirtyRev": "11d002e52b87ddab3afbd99c8428f89331b7b2ac-dirty",
+        "dirtyShortRev": "11d002e-dirty",
+        "lastModified": 1709326060,
+        "narHash": "sha256-OtJPtSiEHfGBmRtDMuUU+9TIHoMgVR5aaOh1NKjudPo=",
+        "type": "git",
+        "url": "file:./nixos/pkgs/vulkan-hdr-layer-flake"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:./nixos/pkgs/vulkan-hdr-layer-flake"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -372,6 +391,7 @@
         "agenix": "agenix",
         "flake-utils": "flake-utils",
         "git-point": "git-point",
+        "hdrvulkan": "hdrvulkan",
         "lix": "lix",
         "lix-module": "lix-module",
         "log2compdb": "log2compdb",
