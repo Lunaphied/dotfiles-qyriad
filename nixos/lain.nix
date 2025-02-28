@@ -21,6 +21,8 @@ in
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
+	boot.plymouth.enable = true;
+
 	zramSwap.enable = true;
 	# Too tiny for this oops.
 	boot.tmp.useTmpfs = lib.mkForce false;
@@ -41,7 +43,8 @@ in
 		neovide
 		cider
 		lutris
-		retroarchFull
+		#retroarchFull
+		retroarch
 	];
 
 	services.jenkins.enable = true;
