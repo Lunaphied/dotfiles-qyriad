@@ -270,6 +270,7 @@
 		poke
 		libtree
 		lurk
+		pinentry
 	]
 	++ lib.optionals config.services.smartd.enable [
 		pkgs.smartmontools
@@ -281,4 +282,6 @@
 	++ config.console.packages; # and including console fonts too.
 
 	hardware.glasgow.enable = true;
+	#virtualisation.podman.enable = true;
+	virtualisation.docker.enable = true;
 }
