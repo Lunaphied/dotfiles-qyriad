@@ -114,15 +114,19 @@
 		odin2
 		retroarch-assets
 		retroarchFull
-		konversation
+		#konversation
 		iodine
 		networkmanager-iodine
-		cura
+		#cura
 	];
 
 	services.hardware.openrgb.enable = true;
 
 	virtualisation.waydroid.enable = true;
+	programs.virt-manager.enable = true;
+	virtualisation.libvirtd = {
+		enable = true;
+	};
 
 	# Oops this doesn't support binder lol.
 	#boot.kernelPackages = pkgs.linuxKernel.packages.linux_lqx;

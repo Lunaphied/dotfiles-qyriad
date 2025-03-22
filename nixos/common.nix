@@ -64,6 +64,7 @@
 		ripgrep
 		edir
 		unar
+		ouch
 		atool
 		unzip
 		xz

@@ -134,7 +134,7 @@
 	users.users.lunaphied = {
 		isNormalUser = true;
 		description = "Lunaphied";
-		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
+		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "libvirtd" ];
 		shell = pkgs.zsh;
 	};
 
@@ -271,6 +271,7 @@
 		libtree
 		lurk
 		pinentry
+		qyriad.cappy
 	]
 	++ lib.optionals config.services.smartd.enable [
 		pkgs.smartmontools

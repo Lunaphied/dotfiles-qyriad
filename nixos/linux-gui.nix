@@ -139,13 +139,13 @@
 		nheko
 		element-desktop
 		curl
-		kcachegrind
+		#kcachegrind
 		flamegraph
 		signal-desktop
 		thunderbird
 		seer
 		#mattermost-desktop
-		#qyriad.cinny
+		qyriad.cinny
 		firefoxpwa
 		#darling
 		glibc.debug
@@ -164,6 +164,7 @@
 		tesseract
 		smile
 		gst_all_1.gstreamer
+		gjs
 		libnotify
 		chromium
 		kdePackages.dragon
@@ -193,6 +194,7 @@
 		kdePackages.sddm-kcm
 		kdePackages.flatpak-kcm
 		kdePackages.sweeper
+		kdePackages.kconfig
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt
