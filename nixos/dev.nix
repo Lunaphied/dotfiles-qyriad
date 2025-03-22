@@ -21,9 +21,9 @@
 		dprint
 		just
 		clang-tools_18
-		pyright
+		basedpyright
 		nodePackages.vim-language-server
-		javascript-typescript-langserver
+		#javascript-typescript-langserver
 		nil
 		nixd
 		lua-language-server
@@ -37,11 +37,13 @@
 		#rustfmt
 		#cargo
 		cargo-limit
-		cargo-info
+		#cargo-info
 		cargo-clone
 		cargo-outdated
 		cargo-edit
 		cargo-cache
+		cargo-workspaces
+		cargo-show-asm
 		#rustc
 		git-gr
 		git-imerge
@@ -50,8 +52,7 @@
 		rr
 		nixfmt-rfc-style
 		nixpkgs-review
-		# Broken after the Python 3.12 migration for some reason. Check back later.
-		#quickemu
+		quickemu
 		gh
 		gql
 		shellcheck
