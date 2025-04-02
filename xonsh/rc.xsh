@@ -83,11 +83,20 @@ def shlvl_diff():
 		return str(int($SHLVL) - 2)
 	return str(int($SHLVL) - 1)
 
+if "TMUX" in ${...}:
+	def _prompt_escape():
+		return "\x01\x1b]133;A\x1b\\\x02"
+else:
+	def _prompt_escape():
+		return ""
+
+
 $PROMPT_FIELDS['exit_code'] = exit_code
 $PROMPT_FIELDS['exit_color'] = exit_color
 $PROMPT_FIELDS['shlvl'] = shlvl_diff
+$PROMPT_FIELDS['prompt_escape'] = _prompt_escape
 $TITLE = '{cwd} | {exit_code} | SL {shlvl}'
-$PROMPT = '{env_name}{GREEN}{user}@{hostname} {PURPLE}{cwd}{INTENSE_CYAN}{curr_branch: ({})}{exit_color} {prompt_end}{RESET} '
+$PROMPT = '{env_name}{GREEN}{user}@{hostname} {PURPLE}{cwd}{INTENSE_CYAN}{curr_branch: ({})}{exit_color} {prompt_end}{RESET} {prompt_escape}'
 $CASE_SENSITIVE_COMPLETIONS = False
 $DYNAMIC_CWD_ELISION_CHAR = "…"
 $DYNAMIC_CWD_WIDTH = "40%"
@@ -284,13 +293,17 @@ aliases['dedent'] = lambda args, stdin: textwrap.dedent(stdin.read())
 aliases['striptext'] = lambda args, stdin: stdin.read().strip()
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
-aliases['nopager'] = 'env PAGER=cat'
+aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat'
+aliases['strace-exec'] = ['strace', '--silent=attach,exit', '-s', '9999', '--signal=!all', '-zfe' 'execve']
 
 
 aliases['cm'] = 'cmake -B build'
 aliases['cmb'] = 'cmake --build build'
 
 $YTDLP_YOUTUBE = '%(channel)s/%(upload_date>%Y-%m-%d,release_date>%Y-%m-%d)s - %(title)s [%(id)s].%(ext)s'
+$YTDLP_TWITCH  = '%(uploader)s/%(upload_date>%Y-%m-%d,release_date>%Y-%m-%d)s - %(title)s [%(id)s].%(ext)s'
+
+$FFMPEG_MUX_ONLY = shlex.split("-map_metadata 0 -map_chapters 0 -map 0 -c:v copy -c:a copy -c:s copy")
 
 xontrib load abbrevs
 if 'abbrevs' not in globals():
@@ -303,6 +316,7 @@ else:
 	abbrevs['mesoncompile'] = 'meson compile -C build'
 	abbrevs['mesontest'] = 'meson test -C build'
 	abbrevs['mesoninstall'] = 'meson install -C build'
+	abbrevs['gitcb'] = lambda buffer, word: XSH.shell.shell.prompt_formatter('<edit>{curr_branch}')
 
 def _wine32(args):
 	overrides = {

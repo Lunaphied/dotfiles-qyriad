@@ -159,7 +159,7 @@ in {
 				(lib.getExe pkgs.vesktop)
 				"--enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer"
 				"--ozone-platform-hint=wayland"
-				"--gtk-version=4"
+				#"--gtk-version=4"
 				"--enable-wayland-ime"
 				"--wayland-text-input-version=3"
 				"%U"
@@ -181,6 +181,8 @@ in {
 			];
 		};
 	});
+
+	xkeyboard_config-patched-inet = self.callPackage ./pkgs/xkb-config-patched-inet.nix { };
 
 	qlib = let
 		qlib = import ./qlib.nix { inherit lib; };

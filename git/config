@@ -11,7 +11,7 @@
 	sub = submodule
 	subinit = submodule update --recursive --init
 	l = log --abbrev-commit --decorate --graph
-	lo = log --abbrev-commit --decorate --graph --stat --format=fuller
+	lo = log --abbrev-commit --decorate --graph --stat --format=fuller --notes
 	s = status
 	sd = status .
 	sdo = status --untracked=no .
@@ -21,8 +21,6 @@
 	curbr = rev-parse --abbrev-ref HEAD
 	br = !zsh -c 'cat <(git branch -vv --no-merged) <(git branch -vv --color=always | grep --color=never master)'
 	r = remote -v
-	clean-fw = clean -e firmware/build -e compile_commands.json -e .gdbinit
-	cleang = clean -e firmware/build -e compile_commands.json -e .gdbinit
 	b = branch -vv
 	bb = branch -vv --no-merged master
 	sh = show --stat --patch --format=fuller
@@ -46,6 +44,7 @@
 	shid = show --no-patch --pretty=%h
 	where = name-rev --no-undefined --always --name-only
 	common = rev-parse --git-common-dir
+	short = rev-parse --short
 	#c = !tmux split-window -v "git commit && exit"
 [rebase]
 	autostash = true

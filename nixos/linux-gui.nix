@@ -52,7 +52,7 @@
 	};
 
 	# Enable sound with Pipewire.
-	hardware.pulseaudio.enable = false;
+	services.pulseaudio.enable = false;
 	security.rtkit.enable = true;
 	services.pipewire = {
 		enable = true;
@@ -162,6 +162,7 @@
 		tesseract
 		smile
 		gst_all_1.gstreamer
+		gjs
 		libnotify
 		chromium
 		kdePackages.dragon
@@ -194,6 +195,7 @@
 		mesa-demos
 		vulkan-tools
 		wayland-utils
+		kdePackages.kconfig
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt

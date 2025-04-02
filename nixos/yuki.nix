@@ -14,7 +14,18 @@
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
+	fileSystems."/media/data" = {
+		device = "/dev/disk/by-label/YukiExtdata";
+		fsType = "ext4";
+		options = [ "discard" "nofail" ];
+	};
+
 	networking.hostName = "Yuki";
+
+	environment.etc."xkb" = {
+		enable = true;
+		source = pkgs.qyriad.xkeyboard_config-patched-inet;
+	};
 
 	services.fwupd.enable = true;
 
@@ -110,14 +121,12 @@
 	services.samba = {
 		enable = true;
 		openFirewall = true;
-		shares = {
-			public = {
-				path = "/";
-				"read only" = false;
-				"browsable" = "yes";
-			};
-		};
 		nsswins = true;
+		settings.public = {
+			path = "/";
+			"read only" = false;
+			"browsable" = "yes";
+		};
 		settings.global = {
 			workgroup = "WORKGROUP";
 			"server string" = "yuki";
