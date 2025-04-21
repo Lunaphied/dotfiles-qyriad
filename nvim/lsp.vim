@@ -14,16 +14,23 @@ endfunction
 
 set completeopt=menu,menuone,popup,noselect,noinsert
 
-" Wrapper just so the `accept_pum()` return value doesn't plop into our <expr> mapping.
-function! AcceptPum() abort
-	call v:lua.p.lspcomp.accept_pum()
-endfunction
+if has("nvim-0.11")
+	set winborder=rounded
+endif
 
 inoremap <expr> <tab> pumvisible() ? "\<C-n>" : "\<tab>"
 inoremap <expr> <S-tab> pumvisible() ? "\<C-p>" : "\<S-tab>"
-" Hm, Eunich is messing this up
-"inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
-inoremap <expr> <CR> pumvisible() ? AcceptPum() : "\<CR>"
+lua <<EOF
+-- Make autoclose.nvim work with the other <CR> mappings we have.
+function handle_cr()
+	local autoclose_handler = vim.tbl_get(_G.p or { }, 'autoclose', 'new_cr', 'callback')
+	if autoclose_handler then
+		return vim.keycode(autoclose_handler())
+	end
+	return vim.keycode("<CR>")
+end
+EOF
+inoremap <expr> <CR> pumvisible() ? "\<C-y>" : v:lua.handle_cr()
 inoremap <C-Space> <C-x><C-o>
 "inoremap <expr> <C-e> pumvisible() ? "\<C-e>" : v:lua.close_all_float()
 
@@ -135,7 +142,16 @@ function lsp_quiet()
 	vim.defer_fn(p.lspsignature.toggle_float_win, 0)
 	return vim.keycode('<C-e>')
 end
-vim.keymap.set('i', '<C-s>', lsp_quiet, { expr = true })
+-- `help i_CTRL-E`, by default it inserts the character that is in the same position as the cursor one line below.
+-- Not the most useful.
+vim.keymap.set('i', '<C-e>', lsp_quiet, {
+	expr = true,
+	desc = "Close LSP popup and floating windows",
+})
+
+if not vim.fn.has("nvim-0.11.0") then
+	vim.keymap.set('i', '<C-s>', vim.lsp.buf.signature_help, { })
+end
 
 vim.lsp.log = require('vim.lsp.log')
 vim.lsp.protocol = require('vim.lsp.protocol')
@@ -166,103 +182,172 @@ lsp_filetypes = {
 	"nix",
 }
 
-lsp_opts = {
-	clangd = {
-		trace = {
-			server = "verbose"
-		},
-		cmd = {
-			"clangd",
-			"--rename-file-limit=100",
-		},
-	},
-	lua_ls = {
-		diagnostics = {
-			globals = { 'vim' },
-		},
-		workspace = {
-			library = vim.api.nvim_get_runtime_file("", true),
+vim.lsp.config('*', {
+	root_markers = { '.git' },
+
+	trace = 'messages',
+
+	-- I hate snippets.
+	capabilities = {
+		textDocument = {
+			completion = {
+				completionItem = {
+					snippetSupport = false,
+				},
+			},
 		},
 	},
+})
+
+vim.lsp.enable({
+	'rust-analyzer',
+	'vimls',
+	'luals',
+	'clangd',
+})
+
+--lsp_vim_capabilities = vim.lsp.protocol.make_client_capabilities()
+--
+--lsp_opts = {
+--	rust_analyzer = {
+--		settings = {
+--			['rust-analyzer'] = {
+--				completion = {
+--					callable = { snippets = false },
+--					fullFunctionSignatures = { enable = true },
+--					postfix = { enable = false },
+--				},
+--				hover = {
+--					actions = {
+--						references = { enable = true },
+--					},
+--				},
+--				lens = { references = { method = { enable = false } } },
+--			},
+--		},
+--	},
+--	clangd = {
+--		trace = {
+--			server = "verbose"
+--		},
+--		cmd = {
+--			"clangd",
+--			"--rename-file-limit=100",
+--		},
+--	},
+--	lua_ls = {
+--		on_init = function(client)
+--			--if client.workspace_folders then
+--			--	local path = client.workspace_folders[1].name
+--			--	if vim.loop.fs_stat(path .. "/.luarc.json") or vim.loop.fs_stat(path .. "/.luarc.jsonc") then
+--			--		return
+--			--	end
+--			--end
+--
+--			client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua, {
+--				runtime = {
+--					version = "LuaJIT",
+--				},
+--				workspace = {
+--					library = vim.api.nvim_get_runtime_file("", true),
+--				},
+--			})
+--		end,
+--		settings= { Lua = {} },
+--		--settings = {
+--		--	Lua = {
+--		--		runtime = {
+--		--			version = "LuaJIT",
+--		--			path = vim.split(package.path, ";"),
+--		--		},
+--		--	},
+--		--	diagnostics = {
+--		--		globals = { "vim", "require" },
+--		--	},
+--		--	workspace = {
+--		--		--library = vim.api.nvim_get_runtime_file("", true),
+--		--		library = { vim.env.VIMRUNTIME },
+--		--	},
+--		--},
+--	},
+--}
+
+clients = {}
+EOF
+
+augroup DiagnosticToQfList
+	autocmd! DiagnosticChanged * lua vim.diagnostic.setqflist({ open = false })
+augroup END
+
+lua <<EOF
+
+last_completion_item = { }
+
+local Kind = vim.lsp.protocol.CompletionItemKind
+LspComplKindAbbr = {
+	[Kind.Text] = "TXT",
+	[Kind.Method] = "MTH",
+	[Kind.Function] = "FN",
+	[Kind.Constructor] = "CON",
+	[Kind.Field] = "FLD",
+	[Kind.Variable] = "VAR",
+	[Kind.Class] = "CLS",
+	[Kind.Interface] = "INT",
+	[Kind.Module] = "MOD",
+	[Kind.Property] = "PROP",
+	[Kind.Unit] = "UNIT",
+	[Kind.Value] = "VALUE",
+	[Kind.Enum] = "ENUM",
+	[Kind.Keyword] = "KEY",
+	[Kind.Snippet] = "SNIPPET",
+	[Kind.Color] = "COLOR",
+	[Kind.File] = "FILE",
+	[Kind.Reference] = "REF",
+	[Kind.Folder] = "DIR",
+	[Kind.EnumMember] = "KIND",
+	[Kind.Constant] = "CONST",
+	[Kind.Struct] = "CLS",
+	[Kind.Event] = "EVNT",
+	[Kind.Operator] = "OP",
+	[Kind.TypeParameter] = "<PARAM>",
 }
+Kind = nil
 
-lspconfig_modules = {
-	vim = "vimls",
-	c = "clangd",
-	cpp = "clangd",
-	python = "pyright",
-	java = "jdtls",
-	html = "html",
-	swift = "sourcekit",
-	--javascript = "ts_ls",
-	--typescript = "ts_ls",
-	javascript = "denols",
-	typescript = "denols",
-	lua = "lua_ls",
-	nix = "nil_ls",
-	zig = "zls",
-}
-
--- Create autocommands to call setup() on the corresponding module when that filetype is detected.
-for i, filetype in ipairs(lsp_filetypes) do
-	local augroup_name = "LspConfig_" .. filetype
-	local group = vim.api.nvim_create_augroup(augroup_name, {})
-	vim.api.nvim_create_autocmd("FileType", {
-		pattern = { filetype },
-		desc = "Autocommand for LSP config for " .. filetype,
-		once = true,
-		callback = function(event)
-			local submodule_name = lspconfig_modules[filetype]
-			if submodule_name ~= nil then
-				local submodule = require("lspconfig")[submodule_name]
-				if submodule ~= nil then
-					-- TODO: allow server-specific config.
-					vim.notify("lspconfig." .. submodule_name .. ".setup()", vim.log.levels.TRACE)
-					local opts = lsp_opts[submodule_name] or {}
-					submodule.setup(opts)
-				end
-			end
-
-			-- Now that our LSP setup is done, run the autostart detection code.
-			-- FIXME: figure out a server-agnostic way to do this.
-			if submodule_name == "clangd" then
-				lspconfig.clangd.manager:try_add(event.buffer)
-			end
-
-			vim.lsp.inlay_hint.enable(true)
-		end,
-	})
+---@param item vim.lsp.CompletionItem
+vim.g.lsp_completion_convert_func = function(item)
+	vim.b.last_completion_item = item
+	local kind = LspComplKindAbbr[item.kind] or vim.lsp.protocol.SymbolKind[item.kind] or item.kind
+	return {
+		kind = kind,
+	}
 end
 
 function on_lsp_attach(bufnr, client_id)
-	local client = vim.lsp.get_client_by_id(client_id)
+	local client = assert(vim.lsp.get_client_by_id(client_id))
 	vim.b[bufnr].lsp_client = client_id
+	clients[client_id] = client
+	clients[client.name] = client
 	vim.notify(string.format("LSP %s attached to %d", client.name or "<unknown>", bufnr))
-
-	--require('lsp_compl').attach(client, bufnr)
-
-	if client.name == 'nil_ls' then
-		client.server_capabilities.semanticTokensProvider = nil
-	end
-
-	vim.api.nvim_create_autocmd("DiagnosticChanged", {
-		buffer = bufnr,
-		callback = function()
-			vim.diagnostic.setqflist({ open = false })
-		end,
-	})
 
 	require("lsp_basics").make_lsp_commands(client, bufnr)
 
-	-- Make `vim.lsp.log` available for our convenience.
-	--if vim.lsp.log == nil then
-	--	vim.lsp.log = require("vim.lsp.log")
-	--end
+	vim.lsp.completion.enable(true, client.id, bufnr, {
+		autotrigger = true,
+		convert = function(item)
+			return vim.g.lsp_completion_convert_func(item)
+		end,
+	})
 
 	-- The LSP-provided tagfunc causes more problems than it solves.
 	-- It takes precedence over tag files, and if we *have* tag files in a workspace where we have LSP,
 	-- then there's probably something the tags are giving us that LSP is not.
 	vim.bo.tagfunc = ""
+
+	vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+
+	--if client.name == 'nil_ls' then
+	--	client.server_capabilities.semanticTokensProvider = nil
+	--end
 end
 
 local augroup = vim.api.nvim_create_augroup("LspMappings", {})
@@ -397,8 +482,6 @@ use {
 }
 use { 'simrat39/symbols-outline.nvim', event = "LspAttach" }
 --use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach" }
--- FIXME: this plugin is no longer maintained.
-use { 'folke/lsp-colors.nvim', event = "LspAttach" }
 use { 'https://git.sr.ht/~p00f/clangd_extensions.nvim', ft = { "c", "cpp" } }
 --use {
 --	'folke/trouble.nvim',

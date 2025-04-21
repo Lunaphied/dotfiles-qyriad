@@ -60,6 +60,9 @@
 	services.geoclue2.enable = true;
 
 	services.resolved.enable = true;
+	services.resolved.extraConfig = lib.trim ''
+		MulticastDNS=yes
+	'';
 	networking.networkmanager.enable = true;
 	networking.networkmanager.dns = "systemd-resolved";
 
@@ -238,6 +241,8 @@
 
 	# Other packages we want available on Linux systems.
 	environment.systemPackages = with pkgs; [
+		efibootmgr
+		efivar
 		usbutils
 		pciutils
 		(gdb.override { enableDebuginfod = true; })
@@ -265,8 +270,9 @@
 		# Let us use our yubikey with age.
 		age-plugin-yubikey
 		yubikey-manager
-		systeroid
 		glasgow
+		# Broken at the moment as dependency `pkgs.linux-doc` is broken.
+		#systeroid
 		poke
 		libtree
 		lurk
@@ -274,10 +280,17 @@
 		qyriad.cappy
 	]
 	++ lib.optionals config.services.smartd.enable [
-		pkgs.smartmontools
+		smartmontools
+	]
+	++ lib.optionals config.hardware.openrazer.enable [
+		razer-cli
+		polychromatic
+		razergenie
+	]
+	++ lib.optionals config.services.ratbagd.enable [
+		config.services.ratbagd.package
 	]
 	++ config.systemd.packages # I want system services to also be in /run/current-system please.
-	# Breaks rebuild with Steam enabled.
     ++ config.services.udev.packages # Same for udev...
 	++ config.fonts.packages # and fonts...
 	++ config.console.packages; # and including console fonts too.

@@ -53,8 +53,8 @@ set cinoptions=l1,j1,(4,W4
 " Autowrap comments using textwidth, inserting the comment leader,
 " and remove the comment leader when joining lines when it makes sense.
 set formatoptions=cj
-" Don't display . on folds.
-let &fillchars = "fold: "
+" Display • on folds.
+let &fillchars = "fold:\u2022"
 " Use » to indicate tabs, a - for trailing whitespace, and · for multiple leading spaces.
 set list
 let &listchars = "tab:\u00bb ,trail:-,nbsp:+,leadmultispace:\u00b7"
@@ -68,6 +68,9 @@ set noshowmode " We're using lightline, so showing the mode in the command line 
 let &grepprg = 'rg --vimgrep --no-heading --smart-case'
 "nnoremap <leader>g :Notify lgrep<Space>
 
+"if has("nvim-0.11")
+"	"set messagesopt=wait:2000,history:1000
+"endif
 
 """ Slow down mouse scroll speed.
 " This is intended for macOS touchpads, but ideally the solution should be
@@ -243,8 +246,8 @@ noremap <A-r> %:r<tab>
 " Expands to the directory of the current filename, using ~ for $HOME,
 " and using path relative to the current directory if applicable.
 " `help fnamemodify()`
-cnoremap <C-e> %:.:h/<tab>
-cnoremap <A-e> %:.:h/<tab>
+cnoremap <C-e> %:.:h<tab>
+cnoremap <A-e> %:.:h<tab>
 
 " Use escape to exit terminal mode.
 tnoremap <Esc> <C-\><C-n>
@@ -307,7 +310,7 @@ inoremap <C-u> <esc>mzgUiW`za
 " yy to yank the current line
 " <leader>cc for comment.nvim's toggle line comment
 " <leader>p to paste without indenting (see above).
-nmap <leader>ycp yy<leader>cc<leader>p
+nmap <leader>ycp yy<leader>ccp
 
 " Yank, then comment out, on a visual selection.
 vmap <leader>Y Ygv<leader>cc
@@ -332,7 +335,7 @@ function! InvertRAndEcho() abort
 	endif
 endfunction
 
-" Invert formatoptoins' "r" flag for exactly one insert mode session.
+" Invert formatoptions' "r" flag for exactly one insert mode session.
 function! InsertInvertR() abort
 	call InvertR()
 	augroup InsertInvertR
@@ -485,15 +488,21 @@ lua <<EOF
 local function get_vim_errstr(lua_errstr)
 	-- lua_errstr should look something like `[string ":lua"]:10: Vim:E999: foomsg`
 	-- Vim displays errors like `E999: foomsg`. So let's get that part.
-	local to_strip = string.find(lua_errstr, "Vim:") + #"Vim:"
-	return string.sub(lua_errstr, to_strip)
+	-- 2025/04/14: Apparently now lua_errstr looks something like
+	-- `vim/_editor.lua:0: nvim_exec2(), line 1: Vim(normal):E999 foomsg`.
+	-- Soooo lets just look for the colon, E, and numbers, shall we?
+	local match_start = lua_errstr:find(":E%d+:")
+	if not match_start then
+		error(string.format("get_vim_errstr: could not find Vim error in %s", lua_errstr))
+	end
+	return lua_errstr:sub(match_start + 1)
 end
 -- Make jumping to search matches use a larger 'scrolloff' value.
 vim.keymap.set("n", "n",
 	function()
 		local prev_scrolloff = vim.wo.scrolloff
 		vim.wo.scrolloff = 15
-		local status, err = pcall(function() vim.cmd.normal { args = { "n" }, bang = true } end)
+		local status, err = pcall(function() vim.cmd[[normal! n]] end)
 		if status == false then
 			vim.api.nvim_err_writeln(get_vim_errstr(err))
 		end
@@ -505,7 +514,7 @@ vim.keymap.set("n", "N",
 	function()
 		local prev_scrolloff = vim.wo.scrolloff
 		vim.wo.scrolloff = 15
-		local status, err = pcall(function() vim.cmd.normal { args = { "N" }, bang = true } end)
+		local status, err = pcall(function() vim.cmd[[normal! N]] end)
 		if status == false then
 			vim.api.nvim_err_writeln(get_vim_errstr(err))
 		end

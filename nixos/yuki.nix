@@ -14,6 +14,12 @@
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
+	fileSystems."/media/data" = {
+		device = "/dev/disk/by-label/YukiExtdata";
+		fsType = "ext4";
+		options = [ "discard" "nofail" ];
+	};
+
 	networking.hostName = "Yuki";
 
 	environment.etc."xkb" = {
@@ -23,6 +29,7 @@
 
 	services.fwupd.enable = true;
 
+	services.hardware.bolt.enable = true;
 
 	# Options from our custom NixOS module in ./resources.nix
 	resources = {
@@ -115,14 +122,12 @@
 	services.samba = {
 		enable = true;
 		openFirewall = true;
-		shares = {
-			public = {
-				path = "/";
-				"read only" = false;
-				"browsable" = "yes";
-			};
-		};
 		nsswins = true;
+		settings.public = {
+			path = "/";
+			"read only" = false;
+			"browsable" = "yes";
+		};
 		settings.global = {
 			workgroup = "WORKGROUP";
 			"server string" = "yuki";

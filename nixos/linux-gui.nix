@@ -17,6 +17,11 @@
 		enableQt5Integration = true;
 	};
 
+	environment.plasma6.excludePackages = with pkgs.kdePackages; [
+		# We use our patched nixos-khelpcenter instead.
+		khelpcenter
+	];
+
 	# "A stop job is running for X11—" fuck off.
 	systemd.services.display-manager.serviceConfig.TimeoutStopSec = "10";
 
@@ -52,7 +57,7 @@
 	};
 
 	# Enable sound with Pipewire.
-	hardware.pulseaudio.enable = false;
+	services.pulseaudio.enable = false;
 	security.rtkit.enable = true;
 	services.pipewire = {
 		enable = true;
@@ -88,6 +93,8 @@
 	# Enable udisks2.
 	services.udisks2.enable = true;
 
+	services.colord.enable = true;
+
 	# A little bit cursed to put this in linux-gui, but generally this is the file that won't be sourced
 	# for servers.
 	networking.firewall.enable = false;
@@ -106,6 +113,7 @@
 	environment.systemPackages = with pkgs; [
 		libinput
 		libva-utils
+		glxinfo
 		alacritty
 		wezterm
 		# Backup.
@@ -117,6 +125,7 @@
 		# For voice.
 		discord
 		calibre
+		_1password-gui
 		kicad
 		krita
 		olive-editor
@@ -132,6 +141,7 @@
 		cifs-utils
 		nfs-utils
 		ntfs3g
+		ddcutil
 		sequoia
 		sioyek
 		#neochat
@@ -139,13 +149,13 @@
 		nheko
 		element-desktop
 		curl
-		#kcachegrind
+		kdePackages.kcachegrind
 		flamegraph
 		signal-desktop
 		thunderbird
 		seer
 		#mattermost-desktop
-		qyriad.cinny
+		cinny-desktop
 		firefoxpwa
 		#darling
 		glibc.debug
@@ -193,11 +203,14 @@
 		kdePackages.flatpak-kcm
 		kdePackages.sweeper
 		kdePackages.kconfig
+		qyriad.nixos-khelpcenter
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt
 		pwvucontrol
 		wayfarer
+	] ++ lib.optionals config.services.ratbagd.enable [
+		piper
 	];
 
 	# GUI programs with NixOS modules that we can enable, instead of using environment.systemPackages.

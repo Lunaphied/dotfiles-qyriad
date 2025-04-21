@@ -32,6 +32,11 @@ let
     py.pygobject3
     py.jeepney
     py.ds-store
+    py.xmltodict
+    py.python-box
+    py.pillow
+    py.pytesseract
+    py.beautifulsoup4
     pkgs.gobject-introspection
     pkgs.gtk3
     pkgs.glib

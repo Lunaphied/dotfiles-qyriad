@@ -1,6 +1,9 @@
 scriptencoding utf-8
 
 lua << EOF
+
+qyriad = require('qyriad')
+
 -- Bootstrap lazy.nvim.
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -66,6 +69,8 @@ nnoremap <leader>fb <Cmd>Explore<CR>
 nnoremap ]g <Cmd>lua gitsigns.next_hunk({ preview = true })<CR>
 nnoremap [g <Cmd>lua gitsigns.prev_hunk({ preview = true })<CR>
 nnoremap gs <Cmd>lua gitsigns.preview_hunk()<CR>
+nnoremap <leader>ga <Cmd>Gitsigns stage_hunk<CR>
+nnoremap <leader>gb <Cmd>Gitsigns blame_line<CR>
 
 nnoremap <leader>tg <Cmd>Telescope git_files<CR>
 nnoremap <leader>tb <Cmd>Telescope buffers<CR>
@@ -157,8 +162,35 @@ use {
 			['"'] = { close = false },
 			["'"] = { close = false },
 			["`"] = { close = false },
+			--["<CR>"] = { close = false },
 		},
 	},
+	config = function(plugin, opts)
+		-- HACK: autoclose overrides all our other <CR> mappings (eunuch, pum-accept).
+		-- But stupid private functions mean we can't just `require('autoclose.nvim').autoclose_cr()
+		-- or anything.
+		-- So here we run autoclose's normal setup, and then restore the original mapping, but save
+		-- the autoclose mapping in our plugin shortcut global `p.autoclose`.
+		local pl = lazy.core.config.plugins['autoclose.nvim']
+		local main_name = lazy.core.loader.get_main(plugin)
+		local main = require(main_name)
+
+		-- Get the <CR> mapping before calling setup().
+		local existing_cr = vim.fn.maparg('<CR>', 'i', false, true)
+		p.autoclose = qyriad.tbl_override(p.autoclose, { previous_cr = existing_cr })
+
+		-- Let autoclose mess with things.
+		main.setup(opts)
+
+
+		-- Save the mapping information from autoclose.
+		p.autoclose.new_cr = vim.fn.maparg('<CR>', 'i', false, true)
+
+		-- And then restore the original mapping.
+		if not vim.tbl_isempty(existing_cr) then
+			vim.fn.mapset(existing_cr)
+		end
+	end,
 }
 use {
 	'johmsalas/text-case.nvim',
@@ -181,6 +213,8 @@ use {
 		gitsigns.setup {
 			-- Don't fill the signcolumn for untracked files.
 			attach_to_untracked = false,
+			-- Higher priority than MarkSigns.
+			sign_priority = 11,
 		}
 	end,
 }
