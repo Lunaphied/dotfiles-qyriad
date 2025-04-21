@@ -26,6 +26,9 @@ foreground = "0xeaeaea"
 #family = "InconsolataGo Nerd Font Mono"
 family = "MonoLisa"
 
+[font]
+size = 10
+
 [[keyboard.bindings]]
 chars = "\u001B08"
 key = "Back"

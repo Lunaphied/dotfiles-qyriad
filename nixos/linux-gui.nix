@@ -157,9 +157,7 @@
 		seer
 		qyriad.obs-studio
 		v4l-utils
-		gajim
-		# This is a fix for emoji in Gajim
-		gtk3
+		#gajim
 		inlyne
 		tesseract
 		smile

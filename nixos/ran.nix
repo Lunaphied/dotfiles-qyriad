@@ -9,6 +9,7 @@
 		./linux-gui.nix
 		./dev.nix
 		./resources.nix
+		./mount-yorha.nix
 		./modules/package-groups.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
@@ -72,6 +73,9 @@
 
 	nixpkgs.config.allowUnfree = true;
 
+	services.flatpak.enable = true;
+	xdg.portal.enable = true;
+
 	hardware.bluetooth.enable = true;
 	hardware.enableAllFirmware = true;
 
@@ -98,7 +102,13 @@
 		gamescopeSession.enable = true;
 	};
 
+	#services.displayManager.sddm = {
+	#	enable = true;
+	#	theme = "catppuccin-sddm-corners";
+	#};
+
 	environment.systemPackages = with pkgs; [
+		catppuccin-sddm-corners
 		qyriad.steam-launcher-script
 		config.programs.steam.package.run
 		makemkv
@@ -128,8 +138,32 @@
 		enable = true;
 	};
 
+	nixos-boot = {
+		# TODO: Fix the display of these, default is just blank looking, evil is small and not centered.
+		enable = false;
+
+		# Evil's plymouth script is a bit broken and looks weird.
+		#theme = "evil-nixos";
+		duration = 3.0;
+	};
+
+	services.invidious.enable = true;
+	services.invidious.database.createLocally = true;
+	services.postgresql.enable = true;
+
+	# TODO: Fix the plymouth issue and also try to figure out a way to hide
+	# other outputs. hm.
+
+	environment.variables = {
+		ENABLE_HDR_WSI = "1";
+	};
+
+	programs.xwayland.enable = true;
+	programs.ssh.setXAuthLocation = true;
+	programs.ssh.forwardX11 = null;
+
 	# Oops this doesn't support binder lol.
-	#boot.kernelPackages = pkgs.linuxKernel.packages.linux_lqx;
+	boot.kernelPackages = pkgs.linuxKernel.packages.linux_zen;
 	# Needed for RGB RAM to be visible to OpenRGB, but maybe breaks sleep entirely oops.
 	#boot.kernelParams = [ "acpi_enforce_resources=lax" ];
 
@@ -145,5 +179,5 @@
 	# this value at the release version of the first install of this system.
 	# Before changing this value read the documentation for this option
 	# (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-	system.stateVersion = "23.11"; # Did you read the comment?
+	system.stateVersion = "24.05"; # Did you read the comment?
 }

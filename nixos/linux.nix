@@ -134,7 +134,7 @@
 	users.users.lunaphied = {
 		isNormalUser = true;
 		description = "Lunaphied";
-		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "libvirtd" ];
+		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "libvirtd" "gamemode" ];
 		shell = pkgs.zsh;
 	};
 

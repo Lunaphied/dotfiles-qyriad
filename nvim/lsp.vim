@@ -228,6 +228,8 @@ for i, filetype in ipairs(lsp_filetypes) do
 			if submodule_name == "clangd" then
 				lspconfig.clangd.manager:try_add(event.buffer)
 			end
+
+			vim.lsp.inlay_hint.enable(true)
 		end,
 	})
 end
