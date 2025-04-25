@@ -279,6 +279,9 @@
 		pinentry
 		qyriad.cappy
 	]
+	++ lib.optionals config.services.pipewire.enable [
+		alsa-utils
+	]
 	++ lib.optionals config.services.smartd.enable [
 		smartmontools
 	]

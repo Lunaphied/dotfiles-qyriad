@@ -218,6 +218,12 @@
 		partition-manager.enable = true;
 		firefox.enable = true;
 		kdeconnect.enable = true;
+		_1password-gui = {
+			enable = true;
+			polkitPolicyOwners = [
+				"qyriad"
+			];
+		};
 	};
 
 	# Used for noise suppression.
@@ -227,6 +233,13 @@
 	fonts.packages = with pkgs; [
 		nerd-fonts.inconsolata-go
 		noto-fonts-cjk-sans
+	];
+
+	# NixOS's KDE module sets the default monospace font to [ "Hack" "Noto Sans Mono" ].
+	fonts.fontconfig.defaultFonts.monospace = lib.mkForce [
+		"InconsolataGo Nerd Font Mono"
+		"Hack"
+		"Noto Sans Mono"
 	];
 
 
