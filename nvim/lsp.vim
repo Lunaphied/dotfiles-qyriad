@@ -408,16 +408,7 @@ command! NoFormatOnSave call StopFormatOnSave("<buffer>")
 lua << EOF
 use {
 	'neovim/nvim-lspconfig',
-	lazy = false,
 	ft = lsp_filetypes,
-	dependencies = {
-		{ 'ms-jpq/coq_nvim', branch = 'coq' },
-	},
-	init = function()
-		vim.g.coq_settings = {
-			auto_start = true,
-		}
-	end,
 	config = function()
 		lspconfig = require("lspconfig")
 	end,
@@ -430,10 +421,10 @@ use {
 	-- Setup after high priority stuff, but before lspconfig.
 	priority = 60,
 }
---use {
---	'mfussenegger/nvim-lsp-compl',
---	event = 'LspAttach',
---}
+use {
+	'mfussenegger/nvim-lsp-compl',
+	event = 'LspAttach',
+}
 -- Make LSP stuff for Neovim's Lua work correctly.
 --use {
 --	'folke/neodev.nvim',

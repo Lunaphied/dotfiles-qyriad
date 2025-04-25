@@ -237,6 +237,7 @@
 
 	# NixOS's KDE module sets the default monospace font to [ "Hack" "Noto Sans Mono" ].
 	fonts.fontconfig.defaultFonts.monospace = lib.mkForce [
+		"MonoLisa"
 		"InconsolataGo Nerd Font Mono"
 		"Hack"
 		"Noto Sans Mono"
