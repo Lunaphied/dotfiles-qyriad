@@ -22,12 +22,12 @@ yellow = "0xe6c540"
 background = "0x000000"
 foreground = "0xeaeaea"
 
-[font.normal]
-#family = "InconsolataGo Nerd Font Mono"
-family = "MonoLisa"
-
 [font]
 size = 10
+#normal.family = "InconsolataGo Nerd Font Mono"
+
+normal.family = "MonoLisa"
+builtin_box_drawing = false
 
 [[keyboard.bindings]]
 chars = "\u001B08"

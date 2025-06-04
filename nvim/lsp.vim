@@ -204,6 +204,8 @@ vim.lsp.enable({
 	'vimls',
 	'luals',
 	'clangd',
+	'pyright',
+	'nil_ls',
 })
 
 --lsp_vim_capabilities = vim.lsp.protocol.make_client_capabilities()
