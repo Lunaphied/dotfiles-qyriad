@@ -13,7 +13,7 @@
 	xonsh-source,
 }: let
 
-	qyriad-nur' = import qyriad-nur { inherit pkgs; };
+	qpkgs = import qyriad-nur { inherit pkgs; };
 	xil' = import xil { inherit pkgs; };
 	agenix' = import agenix { inherit pkgs; };
 
@@ -49,7 +49,7 @@ in {
 
 	inherit (agenix') agenix;
 
-	inherit (qyriad-nur')
+	inherit (qpkgs)
 		strace-process-tree
 		strace-with-colors
 		intentrace
@@ -104,7 +104,7 @@ in {
 		];
 	};
 	cappy = import cappy { inherit pkgs; };
-	git-point = import git-point { inherit pkgs; };
+	git-point = import git-point { inherit pkgs qpkgs; };
 
 	#armcord = pkgs.armcord.overrideAttrs (prev: {
 	#	installPhase = ''
@@ -185,7 +185,7 @@ in {
 	qlib = let
 		qlib = import ./qlib.nix { inherit lib; };
 		# Nixpkgs lib with additions from qyriad-nur.
-		nurLib = qyriad-nur'.lib;
+		nurLib = qpkgs.lib;
 		# The additions to lib from qyriad-nur without Nixpkgs lib.
 		nurAdditions = qlib.removeAttrs' (lib.attrNames lib) nurLib;
 		qlibWithAdditions = nurAdditions // qlib;
