@@ -10,6 +10,7 @@
 	git-point,
 	xil,
 	xonsh-source,
+	nil-source,
 	getScope ? pkgs: import ./make-scope.nix {
 		inherit
 			pkgs
