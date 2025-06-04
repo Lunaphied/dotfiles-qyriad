@@ -150,6 +150,25 @@
         "type": "github"
       }
     },
+    "hdrvulkan": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "dirtyRev": "11d002e52b87ddab3afbd99c8428f89331b7b2ac-dirty",
+        "dirtyShortRev": "11d002e-dirty",
+        "lastModified": 1709326060,
+        "narHash": "sha256-OtJPtSiEHfGBmRtDMuUU+9TIHoMgVR5aaOh1NKjudPo=",
+        "type": "git",
+        "url": "file:./nixos/pkgs/vulkan-hdr-layer-flake"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:./nixos/pkgs/vulkan-hdr-layer-flake"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -292,6 +311,21 @@
         "type": "github"
       }
     },
+    "nixos-boot": {
+      "locked": {
+        "lastModified": 1722927293,
+        "narHash": "sha256-8oCsiFyAuidAdhSz60Lu8+TwCPHxaeWixyv0xT0mLt4=",
+        "owner": "Melkor333",
+        "repo": "nixos-boot",
+        "rev": "afaed735149d0a06f234e54dd2d9db2e18dc64ae",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Melkor333",
+        "repo": "nixos-boot",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1748693115,
@@ -392,12 +426,14 @@
         "cappy": "cappy",
         "flake-utils": "flake-utils",
         "git-point": "git-point",
+        "hdrvulkan": "hdrvulkan",
         "lix": "lix",
         "lix-module": "lix-module",
         "log2compdb": "log2compdb",
         "mac-app-util": "mac-app-util",
         "nil-source": "nil-source",
         "nix-darwin": "nix-darwin",
+        "nixos-boot": "nixos-boot",
         "nixpkgs": "nixpkgs",
         "niz": "niz",
         "pzl": "pzl",

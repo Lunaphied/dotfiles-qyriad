@@ -158,9 +158,9 @@
 		ENABLE_HDR_WSI = "1";
 	};
 
-	programs.xwayland.enable = true;
-	programs.ssh.setXAuthLocation = true;
-	programs.ssh.forwardX11 = null;
+	#programs.xwayland.enable = true;
+	#programs.ssh.setXAuthLocation = true;
+	#programs.ssh.forwardX11 = null;
 
 	# Oops this doesn't support binder lol.
 	boot.kernelPackages = pkgs.linuxKernel.packages.linux_zen;
