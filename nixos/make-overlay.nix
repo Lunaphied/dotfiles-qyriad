@@ -34,7 +34,7 @@
 
 	in {
 		qyriad = scope;
-		inherit (scope) qlib;
+		inherit (final.qyriad) qlib;
 
 		# Nice one, T-libs-api.
 		# https://github.com/rust-lang/rust/issues/127343
