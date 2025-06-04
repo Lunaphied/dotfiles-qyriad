@@ -76,6 +76,10 @@
 			url = "git+file:./nixos/pkgs/vulkan-hdr-layer-flake";
 			inputs.nixpkgs.follows = "nixpkgs";
 		};
+		nil-source = {
+			url = "github:oxalica/nil";
+			flake = false;
+		};
 	};
 
 	outputs = inputs @ {

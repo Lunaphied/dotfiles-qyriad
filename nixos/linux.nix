@@ -98,7 +98,7 @@
 	#	#"sparc-linux"
 	#];
 
-	i18n.defaultLocale = "en_US.utf8";
+	i18n.defaultLocale = "en_US.UTF-8";
 
 	# Add ~/.local/bin to system path.
 	environment.localBinInPath = true;
@@ -281,6 +281,7 @@
 	]
 	++ lib.optionals config.services.pipewire.enable [
 		alsa-utils
+		pulsemixer
 	]
 	++ lib.optionals config.services.smartd.enable [
 		smartmontools

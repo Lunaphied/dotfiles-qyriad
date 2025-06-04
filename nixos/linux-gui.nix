@@ -125,7 +125,6 @@
 		# For voice.
 		discord
 		calibre
-		_1password-gui
 		kicad
 		krita
 		olive-editor
@@ -135,6 +134,7 @@
 		#dsview
 		pulseview
 		ffmpeg-full
+		imagemagick
 		(lib.getBin x264)
 		(lib.getBin x265)
 		aegisub
@@ -151,7 +151,7 @@
 		curl
 		kdePackages.kcachegrind
 		flamegraph
-		signal-desktop
+		signal-desktop-source
 		thunderbird
 		seer
 		#mattermost-desktop
@@ -219,7 +219,7 @@
 		firefox.enable = true;
 		kdeconnect.enable = true;
 		_1password-gui = {
-			enable = true;
+			enable = false; # XXX: 1password GUI seems very broken on Wayland at the moment.
 			polkitPolicyOwners = [
 				"qyriad"
 			];

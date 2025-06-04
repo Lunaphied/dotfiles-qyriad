@@ -31,6 +31,17 @@
 
 	services.hardware.bolt.enable = true;
 
+	hardware.openrazer = {
+		# Probably.
+		enable = false;
+		users = let
+			usersInUsersGroup = lib.filterAttrs (name: group:
+				group.group == "users" || lib.elem "users" group.extraGroups
+			) config.users.users;
+		in lib.mapAttrsToList (_: user: user.name) usersInUsersGroup;
+	};
+	services.ratbagd.enable = true;
+
 	# Options from our custom NixOS module in ./resources.nix
 	resources = {
 		memory = 32;
@@ -45,6 +56,8 @@
 		"sg"
 		# For virtual /dev/video devices.
 		"v4l2loopback"
+		# For DDC/CI.
+		"i2c-dev"
 	];
 
 	boot.kernelPackages = pkgs.linuxPackages_6_12;
@@ -65,54 +78,54 @@
 
 	virtualisation.waydroid.enable = true;
 
-	services.pipewire.extraConfig.pipewire = {
-		"10-allowed-rates" = {
-			"default.clock.allowed-rates" = [ 44100 48000 ];
-		};
-		# FIXME: figure out what of these are actually necessary/useful.
-		"10-capturecard-loopback-module"."context.modules" = let
-			capturecard-loopback-module = {
-				name = "libpipewire-module-loopback";
-				args = {
-					"capture.props" = {
-						"node.name" = "AverMediaCapture";
-						"node.nick" = "Capturecard Audio Loopback";
-						"node.description" = "loopback-capturecard-capture";
-						"stream.capture.source" = true;
-						"target.object" = "alsa_input.usb-AVerMedia_Live_Gamer_Ultra-Video_5202418300266-02.iec958-stereo";
-						"media.class" = "Stream/Input/Audio";
-						# "port.group" = "capture";
-						"application.name" = "QyriadConfig";
-						"application.id" = "QyriadConfig";
-						"media.role" = "Game";
-						"node.group" = "qyriad.loopback.capturecard";
-						"node.loop.name" = "data-loop.0";
-					};
-					"playback.props" = {
-						"node.name" = "AverMediaPlayback";
-						"node.nick" = "Capturecard Audio Loopback";
-						"node.description" = "AVerMedia Live Gamer Ultra (Audio Loopback)";
-						"node.virtual" = false;
-						"monitor.channel-volumes" = true;
-						"stream.capture.sink" = true;
-						"media.class" = "Stream/Output/Audio";
-						"media.type" = "Audio";
-						#"port.group" = "stream.0";
-						 "port.group" = "playback";
-						"application.name" = "QyriadConfig";
-						"application.id" = "QyriadConfig";
-						"media.category" = "Playback";
-						"media.name" = "AVerMedia Audio Loopback";
-						"media.role" = "Game";
-						"node.group" = "qyriad.loopback.capturecard";
-						"node.loop.name" = "data-loop.0";
-					};
-				};
-			};
-		in [
-			capturecard-loopback-module
-		];
-	};
+	#services.pipewire.extraConfig.pipewire = {
+	#	"10-allowed-rates" = {
+	#		"default.clock.allowed-rates" = [ 44100 48000 ];
+	#	};
+	#	# FIXME: figure out what of these are actually necessary/useful.
+	#	"10-capturecard-loopback-module"."context.modules" = let
+	#		capturecard-loopback-module = {
+	#			name = "libpipewire-module-loopback";
+	#			args = {
+	#				"capture.props" = {
+	#					"node.name" = "AverMediaCapture";
+	#					"node.nick" = "Capturecard Audio Loopback";
+	#					"node.description" = "loopback-capturecard-capture";
+	#					"stream.capture.source" = true;
+	#					"target.object" = "alsa_input.usb-AVerMedia_Live_Gamer_Ultra-Video_5202418300266-02.iec958-stereo";
+	#					"media.class" = "Stream/Input/Audio";
+	#					# "port.group" = "capture";
+	#					"application.name" = "QyriadConfig";
+	#					"application.id" = "QyriadConfig";
+	#					"media.role" = "Game";
+	#					"node.group" = "qyriad.loopback.capturecard";
+	#					"node.loop.name" = "data-loop.0";
+	#				};
+	#				"playback.props" = {
+	#					"node.name" = "AverMediaPlayback";
+	#					"node.nick" = "Capturecard Audio Loopback";
+	#					"node.description" = "AVerMedia Live Gamer Ultra (Audio Loopback)";
+	#					"node.virtual" = false;
+	#					"monitor.channel-volumes" = true;
+	#					"stream.capture.sink" = true;
+	#					"media.class" = "Stream/Output/Audio";
+	#					"media.type" = "Audio";
+	#					#"port.group" = "stream.0";
+	#					 "port.group" = "playback";
+	#					"application.name" = "QyriadConfig";
+	#					"application.id" = "QyriadConfig";
+	#					"media.category" = "Playback";
+	#					"media.name" = "AVerMedia Audio Loopback";
+	#					"media.role" = "Game";
+	#					"node.group" = "qyriad.loopback.capturecard";
+	#					"node.loop.name" = "data-loop.0";
+	#				};
+	#			};
+	#		};
+	#	in [
+	#		capturecard-loopback-module
+	#	];
+	#};
 	services.pipewire.extraConfig.pipewire-pulse = {
 		"10-min-req" = {
 			"pulse.min.req" = "1024/48000";
