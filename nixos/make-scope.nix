@@ -9,8 +9,6 @@
 	pzl,
 	cappy,
 	git-point,
-	crane ? git-point.inputs.crane,
-	craneLib ? import crane { inherit pkgs; },
 	xil,
 	xonsh-source,
 }: let
@@ -106,7 +104,7 @@ in {
 		];
 	};
 	cappy = import cappy { inherit pkgs; };
-	git-point = import git-point { inherit pkgs craneLib; };
+	git-point = import git-point { inherit pkgs; };
 
 	#armcord = pkgs.armcord.overrideAttrs (prev: {
 	#	installPhase = ''
