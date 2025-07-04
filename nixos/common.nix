@@ -13,7 +13,16 @@
 	#];
 	nix = {
 		settings = {
-			experimental-features = [ "nix-command" "flakes" "pipe-operator" ];
+			experimental-features = [
+				"nix-command"
+				"flakes"
+				"pipe-operator"
+				"no-url-literals"
+				"lix-custom-sub-commands"
+				#"impure-derivations"
+				"cgroups"
+				"auto-allocate-uids"
+			];
 
 			extra-substituters = [
 				"https://cache.lix.systems"
@@ -82,7 +91,7 @@
 		diskus
 		parallel-disk-usage
 		moreutils
-		grc
+		qyriad.grc
 		file
 		delta
 		difftastic
@@ -106,7 +115,7 @@
 		nix-du
 		qyriad.niz
 		qyriad.pzl
-		#qyriad.xil
+		qyriad.xil
 		bat
 		ncdu
 		lnav
@@ -154,5 +163,7 @@
 		abcmidi
 		pastel
 		jo
+		spacer
+		dasel
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

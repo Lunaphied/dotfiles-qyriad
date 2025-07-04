@@ -28,6 +28,7 @@
 		nixd
 		lua-language-server
 		zls
+		mesonlsp
 		bear
 		universal-ctags
 		patchelf
@@ -47,6 +48,7 @@
 		#rustc
 		git-gr
 		git-imerge
+		nix-update
 		#nix-eval-jobs
 		#colmena
 		rr

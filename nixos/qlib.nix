@@ -142,7 +142,7 @@ let
 		list:
 		mkPair:
 		#lib.listToAttrs (lib.concatMap (name: [ (mkPair name) ]) list);
-		lib.concatMap (name: [ (mkPair name ) ] list)
+		lib.concatMap (name: [ (mkPair name ) ]) list
 		|> lib.listToAttrs;
 
 	removeAttrs' = lib.flip builtins.removeAttrs;
@@ -177,6 +177,10 @@ let
 		# If I want it, I'll ask for it.
 		meta = cleanMeta (drv.meta or { });
 	};
+
+	importAutocall = path: let
+		imported = import path;
+	in if lib.isFunction imported then imported { } else imported;
 
 
 	/** Partial application for lambdas with formals!
@@ -261,6 +265,7 @@ in {
 		joinPaths
 		joinPaths'
 		trimString
+		importAutocall
 		partial
 		nixosSystem
 		evalNixos

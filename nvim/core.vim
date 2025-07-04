@@ -241,7 +241,7 @@ endfunction
 nnoremap <leader>sh <Cmd>call SwitchSourceHeader()<CR>
 
 " Wired:
-cnoremap <C-r> %:r<tab>
+cnoremap <A-r> %:r<tab>
 noremap <A-r> %:r<tab>
 " Expands to the directory of the current filename, using ~ for $HOME,
 " and using path relative to the current directory if applicable.
@@ -260,6 +260,9 @@ inoremap <C-L> <C-o>A
 
 " Copy current command line.
 cnoremap <C-y> <C-f>Vy<C-c>
+
+" Open the current file again in a vsplit.
+nnoremap <leader>vs <Cmd>vsplit<CR>
 
 " Open the current file again in a new tab.
 nnoremap <leader>ts <Cmd>tab split<CR>
@@ -396,7 +399,7 @@ augroup DocFormatOptions
 augroup END
 
 "nnoremap <expr> o (v:lua.doc_format_options() ? "i\<esc>o" : "o") " Need to decide if I want this one
-inoremap <expr> <CR> (v:lua.doc_format_options() ? "\<CR>" : "\<CR>")
+"inoremap <expr> <CR> (v:lua.doc_format_options() ? "\<CR>" : "\<CR>")
 
 
 " Okay okay wait, let's try a more flexible version of the "I only want fo+=r for a sec"
@@ -510,6 +513,34 @@ function! HelpCurwin(subject) abort
 endfunction
 command! -nargs=? -complete=help Help call HelpCurwin(<q-args>)
 
+" Opens Man page for `subject` in the current window.
+function! ManCurwin(subject) abort
+	echomsg a:subject
+	" Open the man page in a new tab.
+	execute "tab Man " .. a:subject
+
+	" Keep track of the buffer view state in the new help window.
+	let l:manbuf = bufnr()
+	let l:save_view = winsaveview()
+
+	" Go to the tab we were previously in, and then attach its window to the Man buffer.
+	tabnext #
+	execute "buffer " .. l:manbuf
+
+	" Restore the viewstate of the help window to the original window.
+	call winrestview(l:save_view)
+
+	" And finally close that help.
+	tabclose #
+endfunction
+
+lua <<EOF
+vim.api.nvim_create_user_command('ManCur', function(params) vim.fn.ManCurwin(params.args) end, {
+	complete = require('man').man_complete,
+	nargs = '*',
+})
+EOF
+
 " Like `*` (searches for the current word), but doesn't actually perform the search operation,
 " instead only setting the search pattern *register* (`/`), and re-setting 'hlsearch'.
 " In other words, higlight the current word and all occurences of it, and make the "next"
@@ -542,8 +573,9 @@ vim.keymap.set("n", "n",
 	end,
 	{ desc = "Same as normal `n`, but with `scrolloff=15`" }
 )
-vim.keymap.set("n", "N",
-	function()
+vim.keymap.set("n", "N", "", {
+	desc = "Same as normal `N`, but with `scrolloff=15`",
+	callback = function()
 		local prev_scrolloff = vim.wo.scrolloff
 		vim.wo.scrolloff = 15
 		local status, err = pcall(function() vim.cmd[[normal! N]] end)
@@ -552,8 +584,7 @@ vim.keymap.set("n", "N",
 		end
 		vim.wo.scrolloff = prev_scrolloff
 	end,
-	{ desc = "Same as normal `N`, but with `scrolloff=15`" }
-)
+})
 EOF
 
 

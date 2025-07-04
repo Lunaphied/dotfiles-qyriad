@@ -151,7 +151,7 @@
 		curl
 		kdePackages.kcachegrind
 		flamegraph
-		signal-desktop-source
+		signal-desktop
 		thunderbird
 		seer
 		#mattermost-desktop
@@ -175,6 +175,7 @@
 		gjs
 		libnotify
 		chromium
+		kdePackages.kdialog
 		kdePackages.dragon
 		kdePackages.filelight
 		kdePackages.ffmpegthumbs

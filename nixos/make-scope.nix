@@ -14,7 +14,6 @@
 }: let
 
 	qpkgs = import qyriad-nur { inherit pkgs; };
-	xil' = import xil { inherit pkgs; };
 	agenix' = import agenix { inherit pkgs; };
 
 in lib.makeScope pkgs.newScope (self: let
@@ -90,8 +89,13 @@ in {
 
 	nix-helpers = self.callPackage ./pkgs/nix-helpers.nix { };
 
-	xil = xil'.xil.withConfig {
-		callPackageString = builtins.readFile ./xil-config.nix;
+	xil = let
+		xil' = import xil { inherit pkgs; };
+		withNixpkgsLix = xil'.override {
+			inherit (pkgs.lixPackageSets.stable) lix;
+		};
+	in withNixpkgsLix.withConfig {
+		callPackageString = lib.readFile ./xil-config.nix;
 	};
 
 	log2compdb = import log2compdb { inherit pkgs; };
@@ -180,7 +184,20 @@ in {
 		};
 	});
 
+	grc = pkgs.grc.overrideAttrs (prev: {
+		permitUserSite = true;
+		makeWrapperArgs = prev.makeWrapperArgs or [ ] ++ [
+			"--set-default" "PYTHONUNBUFFERED" "1"
+		];
+	});
+
 	xkeyboard_config-patched-inet = self.callPackage ./pkgs/xkb-config-patched-inet.nix { };
+
+	nix-update = pkgs.nix-update.overrideAttrs (prev: {
+		patches = (prev.patches or [ ]) ++ [
+			./pkgs/nix-update.patch
+		];
+	});
 
 	qlib = let
 		qlib = import ./qlib.nix { inherit lib; };

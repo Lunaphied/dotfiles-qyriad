@@ -253,7 +253,7 @@
 		heh
 		sysstat
 		# apksigner dependency fails to build on macOS
-		diffoscope
+		(diffoscope.overrideAttrs { enableBloat = false; })
 		rpm
 		binutils
 		lsof
@@ -278,6 +278,7 @@
 		lurk
 		pinentry
 		qyriad.cappy
+		bluetui
 	]
 	++ lib.optionals config.services.pipewire.enable [
 		alsa-utils

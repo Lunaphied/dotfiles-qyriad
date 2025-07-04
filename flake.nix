@@ -14,23 +14,19 @@
 		};
 		qyriad-nur = {
 			url = "github:Qyriad/nur-packages";
-			inputs.nixpkgs.follows = "nixpkgs";
-			inputs.flake-utils.follows = "flake-utils";
+			flake = false;
 		};
 		niz = {
 			url = "github:Qyriad/niz";
-			inputs.nixpkgs.follows = "nixpkgs";
-			inputs.flake-utils.follows = "flake-utils";
+			flake = false;
 		};
 		log2compdb = {
 			url = "github:Qyriad/log2compdb";
-			inputs.nixpkgs.follows = "nixpkgs";
-			inputs.flake-utils.follows = "flake-utils";
+			flake = false;
 		};
 		pzl = {
 			url = "github:Qyriad/pzl";
-			inputs.nixpkgs.follows = "nixpkgs";
-			inputs.flake-utils.follows = "flake-utils";
+			flake = false;
 		};
 		cappy = {
 			url = "github:Qyriad/cappy";
@@ -38,8 +34,7 @@
 		};
 		git-point = {
 			url = "github:Qyriad/git-point";
-			inputs.nixpkgs.follows = "nixpkgs";
-			inputs.flake-utils.follows = "flake-utils";
+			flake = false;
 		};
 		xil = {
 			url = "github:Qyriad/Xil";
@@ -108,13 +103,16 @@
 			nixpkgs.overlays = [ self.overlays.default ];
 
 			# Prevent our flake input trees from being garbage collected.
-			storePathsToKeep = lib.attrValues inputs;
+			storePathsToKeep = inputs;
 
 			# Point "qyriad" to this here flake.
 			nix.registry.qyriad = {
 				from = { id = "qyriad"; type = "indirect"; };
 				flake = self;
 			};
+
+			# And for fun, let NixOS know our Git commit hash, if we have one.
+			system.configurationRevision = self.rev or self.sourceInfo.dirtyRev;
 		};
 
 		# Wraps nixpkgs.lib.nixosSystem to generate a NixOS configuration, adding common modules
