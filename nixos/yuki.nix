@@ -10,7 +10,6 @@
 		./dev.nix
 		./resources.nix
 		./mount-shizue.nix
-		./modules/package-groups.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
@@ -34,11 +33,7 @@
 	hardware.openrazer = {
 		# Probably.
 		enable = false;
-		users = let
-			usersInUsersGroup = lib.filterAttrs (name: group:
-				group.group == "users" || lib.elem "users" group.extraGroups
-			) config.users.users;
-		in lib.mapAttrsToList (_: user: user.name) usersInUsersGroup;
+		users = config.modlib.usersInGroup "users" |> lib.mapAttrsToList (_: user: user.name);
 	};
 	services.ratbagd.enable = true;
 
@@ -60,7 +55,7 @@
 		"i2c-dev"
 	];
 
-	boot.kernelPackages = pkgs.linuxPackages_6_12;
+	boot.kernelPackages = pkgs.linuxPackages_latest;
 
 	environment.etc."modprobe.d/v4l2loopback.conf" = {
 		text = (lib.trim ''
@@ -78,54 +73,6 @@
 
 	virtualisation.waydroid.enable = true;
 
-	#services.pipewire.extraConfig.pipewire = {
-	#	"10-allowed-rates" = {
-	#		"default.clock.allowed-rates" = [ 44100 48000 ];
-	#	};
-	#	# FIXME: figure out what of these are actually necessary/useful.
-	#	"10-capturecard-loopback-module"."context.modules" = let
-	#		capturecard-loopback-module = {
-	#			name = "libpipewire-module-loopback";
-	#			args = {
-	#				"capture.props" = {
-	#					"node.name" = "AverMediaCapture";
-	#					"node.nick" = "Capturecard Audio Loopback";
-	#					"node.description" = "loopback-capturecard-capture";
-	#					"stream.capture.source" = true;
-	#					"target.object" = "alsa_input.usb-AVerMedia_Live_Gamer_Ultra-Video_5202418300266-02.iec958-stereo";
-	#					"media.class" = "Stream/Input/Audio";
-	#					# "port.group" = "capture";
-	#					"application.name" = "QyriadConfig";
-	#					"application.id" = "QyriadConfig";
-	#					"media.role" = "Game";
-	#					"node.group" = "qyriad.loopback.capturecard";
-	#					"node.loop.name" = "data-loop.0";
-	#				};
-	#				"playback.props" = {
-	#					"node.name" = "AverMediaPlayback";
-	#					"node.nick" = "Capturecard Audio Loopback";
-	#					"node.description" = "AVerMedia Live Gamer Ultra (Audio Loopback)";
-	#					"node.virtual" = false;
-	#					"monitor.channel-volumes" = true;
-	#					"stream.capture.sink" = true;
-	#					"media.class" = "Stream/Output/Audio";
-	#					"media.type" = "Audio";
-	#					#"port.group" = "stream.0";
-	#					 "port.group" = "playback";
-	#					"application.name" = "QyriadConfig";
-	#					"application.id" = "QyriadConfig";
-	#					"media.category" = "Playback";
-	#					"media.name" = "AVerMedia Audio Loopback";
-	#					"media.role" = "Game";
-	#					"node.group" = "qyriad.loopback.capturecard";
-	#					"node.loop.name" = "data-loop.0";
-	#				};
-	#			};
-	#		};
-	#	in [
-	#		capturecard-loopback-module
-	#	];
-	#};
 	services.pipewire.extraConfig.pipewire-pulse = {
 		"10-min-req" = {
 			"pulse.min.req" = "1024/48000";
@@ -162,6 +109,10 @@
 		remotePlay.openFirewall = true;
 		dedicatedServer.openFirewall = true;
 	};
+	# I don't need steam hardware support. This is enabled by default with
+	# `programs.steam.enable`.
+	# Priority exactly 1 stronger than the default.
+	hardware.steam-hardware.enable = lib.mkForce false;
 
 	environment.systemPackages = with pkgs; [
 		qyriad.steam-launcher-script

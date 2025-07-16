@@ -11,22 +11,21 @@ let
 in
 {
 	# Interface.
-	options = {
-		package-groups.music-production.enable = mkOption {
+	options.package-groups.music-production = {
+		enable = mkOption {
 			type = t.bool;
 			default = false;
 			description = "Enable music production software";
 		};
-		package-groups.music-production.remove-packages = mkOption {
+		remove-packages = mkOption {
 			type = t.listOf t.package;
 			default = [ ];
 			description = "Packages normally included in music-production to instead not include.";
 		};
-		package-groups.music-production.default-packages = mkOption {
+		default-packages = mkOption {
 			type = t.listOf t.package;
 			readOnly = true;
 			default = with pkgs; [
-				bitwig-studio
 				ardour
 				musescore
 				fluidsynth
@@ -35,31 +34,36 @@ in
 				tenacity
 			];
 		};
-		package-groups.music-production.final-packages = mkOption {
+
+		final-packages = mkOption {
 			type = t.listOf t.package;
 			internal = true;
 		};
+	};
 
-		package-groups.wayland-tools.enable = mkOption {
+	options.package-groups.wayland-tools = {
+		enable = mkOption {
 			type = t.bool;
 			default = false;
 			description = "Enable helpful Wayland software";
 		};
-		package-groups.wayland-tools.remove-packages = mkOption {
+		remove-packages = mkOption {
 			type = t.listOf t.package;
 			default = [ ];
 			description = "Packages normally included in wayland-tools to instead not include.";
 		};
-		package-groups.wayland-tools.default-packages = mkOption {
+		default-packages = mkOption {
 			default = with pkgs; [
 				wl-clipboard
 				waypipe
 				wayvnc
 				kooha
 				wev
+				wayfarer
 			];
 		};
-		package-groups.wayland-tools.final-packages = mkOption {
+
+		final-packages = mkOption {
 			type = t.listOf t.package;
 			internal = true;
 		};

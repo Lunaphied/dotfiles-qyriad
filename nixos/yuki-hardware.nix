@@ -21,10 +21,8 @@
 	boot.kernelModules = [
 		"kvm-amd"
 		"nvidia"
-		"v4l2loopback"
 	];
 	boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
-	environment.systemPackages = with config.boot.kernelPackages; [ v4l2loopback ];
 	services.xserver.videoDrivers = [
 		"nvidia"
 	];
@@ -32,10 +30,9 @@
 	hardware.nvidia = {
 		modesetting.enable = true;
 		package = config.boot.kernelPackages.nvidiaPackages.stable;
-		open = false;
+		open = true;
 	};
-	# This is causing buildfailures that I don't feel like debugging right now.
-	#hardware.opengl.driSupport32Bit = true;
+	hardware.graphics.enable32Bit = true;
 
 
 	fileSystems."/" = {
@@ -49,7 +46,12 @@
 		fsType = "vfat";
 	};
 
+	# All partitions of GPT type "Linux swap", per the Linux Userspace API Group's
+	# Discoverable Partitions Speficiation, will be automatically `swapon()`'d, by
+	# systemd-gpt-auto-generator(8).
 	swapDevices = [ ];
+
+	boot.resumeDevice = "/dev/disk/by-label/I660-Swap-FS";
 
 	# Enables DHCP on each ethernet and wireless interface. In case of scripted networking
 	# (the default) this is the recommended approach. When using systemd-networkd it's

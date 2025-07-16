@@ -24,12 +24,9 @@
 	};
 
 	# Make the systemd stop timeout more reasonable.
-	systemd.extraConfig = ''
+	systemd.extraConfig = lib.trim ''
 		DefaultTimeoutStopSec=20
 	'';
-
-	systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
-	systemd.network.wait-online.enable = lib.mkForce false;
 
 	systemd.slices.system-builder.sliceConfig = config.resources.builderSliceConfig;
 	systemd.user.slices.user-builder.sliceConfig = config.resources.builderSliceConfig;
@@ -42,8 +39,7 @@
 			MemoryPressureWatch = "on";
 			ManagedOOMMemoryPressure = "kill";
 			ManagedOOMMemoryPressureLimit = "85%";
-			MemoryHigh = config.resources.builderSliceConfig.MemoryHigh;
-			MemoryMax = config.resources.builderSliceConfig.MemoryMax;
+			inherit (config.resources.builderSliceConfig) MemoryHigh MemoryMax;
 			IOWeight = 20;
 			MemoryAccounting = true;
 			IOAccounting = true;
@@ -65,6 +61,9 @@
 	'';
 	networking.networkmanager.enable = true;
 	networking.networkmanager.dns = "systemd-resolved";
+	# Automatically enabled by enabling NetworkManager.
+	# I don't need it though.
+	networking.modemmanager.enable = false;
 
 	services.tailscale = {
 		enable = true;
@@ -133,32 +132,15 @@
 			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDI6Tdxcbr3XSD2Ok2tUb4RJ3nOszqKklkqXUrgnFM1F cardno:26 907 287"
 		];
 	};
-
-	users.users.lunaphied = {
-		isNormalUser = true;
-		description = "Lunaphied";
-		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "libvirtd" "gamemode" ];
-		shell = pkgs.zsh;
+	users.groups = {
+		plugdev = { };
+		video = { };
+		cdrom = { };
 	};
-
-	users.users.puckipedia = {
-		isNormalUser = true;
-		description = "puck";
-		shell = pkgs.zsh;
-
-		openssh.authorizedKeys.keys = [
-			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII8MUpzP9HB8xgDRZNPTCEZjSP9ntwn7GFyMbsmKrOQM"
-			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAi59cUbyB8ZWarlP2arpgz040a+KnhNNOIh8Plp3Nlf"
-		];
-	};
-
-	users.groups.plugdev = { };
-	users.groups.video = { };
-	users.groups.cdrom = { };
 
 	documentation = {
 		# Include -dev manpages
-		#dev.enable = true;
+		dev.enable = true;
 		# Make apropos(1) work.
 		man.generateCaches = true;
 		# This fails with `cannot lookup '<nixpkgs>' in pure evaluation mode.
@@ -283,6 +265,7 @@
 	++ lib.optionals config.services.pipewire.enable [
 		alsa-utils
 		pulsemixer
+		qyriad.wiremix
 	]
 	++ lib.optionals config.services.smartd.enable [
 		smartmontools
@@ -298,9 +281,6 @@
 	++ config.systemd.packages # I want system services to also be in /run/current-system please.
     ++ config.services.udev.packages # Same for udev...
 	++ config.fonts.packages # and fonts...
-	++ config.console.packages; # and including console fonts too.
-
-	hardware.glasgow.enable = true;
-	#virtualisation.podman.enable = true;
-	virtualisation.docker.enable = true;
+	++ config.console.packages # and including console fonts too...
+	++ config.boot.extraModulePackages; # and extra kernel modules.
 }

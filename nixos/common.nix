@@ -2,6 +2,11 @@
 { config, pkgs, lib, ... }:
 
 {
+	imports = [
+		./modules/package-groups.nix
+		./modules/modlib.nix
+	];
+
 	# Configuration for things related to Nix itself.
 	nixpkgs.config.allowUnfree = true;
 	# Commented out because I don't want them by default, but they're handy.
@@ -11,6 +16,7 @@
 	#	"broken-outputs"
 	#	"non-source"
 	#];
+	#nixpkgs.config.fetchedSourceNameDefault = "versioned";
 	nix = {
 		settings = {
 			experimental-features = [
@@ -63,6 +69,9 @@
 		# Include xonsh's Python
 		# The normal bash isn't bash-interactive lol.
 		bashInteractive
+		# `programs.bash.completion.enable` does not actually do this.
+		# For some reason.
+		config.programs.bash.completion.package
 		tmux
 		zellij
 		eza
@@ -165,5 +174,6 @@
 		jo
 		spacer
 		dasel
+		graphviz
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

@@ -19,10 +19,9 @@
 	ss = series status
 	sl = series log
 	curbr = rev-parse --abbrev-ref HEAD
-	br = !zsh -c 'cat <(git branch -vv --no-merged) <(git branch -vv --color=always | grep --color=never master)'
+	br = !zsh -c 'env GIT_PAGER=cat git branch -vv --remotes'
 	r = remote -v
 	b = branch -vv
-	bb = branch -vv --no-merged master
 	sh = show --stat --patch --format=fuller
 	# Print out the raw commit message of a commit, by itself. Suitable for copying, etc.
 	msg = show --no-patch --format=format:%B
@@ -46,6 +45,9 @@
 	common = rev-parse --git-common-dir
 	short = rev-parse --short
 	show-upstream = name-rev --no-undefined --name-only "--refs=remotes/*" "@{u}"
+	# For working with git-series
+	current-series = rev-parse --abbrev-ref SHEAD
+	abbrev-ref = rev-parse --abbrev-ref
 	#c = !tmux split-window -v "git commit && exit"
 	leash = push --force-with-lease
 [rebase]
@@ -71,6 +73,17 @@
 	editor = nvim
 	attributesfile = ~/.config/git/gitattributes
 [delta]
+	features = default side
+[delta "default"]
+	dark = true
+	side-by-side = false
+	tabs = 4
+	navigate = true
+	#commit-regex = ^[|* ]+commit [A-Fa-f0-9]+
+	commit-decoration-style = box
+	hunk-header-style = file line-number syntax
+	inline-hint-style = yellow # What does this do??
+[delta "side"]
 	dark = true
 	side-by-side = true
 	tabs = 4

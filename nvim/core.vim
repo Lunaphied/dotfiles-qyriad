@@ -179,8 +179,17 @@ vnoremap v V
 vnoremap > >gv
 vnoremap < <gv
 
+" Reserve the marks 'o and 'p for the last put.
+command! CopyPutMark execute "'[mark o | ']mark p"
+noremap p p<Cmd>CopyPutMark<CR>
+noremap P P<Cmd>CopyPutMark<CR>
+
 " gp to select last pasted text.
-nnoremap gp `[v`]
+" Same as:
+" nnoremap gp `[v`]
+" but uses our reserved marks which won't get clobbered by other operations.
+" We use capital V to use non-charwise.
+nnoremap gp `oV`p
 
 " unmap Q
 nnoremap Q <nop>
@@ -206,6 +215,9 @@ nnoremap <leader><CR> mzi<CR><Esc>`z
 " Reverse join. That is to say, move the rest of the current line to the above line.
 " Useful for moving comments to their own line.
 nnoremap <leader>J mzr<CR>ddkP`z
+
+" https://vi.stackexchange.com/questions/2105/how-to-reverse-the-order-of-lines/2107#2107
+command! -bar -range=% Reverse <line1>,<line2>global/^/move<line1>-1
 
 " <leader>l<BS> to closing the location list.
 nnoremap <leader>l<BS> <Cmd>lclose<CR>
@@ -457,6 +469,10 @@ EOF
 command! -nargs=+ -complete=command Notify call v:lua.notify_impl(<Q-Args>)
 command! Jumps Notify jumps
 
+" `:vert sview`
+command! -nargs=+ -complete=file Vsview vert sview <args>
+cnoreabbrev vsview Vsview
+
 """ Implementation for :Bload
 function! Bload(...) abort
 
@@ -491,6 +507,16 @@ function! Bcleanup() abort
 endfunction
 " Deletes buffers that are not visible in any window.
 command! Bcleanup call Bcleanup(<f-args>)
+
+function! Expand(...) abort
+	if a:0 == 0
+		echo expand("%")
+	else
+		echo expand(a:1)
+	endif
+endfunction
+command! -nargs=? -complete=file Expand call Expand(<f-args>)
+
 
 " Opens help for `subject` in the current window.
 function! HelpCurwin(subject) abort
@@ -546,6 +572,20 @@ EOF
 " In other words, higlight the current word and all occurences of it, and make the "next"
 " and "previous" search commands (`n` and `N`) also use the current word.
 nnoremap <leader>* <Cmd>let @/ = '\<' . expand("<cword>") . '\>' \| set hlsearch<CR>
+
+command! -range DeleteConflictMarkers <line1>,<line2>global/\v^[=<>|]{7}/delete _
+" This doesn't seem to work? Not sure why.
+"vnoremap <leader>gdc :DeleteConflictMarkers<CR>
+
+"vnoremap <leader>gdc <Cmd>execute "g/\v^[=<>|]{7}/d"<CR>
+
+"lua vim.g.GIT_CONFLICT_PATTERN = [[\v^(\<|\||\=|\>){4,}]]
+"function! SearchGitConflict() abort
+"	let @/ = g:GIT_CONFLICT_PATTERN
+"	lockmarks normal! mzn'z
+"endfunction
+"command! SearchGitConflict call SearchGitConflict()
+"nnoremap <leader>gc <Cmd>let @/ = g:GIT_CONFLICT_PATTERN \| set hlsearch<CR>
 
 lua <<EOF
 local function get_vim_errstr(lua_errstr)
