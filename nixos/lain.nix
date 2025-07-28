@@ -3,8 +3,8 @@
 
 let
 	nixos-hardware = builtins.fetchTarball {
-		url = "https://github.com/NixOS/nixos-hardware/archive/c3e48cbd88414f583ff08804eb57b0da4c194f9e.tar.gz";
-		sha256 = "sha256:0h4x3xplr4awz7rmh27ksrbzf0np9ik0v3y24pac3inbxaaw2ipv";
+		url = "https://github.com/NixOS/nixos-hardware/archive/de6fc5551121c59c01e2a3d45b277a6d05077bc4.tar.gz";
+		sha256 = "sha256:0yi5jb00zrlads7p00cp9cg74bxa6x1006wqcl6n2bhj6h6b3xvg";
 	};
 in
 {
@@ -39,12 +39,12 @@ in
 
 	environment.systemPackages = with pkgs; [
 		qyriad.steam-launcher-script
-		config.programs.steam.package.run
+		#config.programs.steam.package.run
 		neovide
 		cider
 		lutris
 		#retroarchFull
-		retroarch
+		#retroarch
 	];
 
 	services.jenkins.enable = true;

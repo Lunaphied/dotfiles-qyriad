@@ -248,7 +248,7 @@
 		# Let us use our yubikey with age.
 		age-plugin-yubikey
 		yubikey-manager
-		systeroid
+		#systeroid # dies while building linux-kernel-latest-htmldocs
 		poke
 		libtree
 		lurk

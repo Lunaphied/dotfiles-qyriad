@@ -139,7 +139,7 @@
 		nheko
 		element-desktop
 		curl
-		kcachegrind
+		#kcachegrind
 		flamegraph
 		signal-desktop
 		thunderbird
