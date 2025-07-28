@@ -1,6 +1,9 @@
 scriptencoding utf-8
 
 lua << EOF
+
+qyriad = require('qyriad')
+
 -- Bootstrap lazy.nvim.
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -63,26 +66,70 @@ nnoremap <leader>f :RangerCurrentDirectory<CR>
 nnoremap <leader>fb <Cmd>Explore<CR>
 
 
-nnoremap ]g <Cmd>lua gitsigns.next_hunk({ preview = true })<CR>
-nnoremap [g <Cmd>lua gitsigns.prev_hunk({ preview = true })<CR>
-nnoremap gs <Cmd>lua gitsigns.preview_hunk()<CR>
+"nnoremap ]g <Cmd>lua gitsigns.nav_hunk('next', { preview = true })
+nnoremap ]g <Cmd>Gitsigns nav_hunk next preview=true<CR>
+"nnoremap [g <Cmd>lua gitsigns.nav_hunk('prev', { preview = true })
+nnoremap [g <Cmd>Gitsigns nav_hunk prev preview=true<CR>
+"nnoremap gs <Cmd>lua gitsigns.preview_hunk()<CR>
+nnoremap gs <Cmd>Gitsigns preview_hunk<CR>
+nnoremap <leader>ga <Cmd>Gitsigns stage_hunk greedy=false<CR>
+nnoremap <leader>gb <Cmd>Gitsigns blame_line<CR>
 
-nnoremap <leader>tg <Cmd>Telescope git_files<CR>
-nnoremap <leader>tb <Cmd>Telescope buffers<CR>
-nnoremap <C-p> <Cmd>lua telescope.builtin.buffers { sort_mru = true }<CR>
+nnoremap <leader>tg <Cmd>Telescope live_grep<CR>
+nnoremap <leader>tf <Cmd>Telescope find_files<CR>
+"nnoremap <leader>tb <Cmd>Telescope buffers<CR>
+lua <<EOF
+vim.keymap.set("n", "<leader>tb", "", {
+	callback = function()
+		p.telescope.builtin.buffers {
+			prompt_title = "select buffer",
+			attach_mappings = function(_, map)
+				map({ "n" }, "dd", telescope.actions.delete_buffer)
+				local extend_default_mappings = true
+				return extend_default_mappings
+			end,
+		}
+	end,
+})
+EOF
+"nnoremap <C-p> <Cmd>lua telescope.builtin.buffers { sort_mru = true }<CR>
 nnoremap <C-p> <Cmd>Telescope buffers sort_mru=true<CR>
 nnoremap <leader>tm <Cmd>Telescope marks<CR>
 nnoremap <leader>tt <Cmd>Telescope tags<CR>
 nnoremap <leader>tl <Cmd>Telescope loclist<CR>
+nnoremap <leader>tj <Cmd>Telescope jumplist<CR>
+
+"augroup TelescopeMappings
+"
+"augroup END
 
 " Fix buffer names that should be relative paths.
 function! FixName() abort
-	call assert_true(&l:modified == v:true)
+	if &l:modifiable != v:true
+		throw "buffer must be modifiable"
+	endif
+
 	lua vim.cmd.file(vim.fn.expand("%:."))
 	edit!
 endfunction
 command! Fixname call FixName()
-command! FixName call FixName()
+
+function! FixNameIfNeeded() abort
+	if &l:modifiable != v:true
+		return
+	endif
+
+	let l:expanded = expand("%:.")
+	if l:expanded != bufname()
+		execute "keepalt file " .. l:expanded
+	endif
+endfunction
+
+"augroup AutoFixName
+"	autocmd! BufReadPost * call FixNameIfNeeded()
+"augroup END
+
+"command! FixName call FixName()
 
 lua <<EOF
 function _hl_cursor_col()
@@ -97,6 +144,11 @@ end
 vim.keymap.set("n", "<leader>hh", _hl_cursor_col, {
 	desc = "highlight the cursor's column, briefly"
 })
+
+-- Ughhh autoclose.nvim is overriding this.
+--vim.keymap.set("i", "<C-h>", _hl_cursor_col, {
+--	desc = "highlight the cursor's column, briefly",
+--})
 
 function what_indent()
 	local lines = {}
@@ -157,8 +209,35 @@ use {
 			['"'] = { close = false },
 			["'"] = { close = false },
 			["`"] = { close = false },
+			--["<CR>"] = { close = false },
 		},
 	},
+	config = function(plugin, opts)
+		-- HACK: autoclose overrides all our other <CR> mappings (eunuch, pum-accept).
+		-- But stupid private functions mean we can't just `require('autoclose.nvim').autoclose_cr()
+		-- or anything.
+		-- So here we run autoclose's normal setup, and then restore the original mapping, but save
+		-- the autoclose mapping in our plugin shortcut global `p.autoclose`.
+		local pl = lazy.core.config.plugins['autoclose.nvim']
+		local main_name = lazy.core.loader.get_main(plugin)
+		local main = require(main_name)
+
+		-- Get the <CR> mapping before calling setup().
+		local existing_cr = vim.fn.maparg('<CR>', 'i', false, true)
+		p.autoclose = qyriad.tbl_override(p.autoclose, { previous_cr = existing_cr })
+
+		-- Let autoclose mess with things.
+		main.setup(opts)
+
+
+		-- Save the mapping information from autoclose.
+		p.autoclose.new_cr = vim.fn.maparg('<CR>', 'i', false, true)
+
+		-- And then restore the original mapping.
+		if not vim.tbl_isempty(existing_cr) then
+			vim.fn.mapset(existing_cr)
+		end
+	end,
 }
 use {
 	'johmsalas/text-case.nvim',
@@ -181,6 +260,8 @@ use {
 		gitsigns.setup {
 			-- Don't fill the signcolumn for untracked files.
 			attach_to_untracked = false,
+			-- Higher priority than MarkSigns.
+			sign_priority = 11,
 		}
 	end,
 }
@@ -201,14 +282,27 @@ use {
 
 -- Pickers
 --use 'ctrlpvim/ctrlp.vim'
-use 'nvim-lua/plenary.nvim' -- Dependency for telescope.
+-- Dependency for telescope.
+use {
+	'nvim-lua/plenary.nvim',
+	config = function()
+		plenary = require('plenary')
+	end,
+}
 use {
 	'nvim-telescope/telescope.nvim',
 	dependencies = { 'nvim-lua/plenary.nvim' },
 	config = function()
 		telescope = require('telescope')
-		telescope.setup {}
+		telescope.setup {
+			--defaults = {
+			--
+			--}
+			--create_layout = function(picker)
+			--end,
+		}
 		telescope.builtin = require('telescope.builtin')
+		telescope.actions = require('telescope.actions')
 		telescope.sorters = require('telescope.sorters')
 		telescope.load_extension("ui-select")
 	end,
@@ -237,8 +331,9 @@ use {
 use {
 	'chentoast/marks.nvim',
 	opts = {
-		default_mappings = false,
-		default_marks = {
+		-- Sure, let's try it.
+		default_mappings = true,
+		builtin_marks = {
 			"'", -- position of the latest jump
 			"^", -- position of last InsertExit
 			".", -- position last change was made

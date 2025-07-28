@@ -17,6 +17,14 @@
 		enableQt5Integration = true;
 	};
 
+	# Use Qt settings from KDE.
+	qt.platformTheme = "kde6";
+
+	environment.plasma6.excludePackages = with pkgs.kdePackages; [
+		# We use our patched nixos-khelpcenter instead.
+		khelpcenter
+	];
+
 	# "A stop job is running for X11—" fuck off.
 	systemd.services.display-manager.serviceConfig.TimeoutStopSec = "10";
 
@@ -29,7 +37,7 @@
 	#	TimeoutStopSec = "10";
 	#};
 	# And tbh let's just shorten the stop timeout for all user units a bit.
-	systemd.user.extraConfig = ''
+	systemd.user.extraConfig = lib.trim ''
 		DefaultTimeoutStopSec=20
 	'';
 
@@ -37,6 +45,7 @@
 	# but we don't need this.
 	#services.speechd.enable = false;
 
+	xdg.terminal-exec.enable = true;
 	xdg.portal = {
 		enable = true;
 		#extraPortals = [
@@ -88,12 +97,13 @@
 	# Enable udisks2.
 	services.udisks2.enable = true;
 
+	services.colord.enable = true;
+
 	# A little bit cursed to put this in linux-gui, but generally this is the file that won't be sourced
 	# for servers.
 	networking.firewall.enable = false;
 
 	nixpkgs.config.permittedInsecurePackages = [
-		"electron-25.9.0" # For Obsidian
 		"olm-3.2.16" # For Cinny
 		"jitsi-meet-1.0.8043" # For Element
 	];
@@ -106,7 +116,9 @@
 	environment.systemPackages = with pkgs; [
 		libinput
 		libva-utils
+		glxinfo
 		alacritty
+		qyriad.ghostty
 		wezterm
 		# Backup.
 		#konsole
@@ -126,12 +138,14 @@
 		#dsview
 		pulseview
 		ffmpeg-full
+		imagemagick
 		(lib.getBin x264)
 		(lib.getBin x265)
 		aegisub
 		cifs-utils
 		nfs-utils
 		ntfs3g
+		ddcutil
 		sequoia
 		sioyek
 		#neochat
@@ -139,13 +153,13 @@
 		nheko
 		element-desktop
 		curl
-		#kcachegrind
+		kdePackages.kcachegrind
 		flamegraph
 		signal-desktop
 		thunderbird
 		seer
-		#mattermost-desktop
-		#qyriad.cinny
+		mattermost-desktop
+		cinny-desktop
 		firefoxpwa
 		#darling
 		glibc.debug
@@ -154,6 +168,7 @@
 		qemu-utils
 		xorg.xlsclients
 		xorg.xset # Make OBS shut up.
+		xorg.xcursorgen
 		seer
 		qyriad.obs-studio
 		v4l-utils
@@ -164,7 +179,9 @@
 		gst_all_1.gstreamer
 		gjs
 		libnotify
+		# Sigh.
 		chromium
+		kdePackages.kdialog
 		kdePackages.dragon
 		kdePackages.filelight
 		kdePackages.ffmpegthumbs
@@ -196,18 +213,57 @@
 		vulkan-tools
 		wayland-utils
 		kdePackages.kconfig
+		qyriad.nixos-khelpcenter
+		systemdgenie
+		kdotool
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt
 		pwvucontrol
+		sonusmix
 		wayfarer
+	] ++ lib.optionals config.services.ratbagd.enable [
+		piper
 	];
+
+	hardware.i2c.enable = true;
+
+	# Convenience systemd unit group to check and restart
+	# - plasma-plasmashell.service
+	# - plasma-krunner.service
+	# Since we often have to restart these together.
+	#systemd.user.targets.plasma-group = {
+	#	#unitConfig = {
+	#	#	#PartOf = "plasma-
+	#	#};
+	#	wantedBy = [ "default.target" ];
+	#	#unitConfig = {
+	#	#};
+	#};
+	#systemd.user.services.plasma-plasmashell = {
+	#	overrideStrategy = "asDropin";
+	#	unitConfig = {
+	#		PartOf = "plasma-group.target";
+	#	};
+	#};
+	#systemd.user.services.plasma-krunner = {
+	#	overrideStrategy = "asDropin";
+	#	unitConfig = {
+	#		PartOf = "plasma-group.target";
+	#	};
+	#};
 
 	# GUI programs with NixOS modules that we can enable, instead of using environment.systemPackages.
 	programs = {
 		partition-manager.enable = true;
 		firefox.enable = true;
 		kdeconnect.enable = true;
+		_1password-gui = {
+			enable = false; # XXX: 1password GUI seems very broken on Wayland at the moment.
+			polkitPolicyOwners = [
+				"qyriad"
+			];
+		};
 	};
 
 	# Used for noise suppression.
@@ -217,6 +273,13 @@
 	fonts.packages = with pkgs; [
 		nerd-fonts.inconsolata-go
 		noto-fonts-cjk-sans
+	];
+
+	# NixOS's KDE module sets the default monospace font to [ "Hack" "Noto Sans Mono" ].
+	fonts.fontconfig.defaultFonts.monospace = lib.mkForce [
+		"InconsolataGo Nerd Font Mono"
+		"Hack"
+		"Noto Sans Mono"
 	];
 
 

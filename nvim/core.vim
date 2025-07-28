@@ -53,8 +53,8 @@ set cinoptions=l1,j1,(4,W4
 " Autowrap comments using textwidth, inserting the comment leader,
 " and remove the comment leader when joining lines when it makes sense.
 set formatoptions=cj
-" Don't display . on folds.
-let &fillchars = "fold: "
+" Display • on folds.
+let &fillchars = "fold:\u2022"
 " Use » to indicate tabs, a - for trailing whitespace, and · for multiple leading spaces.
 set list
 let &listchars = "tab:\u00bb ,trail:-,nbsp:+,leadmultispace:\u00b7"
@@ -68,9 +68,9 @@ set noshowmode " We're using lightline, so showing the mode in the command line 
 let &grepprg = 'rg --vimgrep --no-heading --smart-case'
 "nnoremap <leader>g :Notify lgrep<Space>
 
-if has("nvim-0.11")
-	set messagesopt=wait:2000,history:1000
-endif
+"if has("nvim-0.11")
+"	"set messagesopt=wait:2000,history:1000
+"endif
 
 """ Slow down mouse scroll speed.
 " This is intended for macOS touchpads, but ideally the solution should be
@@ -187,8 +187,17 @@ vnoremap v V
 vnoremap > >gv
 vnoremap < <gv
 
+" Reserve the marks 'o and 'p for the last put.
+command! CopyPutMark execute "'[mark o | ']mark p"
+noremap p p<Cmd>CopyPutMark<CR>
+noremap P P<Cmd>CopyPutMark<CR>
+
 " gp to select last pasted text.
-nnoremap gp `[v`]
+" Same as:
+" nnoremap gp `[v`]
+" but uses our reserved marks which won't get clobbered by other operations.
+" We use capital V to use non-charwise.
+nnoremap gp `oV`p
 
 " unmap Q
 nnoremap Q <nop>
@@ -214,6 +223,9 @@ nnoremap <leader><CR> mzi<CR><Esc>`z
 " Reverse join. That is to say, move the rest of the current line to the above line.
 " Useful for moving comments to their own line.
 nnoremap <leader>J mzr<CR>ddkP`z
+
+" https://vi.stackexchange.com/questions/2105/how-to-reverse-the-order-of-lines/2107#2107
+command! -bar -range=% Reverse <line1>,<line2>global/^/move<line1>-1
 
 " <leader>l<BS> to closing the location list.
 nnoremap <leader>l<BS> <Cmd>lclose<CR>
@@ -249,13 +261,13 @@ endfunction
 nnoremap <leader>sh <Cmd>call SwitchSourceHeader()<CR>
 
 " Wired:
-cnoremap <C-r> %:r<tab>
+cnoremap <A-r> %:r<tab>
 noremap <A-r> %:r<tab>
 " Expands to the directory of the current filename, using ~ for $HOME,
 " and using path relative to the current directory if applicable.
 " `help fnamemodify()`
-cnoremap <C-e> %:.:h/<tab>
-cnoremap <A-e> %:.:h/<tab>
+cnoremap <C-e> %:.:h<tab>
+cnoremap <A-e> %:.:h<tab>
 
 " Use escape to exit terminal mode.
 tnoremap <Esc> <C-\><C-n>
@@ -268,6 +280,9 @@ inoremap <C-L> <C-o>A
 
 " Copy current command line.
 cnoremap <C-y> <C-f>Vy<C-c>
+
+" Open the current file again in a vsplit.
+nnoremap <leader>vs <Cmd>vsplit<CR>
 
 " Open the current file again in a new tab.
 nnoremap <leader>ts <Cmd>tab split<CR>
@@ -310,15 +325,12 @@ nmap cmtd eviwS'va'S]h"_x
 " Change a Python style dict access to a member access. 'Change Dict to Member'
 nmap cdtm ds'F[i.<ESC><ESC>f[ds]
 
-" Change current word to uppercase.
-inoremap <C-u> <esc>mzgUiW`za
-
 " Comment-out the current line, and then duplicate the uncommented version below.
 " 'Yank, comment, paste'
 " yy to yank the current line
 " <leader>cc for comment.nvim's toggle line comment
 " <leader>p to paste without indenting (see above).
-nmap <leader>ycp yy<leader>cc<leader>p
+nmap <leader>ycp yy<leader>ccp
 
 " Yank, then comment out, on a visual selection.
 vmap <leader>Y Ygv<leader>cc
@@ -343,7 +355,7 @@ function! InvertRAndEcho() abort
 	endif
 endfunction
 
-" Invert formatoptoins' "r" flag for exactly one insert mode session.
+" Invert formatoptions' "r" flag for exactly one insert mode session.
 function! InsertInvertR() abort
 	call InvertR()
 	augroup InsertInvertR
@@ -380,7 +392,7 @@ lua << EOF
 
 -- Returns true if this function inverted fo=r, and false if it did not.
 function doc_format_options()
-	local pos = vim.inspect_pos(nil, nil, nil, { syntax = false, extmarks = false, semantic_tokens = false })
+	local pos = vim.inspect_pos(nil, nil, nil, { syntax = true, extmarks = false, semantic_tokens = false })
 
 	if pos == nil then
 		return false
@@ -405,7 +417,7 @@ augroup DocFormatOptions
 augroup END
 
 "nnoremap <expr> o (v:lua.doc_format_options() ? "i\<esc>o" : "o") " Need to decide if I want this one
-inoremap <expr> <CR> (v:lua.doc_format_options() ? "\<CR>" : "\<CR>")
+"inoremap <expr> <CR> (v:lua.doc_format_options() ? "\<CR>" : "\<CR>")
 
 
 " Okay okay wait, let's try a more flexible version of the "I only want fo+=r for a sec"
@@ -463,6 +475,10 @@ EOF
 command! -nargs=+ -complete=command Notify call v:lua.notify_impl(<Q-Args>)
 command! Jumps Notify jumps
 
+" `:vert sview`
+command! -nargs=+ -complete=file Vsview vert sview <args>
+cnoreabbrev vsview Vsview
+
 """ Implementation for :Bload
 function! Bload(...) abort
 
@@ -487,25 +503,115 @@ endfunction
 " for each argument.
 command! -nargs=+ -complete=file Bload call Bload(<f-args>)
 
+function! Bcleanup() abort
+	let l:buffers = getbufinfo({ 'buflisted': v:true })
+	for buffer in l:buffers
+		if empty(l:buffer.windows)
+			execute "echo bdelete " .. l:buffer.bufnr
+		endif
+	endfor
+endfunction
+" Deletes buffers that are not visible in any window.
+command! Bcleanup call Bcleanup(<f-args>)
+
+function! Expand(...) abort
+	if a:0 == 0
+		echo expand("%")
+	else
+		echo expand(a:1)
+	endif
+endfunction
+command! -nargs=? -complete=file Expand call Expand(<f-args>)
+
+
+" Opens help for `subject` in the current window.
+function! HelpCurwin(subject) abort
+	" Open the help subject in a new tab.
+	execute "tab help " .. a:subject
+
+	" Keep track of the buffer view state in the new help window.
+	let l:helpbuf = bufnr()
+	let l:save_view = winsaveview()
+
+	" Go to the tab we were previously in, and then attach its window to the help buffer.
+	tabnext #
+	execute "buffer " .. l:helpbuf
+
+	" Restore the viewstate of the help window to the original window.
+	call winrestview(l:save_view)
+
+	" And finally close that help tab.
+	tabclose #
+endfunction
+command! -nargs=? -complete=help Help call HelpCurwin(<q-args>)
+
+" Opens Man page for `subject` in the current window.
+function! ManCurwin(subject) abort
+	echomsg a:subject
+	" Open the man page in a new tab.
+	execute "tab Man " .. a:subject
+
+	" Keep track of the buffer view state in the new help window.
+	let l:manbuf = bufnr()
+	let l:save_view = winsaveview()
+
+	" Go to the tab we were previously in, and then attach its window to the Man buffer.
+	tabnext #
+	execute "buffer " .. l:manbuf
+
+	" Restore the viewstate of the help window to the original window.
+	call winrestview(l:save_view)
+
+	" And finally close that help.
+	tabclose #
+endfunction
+
+lua <<EOF
+vim.api.nvim_create_user_command('ManCur', function(params) vim.fn.ManCurwin(params.args) end, {
+	complete = require('man').man_complete,
+	nargs = '*',
+})
+EOF
+
 " Like `*` (searches for the current word), but doesn't actually perform the search operation,
 " instead only setting the search pattern *register* (`/`), and re-setting 'hlsearch'.
 " In other words, higlight the current word and all occurences of it, and make the "next"
 " and "previous" search commands (`n` and `N`) also use the current word.
 nnoremap <leader>* <Cmd>let @/ = '\<' . expand("<cword>") . '\>' \| set hlsearch<CR>
 
+command! -range DeleteConflictMarkers <line1>,<line2>global/\v^[=<>|]{7}/delete _
+" This doesn't seem to work? Not sure why.
+"vnoremap <leader>gdc :DeleteConflictMarkers<CR>
+
+"vnoremap <leader>gdc <Cmd>execute "g/\v^[=<>|]{7}/d"<CR>
+
+"lua vim.g.GIT_CONFLICT_PATTERN = [[\v^(\<|\||\=|\>){4,}]]
+"function! SearchGitConflict() abort
+"	let @/ = g:GIT_CONFLICT_PATTERN
+"	lockmarks normal! mzn'z
+"endfunction
+"command! SearchGitConflict call SearchGitConflict()
+"nnoremap <leader>gc <Cmd>let @/ = g:GIT_CONFLICT_PATTERN \| set hlsearch<CR>
+
 lua <<EOF
 local function get_vim_errstr(lua_errstr)
 	-- lua_errstr should look something like `[string ":lua"]:10: Vim:E999: foomsg`
 	-- Vim displays errors like `E999: foomsg`. So let's get that part.
-	local to_strip = string.find(lua_errstr, "Vim:") + #"Vim:"
-	return string.sub(lua_errstr, to_strip)
+	-- 2025/04/14: Apparently now lua_errstr looks something like
+	-- `vim/_editor.lua:0: nvim_exec2(), line 1: Vim(normal):E999 foomsg`.
+	-- Soooo lets just look for the colon, E, and numbers, shall we?
+	local match_start = lua_errstr:find(":E%d+:")
+	if not match_start then
+		error(string.format("get_vim_errstr: could not find Vim error in %s", lua_errstr))
+	end
+	return lua_errstr:sub(match_start + 1)
 end
 -- Make jumping to search matches use a larger 'scrolloff' value.
 vim.keymap.set("n", "n",
 	function()
 		local prev_scrolloff = vim.wo.scrolloff
 		vim.wo.scrolloff = 15
-		local status, err = pcall(function() vim.cmd.normal { args = { "n" }, bang = true } end)
+		local status, err = pcall(function() vim.cmd[[normal! n]] end)
 		if status == false then
 			vim.api.nvim_err_writeln(get_vim_errstr(err))
 		end
@@ -513,18 +619,18 @@ vim.keymap.set("n", "n",
 	end,
 	{ desc = "Same as normal `n`, but with `scrolloff=15`" }
 )
-vim.keymap.set("n", "N",
-	function()
+vim.keymap.set("n", "N", "", {
+	desc = "Same as normal `N`, but with `scrolloff=15`",
+	callback = function()
 		local prev_scrolloff = vim.wo.scrolloff
 		vim.wo.scrolloff = 15
-		local status, err = pcall(function() vim.cmd.normal { args = { "N" }, bang = true } end)
+		local status, err = pcall(function() vim.cmd[[normal! N]] end)
 		if status == false then
 			vim.api.nvim_err_writeln(get_vim_errstr(err))
 		end
 		vim.wo.scrolloff = prev_scrolloff
 	end,
-	{ desc = "Same as normal `N`, but with `scrolloff=15`" }
-)
+})
 EOF
 
 

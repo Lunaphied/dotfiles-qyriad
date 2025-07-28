@@ -40,7 +40,7 @@ EOF
 
 let g:xsh_highlight_all = v:true
 
-let g:NERDCustomDelimiters = { 'dosini': { 'left': '#' }, 'xonsh': { 'left': '#' } }
+nnoremap <leader>I <Cmd>Inspect<CR>
 
 function! SynNameStack() abort
 	return synstack(line('.'), col('.'))->copy()->map({key, value -> value->synIDattr('name')})
@@ -48,10 +48,11 @@ endfunction
 
 command! SynNameStack echomsg SynNameStack()
 
-nnoremap [c <Cmd>TSTextobjectGotoPreviousStart @class.inner<CR>
-nnoremap ]c <Cmd>TSTextobjectGotoNextStart @class.inner<CR>
-nnoremap <leader>[c <Cmd>TSTextobjectGotoPreviousEnd @class.inner<CR>
-nnoremap <leader>]c <Cmd>TSTextobjectGotoNextEnd @class.inner<CR>
+" NOTE: In Rust, "@class" is each "item".
+nnoremap ]c <Cmd>TSTextobjectGotoNextEnd @class.outer<CR>
+xnoremap ]c <Cmd>TSTextobjectGotoNextEnd @class.outer<CR>
+nnoremap [c <Cmd>TSTextobjectGotoPreviousStart @class.outer<CR>
+xnoremap [c <Cmd>TSTextobjectGotoPreviousStart @class.outer<CR>
 
 nnoremap ]f <Cmd>TSTextobjectGotoNextEnd @function.inner<CR>
 xnoremap ]f <Cmd>TSTextobjectGotoNextEnd @function.inner<CR>

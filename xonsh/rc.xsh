@@ -9,7 +9,9 @@ if "IN_NIX_SHELL" not in ${...}:
 		for elem in to_delete:
 			$PATH.remove(elem)
 
-import os, sys, io, json, struct, re, shlex, typing, textwrap
+import builtins, operator, typing
+import os, sys, io, errno, ctypes
+import struct, re, shlex, textwrap, functools
 from datetime import datetime, timedelta
 import zoneinfo
 from zoneinfo import ZoneInfo
@@ -176,6 +178,10 @@ aliases['lsof'] = 'grc lsof +c0'
 # Coreutils-alike
 aliases['rip'] = 'rip --seance'
 
+def _rmlink(args: list):
+	""" Like `unlink(1)`, but allows multiple arguments. """
+	echo @(args) | xargs -n1 echo-exec unlink
+aliases['rmlink'] = _rmlink
 
 # Edit config shortcuts.
 #edit = lambda path : $EDITOR + ' ' + str(path)
@@ -294,11 +300,25 @@ aliases['striptext'] = lambda args, stdin: stdin.read().strip()
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
 aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat'
-aliases['strace-exec'] = ['strace', '--silent=attach,exit', '-s', '9999', '--signal=!all', '-zfe' 'execve']
+# strace --color=always --silence=attach,exit --signal=none -y -e read,write -s999
+# strace handy arguments:
+# -z / --successful-only
+# -Z --failed-only
+# --silence=attach,exit
+# --signal=none
+# -y / --decode-fds
+# -Y / --decode-pids=comm (print command names for pids)
+# -X verbose / --const-print-style=verbose (output named constants as numbers with name as a comment)
+# -s 64 --string-limit=64
+# --tips / --tips=id:random,format:compact
+aliases['stracey'] = ['strace', '-yyY', '-s', '128', '--silence=attach,exit', '--signal=none', '--tips=id:random,format:compact']
+aliases['strace-exec'] = ['strace', '--silent=attach,exit', '-s', '9999', '--signal=!all', '--successful-only' '--follow-forks' '--seccomp-bpf', '-e' 'execve']
 
+# objdump handy arguments:
+# -M intel
+# --demangle
+aliases['objdumpx'] = ['objdump', '--special-syms', '--disassembler-color=extended', '--visualize-jumps=extended-color']
 
-aliases['cm'] = 'cmake -B build'
-aliases['cmb'] = 'cmake --build build'
 
 $YTDLP_YOUTUBE = '%(channel)s/%(upload_date>%Y-%m-%d,release_date>%Y-%m-%d)s - %(title)s [%(id)s].%(ext)s'
 $YTDLP_TWITCH  = '%(uploader)s/%(upload_date>%Y-%m-%d,release_date>%Y-%m-%d)s - %(title)s [%(id)s].%(ext)s'
@@ -693,13 +713,17 @@ def _per_line(args: list, stdin: io.TextIOWrapper):
 		to get the second whitespace-delimited word of each line.
 	"""
 	callback: typing.Callable[[str], str] = args[0]
-	return "\n".join([str(callback(line)) for line in stdin])
+	output = "\n".join([str(callback(line)) for line in stdin])
+	print(output)
+	return output
 
 aliases["pl"] = _per_line
 
 def _intext(args: list, stdin: io.TextIOWrapper):
 	callback: typing.Callable[[str], str] = args[0]
-	return callback(stdin.read())
+	output = callback(stdin.read())
+	print(output)
+	return output
 
 # Like per-line, but for the entire stdin text at once.
 aliases["intext"] = _intext

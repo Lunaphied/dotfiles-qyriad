@@ -2,6 +2,12 @@
 { config, pkgs, lib, ... }:
 
 {
+	imports = [
+		./modules/package-groups.nix
+		./modules/modlib.nix
+		./modules/keep-paths.nix
+	];
+
 	# Configuration for things related to Nix itself.
 	nixpkgs.config.allowUnfree = true;
 	# Commented out because I don't want them by default, but they're handy.
@@ -11,9 +17,19 @@
 	#	"broken-outputs"
 	#	"non-source"
 	#];
+	#nixpkgs.config.fetchedSourceNameDefault = "versioned";
 	nix = {
 		settings = {
-			experimental-features = [ "nix-command" "flakes" "pipe-operator" ];
+			experimental-features = [
+				"nix-command"
+				"flakes"
+				"pipe-operator"
+				"no-url-literals"
+				"lix-custom-sub-commands"
+				#"impure-derivations"
+				"cgroups"
+				"auto-allocate-uids"
+			];
 
 			extra-substituters = [
 				"https://cache.lix.systems"
@@ -52,6 +68,9 @@
 		# Include xonsh's Python
 		# The normal bash isn't bash-interactive lol.
 		bashInteractive
+		# `programs.bash.completion.enable` does not actually do this.
+		# For some reason.
+		config.programs.bash.completion.package
 		tmux
 		zellij
 		eza
@@ -80,7 +99,7 @@
 		diskus
 		parallel-disk-usage
 		moreutils
-		grc
+		qyriad.grc
 		file
 		delta
 		difftastic
@@ -91,6 +110,7 @@
 		inxi
 		hyfetch
 		jq
+		yq
 		yt-dlp
 		pstree
 		silicon
@@ -102,7 +122,7 @@
 		nix-du
 		qyriad.niz
 		qyriad.pzl
-		#qyriad.xil
+		qyriad.xil
 		bat
 		ncdu
 		lnav
@@ -141,12 +161,17 @@
 		jujutsu
 		repgrep
 		rink
-		dysk
 		uni
-		xcp
 		ansi2html
 		qyriad.agenix
 		qyriad.age-plugin-openpgp-card
 		abcmidi
+		pastel
+		jo
+		spacer
+		dasel
+		graphviz
+		dyff
+		sacad
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

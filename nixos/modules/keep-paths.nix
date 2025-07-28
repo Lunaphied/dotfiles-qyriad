@@ -4,14 +4,14 @@
 {
 	# Interface.
 	options.storePathsToKeep = lib.mkOption {
-		type = with lib.types; listOf pathInStore;
+		type = with lib.types; attrsOf pathInStore;
 		default = [ ];
 		description = ''
 			Store paths to prevent from being garbage collected in this NixOS generation
 			Useful for flake inputs.
 		'';
 		example = lib.literalExample ''
-			[ inputs.nixpkgs ]
+			{ inherit (inputs) nixpkgs; }
 		'';
 	};
 
@@ -20,28 +20,28 @@
 		readOnly = true;
 	};
 
+	options.echoKeptStorePaths = lib.mkOption {
+		type = lib.types.bool;
+		default = true;
+		description = ''
+			Whether to echo the store paths kept by `options.storePathsToKeep` during build or not.
+		'';
+	};
+
 	# Implementation.
-	config = lib.mkIf (lib.lists.length config.storePathsToKeep > 0) {
+	config = lib.mkIf (config.storePathsToKeep != {}) {
 
 		environment.pathsToLink = [ "/share/nix-support" ];
 
 		systemKeptPaths = pkgs.qyriad.runCommandMinimal "system-kept-paths" {
+			# Load bearing. keep-paths.sh does not work without structured attrs.
+			__structuredAttrs = true;
 
-			closureText = pkgs.writeClosure config.storePathsToKeep;
+			storePathNames = lib.attrNames config.storePathsToKeep;
+			storePathValues = lib.map pkgs.writeClosure (lib.attrValues config.storePathsToKeep);
+			inherit (config) echoKeptStorePaths;
 
-		} <| lib.trim ''
-			mkdir -p "$out/share/nix-support"
-			# All we need to prevent garbage collection of a store path is to have that
-			# store path's text exist in the output of a derivation that is included in
-			# our system derivation.
-			# Easy enough!
-			echo "preventing the following store paths from being garbage collected:"
-			local storePathLine
-			while IFS= read -r storePathLine; do
-				echo "  $storePathLine"
-			done < "$closureText"
-			cp "$closureText" "$out/share/nix-support/propagated-build-inputs"
-		'';
+		} <| lib.readFile ./keep-paths.sh;
 
 		environment.systemPackages = [ config.systemKeptPaths ];
 	};

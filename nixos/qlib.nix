@@ -137,12 +137,22 @@ let
 			|> lib.listToAttrs
 	;
 
+	referencedDrvs = drv: assert lib.isDerivation drv; let
+		f = item:
+			if lib.isList item then
+				lib.filter lib.isDerivation item
+			else if lib.isDerivation item then
+				lib.concatMap f (lib.attrValues item.drvAttrs)
+			else [ ];
+	in lib.concatMap f (lib.attrValues drv.drvAttrs);
+
+
 	/** Like lib.genAttrs, but allows the name to be changed. */
 	genAttrs' =
 		list:
 		mkPair:
 		#lib.listToAttrs (lib.concatMap (name: [ (mkPair name) ]) list);
-		lib.concatMap (name: [ (mkPair name ) ] list)
+		lib.concatMap (name: [ (mkPair name ) ]) list
 		|> lib.listToAttrs;
 
 	removeAttrs' = lib.flip builtins.removeAttrs;
@@ -177,6 +187,10 @@ let
 		# If I want it, I'll ask for it.
 		meta = cleanMeta (drv.meta or { });
 	};
+
+	importAutocall = path: let
+		imported = import path;
+	in if lib.isFunction imported then imported { } else imported;
 
 
 	/** Partial application for lambdas with formals!
@@ -254,6 +268,7 @@ in {
 		getPythonAttrs
 		genMountOpts
 		drvListByName
+		referencedDrvs
 		flakeInputToUrl
 		genAttrs'
 		cleanMeta
@@ -261,6 +276,7 @@ in {
 		joinPaths
 		joinPaths'
 		trimString
+		importAutocall
 		partial
 		nixosSystem
 		evalNixos

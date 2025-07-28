@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
 	# General development stuffs.
@@ -21,6 +21,7 @@
 		dprint
 		just
 		clang-tools_18
+		ruby
 		basedpyright
 		nodePackages.vim-language-server
 		#javascript-typescript-langserver
@@ -28,6 +29,7 @@
 		nixd
 		lua-language-server
 		zls
+		mesonlsp
 		bear
 		universal-ctags
 		patchelf
@@ -47,8 +49,9 @@
 		#rustc
 		git-gr
 		git-imerge
-		#nix-eval-jobs
-		#colmena
+		nix-update
+		nix-eval-jobs
+		colmena
 		rr
 		nixfmt-rfc-style
 		nixpkgs-review
@@ -61,5 +64,12 @@
 		pkgdiff
 		ast-grep
 		nmap
+		taplo
+		oxlint
+		scspell
+		#autotools-language-server
+		qyriad.lsptrace
+	] ++ lib.optionals config.nixpkgs.hostPlatform.isLinux [
+		systemd-lsp
 	];
 }

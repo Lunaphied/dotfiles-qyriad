@@ -9,19 +9,14 @@
 	pzl,
 	cappy,
 	git-point,
-	crane ? git-point.inputs.crane,
-	craneLib ? import crane { inherit pkgs; },
 	xil,
 	xonsh-source,
 }: let
 
-	qyriad-nur' = import qyriad-nur { inherit pkgs; };
-	xil' = import xil { inherit pkgs; };
+	qpkgs = import qyriad-nur { inherit pkgs; };
 	agenix' = import agenix { inherit pkgs; };
 
-in lib.makeScope pkgs.newScope (self: let
-	inherit (self) qlib;
-in {
+in lib.makeScope pkgs.newScope (self: qpkgs // {
 	# Just like `pkgs.runCommandLocal`, but without stdenv's default hooks,
 	# which do things like check man pages and patch ELFs.
 	runCommandMinimal = name: attrs: text: let
@@ -51,20 +46,6 @@ in {
 
 	inherit (agenix') agenix;
 
-	inherit (qyriad-nur')
-		strace-process-tree
-		strace-with-colors
-		intentrace
-		cinny
-		otree
-		cyme
-		python-pipe
-		xontrib-abbrevs
-		xonsh-direnv
-		obs-chapter-marker-manager
-		age-plugin-openpgp-card
-	;
-
 	obs-studio = pkgs.wrapOBS {
 		plugins = [
 			self.obs-chapter-marker-manager
@@ -85,15 +66,22 @@ in {
 	mpv = pkgs.mpv.override {
 		scripts = with pkgs.mpvScripts; [
 			mpv-webm
+			uosc
 		];
 	};
 
 	udev-rules = self.callPackage ./udev-rules { };
+	udev-rules-i2c = self.callPackage ./udev-rules/i2c-package.nix { };
 
 	nix-helpers = self.callPackage ./pkgs/nix-helpers.nix { };
 
-	xil = xil'.xil.withConfig {
-		callPackageString = builtins.readFile ./xil-config.nix;
+	xil = let
+		xil' = import xil { inherit pkgs; };
+		withNixpkgsLix = xil'.override {
+			inherit (pkgs.lixPackageSets.stable) lix;
+		};
+	in withNixpkgsLix.withConfig {
+		callPackageString = lib.readFile ./xil-config.nix;
 	};
 
 	log2compdb = import log2compdb { inherit pkgs; };
@@ -106,7 +94,7 @@ in {
 		];
 	};
 	cappy = import cappy { inherit pkgs; };
-	git-point = import git-point { inherit pkgs craneLib; };
+	git-point = import git-point { inherit pkgs qpkgs; };
 
 	#armcord = pkgs.armcord.overrideAttrs (prev: {
 	#	installPhase = ''
@@ -153,6 +141,25 @@ in {
 		];
 	});
 
+	# Optimize Ghostty for x86-64-v4
+	ghostty = pkgs.ghostty.overrideAttrs (prev: let
+		inherit (pkgs.stdenv) hostPlatform;
+		zig = pkgs.zig_0_13;
+
+		newZigHook = zig.hook.overrideAttrs {
+			zig_default_flags = "-Doptimize=ReleaseFast --color off"
+			+ lib.optionalString hostPlatform.isx86 " -Dcpu=x86_64_v4";
+		};
+
+		hookName = lib.getName zig.hook;
+
+		withoutZigHook = lib.filter (p: lib.getName p != hookName) prev.nativeBuildInputs;
+	in {
+		nativeBuildInputs = withoutZigHook ++ [
+			newZigHook
+		];
+	});
+
 	vesktop = pkgs.vesktop.overrideAttrs (prev: {
 		desktopItems = lib.forEach prev.desktopItems (item: item.override {
 			exec = lib.concatStringsSep " " [
@@ -182,15 +189,35 @@ in {
 		};
 	});
 
+	grc = pkgs.grc.overrideAttrs (prev: {
+		permitUserSite = true;
+		makeWrapperArgs = prev.makeWrapperArgs or [ ] ++ [
+			"--set-default" "PYTHONUNBUFFERED" "1"
+		];
+	});
+
 	xkeyboard_config-patched-inet = self.callPackage ./pkgs/xkb-config-patched-inet.nix { };
+
+	nix-update = pkgs.nix-update.overrideAttrs (prev: {
+		patches = (prev.patches or [ ]) ++ [
+			./pkgs/nix-update.patch
+		];
+	});
 
 	qlib = let
 		qlib = import ./qlib.nix { inherit lib; };
-		# Nixpkgs lib with additions from qyriad-nur.
-		nurLib = qyriad-nur'.lib;
-		# The additions to lib from qyriad-nur without Nixpkgs lib.
-		nurAdditions = qlib.removeAttrs' (lib.attrNames lib) nurLib;
-		qlibWithAdditions = nurAdditions // qlib;
-		# And then finally we'll force the result. Nothing here should be recursive or fail evaluation.
-	in qlib.force qlibWithAdditions;
+	in lib // qpkgs.lib // qlib;
+
+	# The wrapped environment variables for kdePackages.khelpcenter are a bit... overkill,
+	# and seem to result in duplicate entries all over the place.
+	# Let's just make a version that assumes it's running under NixOS.
+	nixos-khelpcenter = pkgs.kdePackages.khelpcenter.overrideAttrs (prev: {
+		dontWrapQtApps = true;
+
+		postFixup = ''
+			wrapProgram "$out/bin/khelpcenter" \
+				--set QT_PLUGIN_PATH '/run/current-system/sw/lib/qt-6/plugins' \
+				--set NIXPKGS_QT6_QML_IMPORT_PATH '/run/current-system/sw/lib/qt-6/qml'
+		'';
+	});
 })

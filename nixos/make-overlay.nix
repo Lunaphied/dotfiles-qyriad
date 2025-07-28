@@ -10,6 +10,7 @@
 	git-point,
 	xil,
 	xonsh-source,
+	nil-source,
 	getScope ? pkgs: import ./make-scope.nix {
 		inherit
 			pkgs
@@ -33,22 +34,16 @@
 
 	in {
 		qyriad = scope;
-		inherit (scope) qlib;
+		inherit (final.qyriad) qlib;
 
-		# Nice one, T-libs-api.
-		# https://github.com/rust-lang/rust/issues/127343
-		cargo-info = let
-			src = final.fetchFromGitHub {
-				owner = "Qyriad";
-				repo = "cargo-info";
-				rev = "refs/heads/main";
-				hash = "sha256-kntuacWov8oVoUOVP3M3LhqaNsSB4OY9Jtav9886r+M=";
-			};
-		in prev.cargo-info.overrideAttrs {
-			inherit src;
-			cargoDeps = final.rustPlatform.fetchCargoTarball {
-				inherit src;
-				hash = "sha256-+BnPLSzIJbS7TIYvATiGFliAEDmScw4bPcj8ZC6RKqM=";
+		# I don't need to build aws-sdk-cpp every time, tbh.
+		nix = prev.nix.override { aws-sdk-cpp = null; };
+
+		# Nil HEAD has support for pipe operator.
+		nil = prev.nil.overrideAttrs {
+			src = nil-source;
+			cargoDeps = final.rustPlatform.importCargoLock {
+				lockFile = nil-source + "/Cargo.lock";
 			};
 		};
 
@@ -61,6 +56,46 @@
 			# Nixpkgs forgot to make this dependency conditional on not-Darwin.
 			gpm = lib.optionalDrvAttr (availableOnHost prev.gpm) prev.gpm;
 		};
+
+		kdePackages = prev.kdePackages.overrideScope (kdeFinal: kdePrev: {
+			# Ripples to:
+			# - kdeconnect-kde
+			# - plasma-pa
+			#pulseaudio-qt = kdePrev.pulseaudio-qt.overrideAttrs (pkgPrev: {
+			#	patches = (pkgPrev.patches or [ ]) ++ [
+			#		./pkgs/pulseaudio-qt.patch
+			#	];
+			#});
+
+			# Ripples to:
+			# - plasma-browser-integration
+			# - powerdevil
+			# - plasma-desktop
+			# - kdeplasma-addons
+			# - plasma-pa
+			#plasma-workspace = kdePrev.plasma-workspace.overrideAttrs (pkgPrev: {
+			#	patches = (pkgPrev.patches or [ ]) ++ [
+			#		# Give me XCB error information instead of "Got an error"
+			#		./pkgs/plasma-workspace-appmenu-warning.patch
+			#		# Give me information about the notification that didn't have an ID.
+			#		./pkgs/plasma-workspace-notification-warning.patch
+			#	];
+			#
+			#	buildInputs = pkgPrev.buildInputs or [ ] ++ [
+			#		final.xorg.xcbutilerrors
+			#	];
+			#});
+		});
+
+		# Our license only covers Bitwig 5.2.7.
+		bitwig-studio5-unwrapped = prev.bitwig-studio5-unwrapped.overrideAttrs (pkgFinal: pkgPrev: {
+			version = "5.2.7";
+			src = final.fetchurl {
+				name = "bitwig-studio-${pkgFinal.version}.deb";
+				url = "https://www.bitwig.com/dl/Bitwig%20Studio/${pkgFinal.version}/installer_linux/";
+				hash = "sha256-Tyi7qYhTQ5i6fRHhrmz4yHXSdicd4P4iuF9FRKRhkMI=";
+			};
+		});
 	};
 
 in overlay

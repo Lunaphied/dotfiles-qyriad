@@ -23,11 +23,9 @@
 	};
 
 	# Make the systemd stop timeout more reasonable.
-	systemd.extraConfig = ''
+	systemd.extraConfig = lib.trim ''
 		DefaultTimeoutStopSec=20
 	'';
-
-	systemd.services.NetworkManager-wait-online.enable = lib.mkForce false;
 
 	systemd.slices.system-builder.sliceConfig = config.resources.builderSliceConfig;
 	systemd.user.slices.user-builder.sliceConfig = config.resources.builderSliceConfig;
@@ -40,8 +38,7 @@
 			MemoryPressureWatch = "on";
 			ManagedOOMMemoryPressure = "kill";
 			ManagedOOMMemoryPressureLimit = "85%";
-			MemoryHigh = config.resources.builderSliceConfig.MemoryHigh;
-			MemoryMax = config.resources.builderSliceConfig.MemoryMax;
+			inherit (config.resources.builderSliceConfig) MemoryHigh MemoryMax;
 			IOWeight = 20;
 			MemoryAccounting = true;
 			IOAccounting = true;
@@ -58,8 +55,14 @@
 	services.geoclue2.enable = true;
 
 	services.resolved.enable = true;
+	services.resolved.extraConfig = lib.trim ''
+		MulticastDNS=yes
+	'';
 	networking.networkmanager.enable = true;
 	networking.networkmanager.dns = "systemd-resolved";
+	# Automatically enabled by enabling NetworkManager.
+	# I don't need it though.
+	networking.modemmanager.enable = false;
 
 	services.tailscale = {
 		enable = true;
@@ -93,7 +96,7 @@
 	#	#"sparc-linux"
 	#];
 
-	i18n.defaultLocale = "en_US.utf8";
+	i18n.defaultLocale = "en_US.UTF-8";
 
 	# Add ~/.local/bin to system path.
 	environment.localBinInPath = true;
@@ -121,7 +124,7 @@
 	users.users.qyriad = {
 		isNormalUser = true;
 		description = "Qyriad";
-		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
+		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "i2c" ];
 		shell = pkgs.zsh;
 	};
 
@@ -132,13 +135,15 @@
 		shell = pkgs.zsh;
 	};
 
-	users.groups.plugdev = { };
-	users.groups.video = { };
-	users.groups.cdrom = { };
+	users.groups = {
+		plugdev = { };
+		video = { };
+		cdrom = { };
+	};
 
 	documentation = {
 		# Include -dev manpages
-		#dev.enable = true;
+		dev.enable = true;
 		# Make apropos(1) work.
 		man.generateCaches = true;
 		# This fails with `cannot lookup '<nixpkgs>' in pure evaluation mode.
@@ -173,8 +178,11 @@
 	# Covered by nix-index, not that its integrations support our shell.
 	programs.command-not-found.enable = false;
 
+	programs.usbtop.enable = true;
+
 	services.udev.packages = [
 		pkgs.qyriad.udev-rules
+		pkgs.qyriad.udev-rules-i2c
 	];
 
 	# Let us use our yubikey with age.
@@ -219,8 +227,14 @@
 		permissions = "u+r,g+rx,o+r";
 	};
 
+	boot.kernelModules = lib.optionals config.package-groups.music-production.enable [
+		"snd_virmidi"
+	];
+
 	# Other packages we want available on Linux systems.
 	environment.systemPackages = with pkgs; [
+		efibootmgr
+		efivar
 		usbutils
 		pciutils
 		(gdb.override { enableDebuginfod = true; })
@@ -231,7 +245,7 @@
 		heh
 		sysstat
 		# apksigner dependency fails to build on macOS
-		diffoscope
+		(diffoscope.overrideAttrs { enableBloat = false; })
 		rpm
 		binutils
 		lsof
@@ -248,17 +262,36 @@
 		# Let us use our yubikey with age.
 		age-plugin-yubikey
 		yubikey-manager
-		#systeroid # dies while building linux-kernel-latest-htmldocs
+		# Broken at the moment as dependency `pkgs.linux-doc` is broken.
+		#systeroid
 		poke
 		libtree
 		lurk
 		qyriad.cappy
+		bluetui
+		watchlog
+		dysk
+		xcp
+	]
+	++ lib.optionals config.services.pipewire.enable [
+		alsa-utils
+		pulsemixer
+		qyriad.wiremix
 	]
 	++ lib.optionals config.services.smartd.enable [
-		pkgs.smartmontools
+		smartmontools
+	]
+	++ lib.optionals config.hardware.openrazer.enable [
+		razer-cli
+		polychromatic
+		razergenie
+	]
+	++ lib.optionals config.services.ratbagd.enable [
+		config.services.ratbagd.package
 	]
 	++ config.systemd.packages # I want system services to also be in /run/current-system please.
 	++ config.services.udev.packages # Same for udev...
 	++ config.fonts.packages # and fonts...
-	++ config.console.packages; # and including console fonts too.
+	++ config.console.packages # and including console fonts too...
+	++ config.boot.extraModulePackages; # and extra kernel modules.
 }
