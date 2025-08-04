@@ -2,7 +2,7 @@ info: final: prev:
 
 rec {
   # Things I don't want to have to type `builtins.` before.
-  inherit (builtins) attrValues attrNames getFlake parseFlakeRef flakeRefToString typeOf getEnv;
+  inherit (builtins) attrValues attrNames getFlake parseFlakeRef flakeRefToString typeOf getEnv tryEval;
 
   # Mostly used for other stuff below,
   # but also handy in the repl if I want to avoid parentheses.
@@ -37,6 +37,8 @@ rec {
 
   nixos = qyriad.nixosConfigurations.${HOSTNAME};
   darwin = qyriad.darwinConfigurations.${HOSTNAME};
+  stagingNixos = staging.nixosConfigurations.${HOSTNAME};
+  stagingDarwin = staging.darwinConfigurations.${HOSTNAME};
 
   # Stuff that lets me inspect the current directory easily.
   f = getFlake "git+file:${PWD}";

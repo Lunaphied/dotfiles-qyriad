@@ -17,6 +17,9 @@
 		enableQt5Integration = true;
 	};
 
+	# Use Qt settings from KDE.
+	qt.platformTheme = "kde6";
+
 	environment.plasma6.excludePackages = with pkgs.kdePackages; [
 		# We use our patched nixos-khelpcenter instead.
 		khelpcenter
@@ -42,6 +45,7 @@
 	# but we don't need this.
 	#services.speechd.enable = false;
 
+	xdg.terminal-exec.enable = true;
 	xdg.portal = {
 		enable = true;
 		#extraPortals = [
@@ -100,7 +104,6 @@
 	networking.firewall.enable = false;
 
 	nixpkgs.config.permittedInsecurePackages = [
-		"electron-25.9.0" # For Obsidian
 		"olm-3.2.16" # For Cinny
 		"jitsi-meet-1.0.8043" # For Element
 	];
@@ -115,6 +118,7 @@
 		libva-utils
 		glxinfo
 		alacritty
+		qyriad.ghostty
 		wezterm
 		# Backup.
 		#konsole
@@ -164,6 +168,7 @@
 		qemu-utils
 		xorg.xlsclients
 		xorg.xset # Make OBS shut up.
+		xorg.xcursorgen
 		seer
 		qyriad.obs-studio
 		v4l-utils
@@ -174,6 +179,7 @@
 		gst_all_1.gstreamer
 		gjs
 		libnotify
+		# Sigh.
 		chromium
 		kdePackages.kdialog
 		kdePackages.dragon
@@ -205,13 +211,44 @@
 		kdePackages.sweeper
 		kdePackages.kconfig
 		qyriad.nixos-khelpcenter
+		systemdgenie
+		kdotool
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt
 		pwvucontrol
+		sonusmix
+		wayfarer
 	] ++ lib.optionals config.services.ratbagd.enable [
 		piper
 	];
+
+	hardware.i2c.enable = true;
+
+	# Convenience systemd unit group to check and restart
+	# - plasma-plasmashell.service
+	# - plasma-krunner.service
+	# Since we often have to restart these together.
+	#systemd.user.targets.plasma-group = {
+	#	#unitConfig = {
+	#	#	#PartOf = "plasma-
+	#	#};
+	#	wantedBy = [ "default.target" ];
+	#	#unitConfig = {
+	#	#};
+	#};
+	#systemd.user.services.plasma-plasmashell = {
+	#	overrideStrategy = "asDropin";
+	#	unitConfig = {
+	#		PartOf = "plasma-group.target";
+	#	};
+	#};
+	#systemd.user.services.plasma-krunner = {
+	#	overrideStrategy = "asDropin";
+	#	unitConfig = {
+	#		PartOf = "plasma-group.target";
+	#	};
+	#};
 
 	# GUI programs with NixOS modules that we can enable, instead of using environment.systemPackages.
 	programs = {

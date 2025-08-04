@@ -9,7 +9,7 @@
 			inputs.nixpkgs.follows = "nixpkgs";
 		};
 		nix-darwin = {
-			url = "github:LnL7/nix-darwin";
+			url = "github:nix-darwin/nix-darwin";
 			inputs.nixpkgs.follows = "nixpkgs";
 		};
 		qyriad-nur = {
@@ -96,24 +96,7 @@
 		/** NixOS module for configs defined in this flake.
 		 This is the only module that relies on flakeyness directly.
 		*/
-		flake-module = { lib, ... }: {
-			imports = [ ./nixos/modules/keep-paths.nix ];
-
-			#nixpkgs.overlays = [ self.overlays.default inputs.helix-ext.overlays.default ];
-			nixpkgs.overlays = [ self.overlays.default ];
-
-			# Prevent our flake input trees from being garbage collected.
-			storePathsToKeep = inputs;
-
-			# Point "qyriad" to this here flake.
-			nix.registry.qyriad = {
-				from = { id = "qyriad"; type = "indirect"; };
-				flake = self;
-			};
-
-			# And for fun, let NixOS know our Git commit hash, if we have one.
-			system.configurationRevision = self.rev or self.sourceInfo.dirtyRev;
-		};
+		flake-module = lib.modules.importApply ./nixos/modules/flake-module.nix self;
 
 		# Wraps nixpkgs.lib.nixosSystem to generate a NixOS configuration, adding common modules
 		# and special arguments.

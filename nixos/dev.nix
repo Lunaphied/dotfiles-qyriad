@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
 	# General development stuffs.
@@ -21,6 +21,7 @@
 		dprint
 		just
 		clang-tools_18
+		ruby
 		basedpyright
 		nodePackages.vim-language-server
 		#javascript-typescript-langserver
@@ -63,5 +64,12 @@
 		pkgdiff
 		ast-grep
 		nmap
+		taplo
+		oxlint
+		scspell
+		#autotools-language-server
+		qyriad.lsptrace
+	] ++ lib.optionals config.nixpkgs.hostPlatform.isLinux [
+		systemd-lsp
 	];
 }

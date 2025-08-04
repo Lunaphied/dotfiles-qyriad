@@ -52,6 +52,10 @@ highlight clear @lsp.type.comment
 " Idk what's up with this one.
 highlight! link @variable Identifier
 
+highlight! link @keyword.import PreProc
+
+highlight @lsp.type.unresolvedReference gui=undercurl
+
 highlight! link TrailingWhitespace Error
 
 " Override search-highlights with the cursor on them to actually be distinguishable.
@@ -72,4 +76,3 @@ if has("nvim-0.11")
 	" guibg=oklch(0.29 0.0918 219.65)
 	highlight LspReferenceTarget cterm=bold ctermbg=326 gui=bold guibg=#003244
 endif
-

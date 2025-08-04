@@ -317,9 +317,6 @@ nmap cmtd eviwS'va'S]h"_x
 " Change a Python style dict access to a member access. 'Change Dict to Member'
 nmap cdtm ds'F[i.<ESC><ESC>f[ds]
 
-" Change current word to uppercase.
-inoremap <C-u> <esc>mzgUiW`za
-
 " Comment-out the current line, and then duplicate the uncommented version below.
 " 'Yank, comment, paste'
 " yy to yank the current line
@@ -386,7 +383,7 @@ vim.g.clipboard = {
 
 -- Returns true if this function inverted fo=r, and false if it did not.
 function doc_format_options()
-	local pos = vim.inspect_pos(nil, nil, nil, { syntax = false, extmarks = false, semantic_tokens = false })
+	local pos = vim.inspect_pos(nil, nil, nil, { syntax = true, extmarks = false, semantic_tokens = false })
 
 	if pos == nil then
 		return false

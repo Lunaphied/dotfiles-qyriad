@@ -50,6 +50,7 @@ nnoremap <leader>gr <Cmd>Telescope lsp_references<CR>
 
 function! JumpDeclaration() abort
 	if exists('b:lsp_client')
+		autocmd BufReadPost * ++once Fixname
 		call v:lua.vim.lsp.buf.declaration()
 	elseif !empty(taglist(expand('<cword>')))
 		echo "jumped to tag"
@@ -61,6 +62,7 @@ endfunction
 
 function! JumpDefinition() abort
 	if exists('b:lsp_client')
+		autocmd BufReadPost * ++once Fixname
 		Telescope lsp_definitions
 	elseif !empty(taglist(expand('<cword>')))
 		echo "jumped to tag"
@@ -70,11 +72,16 @@ function! JumpDefinition() abort
 	endif
 endfunction
 
+function! JumpImplementations() abort
+	autocmd BufReadPost * ++once Fixname
+	Telescope lsp_implementations
+endfunction
+
 nnoremap gD <Cmd>call JumpDeclaration()<CR>
 nnoremap gd <Cmd>call JumpDefinition()<CR>
 nnoremap K <Cmd>call v:lua.vim.lsp.buf.hover()<CR>
 nnoremap <CR> <Cmd>call v:lua.vim.lsp.buf.hover()<CR>
-nnoremap gi <Cmd>Telescope lsp_implementations<CR>
+nnoremap gi <Cmd>call JumpImplementations()<CR>
 inoremap <C-k> <Cmd>call v:lua.vim.lsp.buf.signature_help()<CR>
 "lua vim.keymap.set('i', '<C-k>', vim.lsp.buf.signature_help)
 nnoremap <leader>D <Cmd>Telescope lsp_type_definitions<CR>
@@ -89,7 +96,7 @@ lua vim.g.diagnostic_severity = { min = vim.diagnostic.severity.WARN }
 nnoremap [d <Cmd>call v:lua.vim.diagnostic.goto_prev({ "severity": g:diagnostic_severity })<CR>
 nnoremap ]d <Cmd>call v:lua.vim.diagnostic.goto_next({ "severity": g:diagnostic_severity })<CR>
 nnoremap <leader>h <Cmd>call v:lua.vim.lsp.buf.document_highlight()<CR>
-nnoremap <leader>c <Cmd>call v:lua.vim.lsp.buf.clear_references()<CR>
+"nnoremap <leader>c <Cmd>call v:lua.vim.lsp.buf.clear_references()<CR>
 " 'Symbol rename'
 nnoremap <leader>sr <Cmd>call v:lua.vim.lsp.buf.rename()<CR>
 nnoremap <leader>sh <Cmd>ClangdSwitchSourceHeader<CR>
@@ -101,50 +108,23 @@ function! DiagnosticsComplete(arglead, cmdline, cursorpos) abort
 	return ["error", "warn", "info", "hint"]
 endfunction
 
-command! -complete=customlist,DiagnosticsComplete -nargs=? Diagnostics call v:lua._cmd_diagnostics_impl(<f-args>)
+"command! -complete=customlist,DiagnosticsComplete -nargs=? Diagnostics call v:lua._cmd_diagnostics_impl(<f-args>)
 
 lua << EOF
-
-function _cmd_diagnostics_impl(severity)
-	vim.validate {
-		["vim.g.diagnostic_severity.min"] = { vim.g.diagnostic_severity.min, "number" },
-	}
-
-	if not severity then
-		local current = vim.diagnostic.severity[vim.g.diagnostic_severity.min]
-		assert(type(current) == "string")
-		vim.cmd.echomsg(string.format([["%s"]], current))
-		return
-	end
-	vim.validate {
-		severity = { severity, "string" },
-	}
-
-	local sev = vim.diagnostic.severity[string.upper(severity)]
-	if not sev then
-		vim.api.nvim_err_writeln(string.format("invalid severity '%s'", severity))
-		return
-	end
-
-	-- Apply the new settings.
-	vim.g.diagnostic_severity = {
-		min = sev,
-	}
-
-	vim.diagnostic.config {
-		signs = { severity = vim.g.diagnostic_severity },
-	}
-end
-
 function lsp_quiet()
 	-- This function is called in map-expr context, where we can't change text in
 	-- buffers. The signature floating window is also a buffer, so that applies.
-	vim.defer_fn(p.lspsignature.toggle_float_win, 0)
-	return vim.keycode('<C-e>')
+	if vim.fn.pumvisible() == 1 then
+		return vim.keycode('<C-e>')
+	end
+	pcall(function() vim.defer_fn(p.lspsignature.toggle_float_win, 10) end)
+	return ""
+	--return vim.keycode[[<Ignore>]]
 end
 -- `help i_CTRL-E`, by default it inserts the character that is in the same position as the cursor one line below.
 -- Not the most useful.
-vim.keymap.set('i', '<C-e>', lsp_quiet, {
+vim.keymap.set('i', '<C-e>', '', {
+	callback = lsp_quiet,
 	expr = true,
 	desc = "Close LSP popup and floating windows",
 })
@@ -155,10 +135,7 @@ end
 
 vim.lsp.log = require('vim.lsp.log')
 vim.lsp.protocol = require('vim.lsp.protocol')
-function lsp_format(...)
-	return vim.inspect(...)
-end
-vim.lsp.log.set_format_func(lsp_format)
+vim.lsp.set_log_level(vim.lsp.log_levels.INFO)
 
 -- We are using lsp_lines for virtual text instead.
 vim.diagnostic.config {
@@ -180,99 +157,32 @@ lsp_filetypes = {
 	"typescript",
 	"lua",
 	"nix",
+	'make',
 }
 
-vim.lsp.config('*', {
+local qyriad = require('qyriad')
+vim.lsp.config('*', qyriad.nested_tbl {
 	root_markers = { '.git' },
 
 	trace = 'messages',
 
 	-- I hate snippets.
-	capabilities = {
-		textDocument = {
-			completion = {
-				completionItem = {
-					snippetSupport = false,
-				},
-			},
-		},
-	},
+	['capabilities.textDocument.completion.completionItem.snippetSupport'] = false,
 })
 
 vim.lsp.enable({
-	'rust-analyzer',
+	--'rust-analyzer',
 	'vimls',
 	'luals',
 	'clangd',
-	'pyright',
-	'nil_ls',
+	'nil',
+	'mesonlsp',
+	'basedpyright',
+	'taplo',
+	'autotools',
 })
 
 --lsp_vim_capabilities = vim.lsp.protocol.make_client_capabilities()
---
---lsp_opts = {
---	rust_analyzer = {
---		settings = {
---			['rust-analyzer'] = {
---				completion = {
---					callable = { snippets = false },
---					fullFunctionSignatures = { enable = true },
---					postfix = { enable = false },
---				},
---				hover = {
---					actions = {
---						references = { enable = true },
---					},
---				},
---				lens = { references = { method = { enable = false } } },
---			},
---		},
---	},
---	clangd = {
---		trace = {
---			server = "verbose"
---		},
---		cmd = {
---			"clangd",
---			"--rename-file-limit=100",
---		},
---	},
---	lua_ls = {
---		on_init = function(client)
---			--if client.workspace_folders then
---			--	local path = client.workspace_folders[1].name
---			--	if vim.loop.fs_stat(path .. "/.luarc.json") or vim.loop.fs_stat(path .. "/.luarc.jsonc") then
---			--		return
---			--	end
---			--end
---
---			client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua, {
---				runtime = {
---					version = "LuaJIT",
---				},
---				workspace = {
---					library = vim.api.nvim_get_runtime_file("", true),
---				},
---			})
---		end,
---		settings= { Lua = {} },
---		--settings = {
---		--	Lua = {
---		--		runtime = {
---		--			version = "LuaJIT",
---		--			path = vim.split(package.path, ";"),
---		--		},
---		--	},
---		--	diagnostics = {
---		--		globals = { "vim", "require" },
---		--	},
---		--	workspace = {
---		--		--library = vim.api.nvim_get_runtime_file("", true),
---		--		library = { vim.env.VIMRUNTIME },
---		--	},
---		--},
---	},
---}
 
 clients = {}
 EOF
@@ -393,6 +303,7 @@ vim.api.nvim_create_user_command(
 EOF
 
 function! SetupFormatOnSave(buffer) abort
+	let b:format_on_save = v:true
 	augroup FormatOnSave
 		autocmd! BufWritePre <buffer=a:buffer> lua vim.lsp.buf.format({ async = false })
 	augroup END
@@ -400,6 +311,7 @@ endfunction
 command! FormatOnSave call SetupFormatOnSave("<buffer>")
 
 function! StopFormatOnSave(buffer) abort
+	let b:format_on_save = v:false
 	augroup FormatOnSave
 		autocmd! BufWritePre <buffer=a:buffer>
 	augroup END
@@ -470,8 +382,8 @@ vim.g.rustaceanvim = {
 }
 use {
 	"mrcjkb/rustaceanvim",
+	version = '^6',
 	lazy = false,
-	--ft = "rust",
 }
 use { 'simrat39/symbols-outline.nvim', event = "LspAttach" }
 --use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach" }
@@ -491,6 +403,6 @@ use {
 	floating_window_above_cur_line = true,
 	fix_pos = true,
   },
-  config = function(_, opts) require'lsp_signature'.setup(opts) end
+  config = function(_, opts) require('lsp_signature').setup(opts) end
 }
 EOF

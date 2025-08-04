@@ -125,7 +125,7 @@
 	users.users.qyriad = {
 		isNormalUser = true;
 		description = "Qyriad";
-		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
+		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "i2c" ];
 		shell = pkgs.zsh;
 
 		openssh.authorizedKeys.keys = [
@@ -175,8 +175,11 @@
 	# Covered by nix-index, not that its integrations support our shell.
 	programs.command-not-found.enable = false;
 
+	programs.usbtop.enable = true;
+
 	services.udev.packages = [
 		pkgs.qyriad.udev-rules
+		pkgs.qyriad.udev-rules-i2c
 	];
 
 	# Let us use our yubikey with age.
@@ -221,6 +224,10 @@
 		permissions = "u+r,g+rx,o+r";
 	};
 
+	boot.kernelModules = lib.optionals config.package-groups.music-production.enable [
+		"snd_virmidi"
+	];
+
 	# Other packages we want available on Linux systems.
 	environment.systemPackages = with pkgs; [
 		efibootmgr
@@ -261,6 +268,9 @@
 		pinentry
 		qyriad.cappy
 		bluetui
+		watchlog
+		dysk
+		xcp
 	]
 	++ lib.optionals config.services.pipewire.enable [
 		alsa-utils

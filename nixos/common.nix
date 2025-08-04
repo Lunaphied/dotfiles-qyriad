@@ -5,6 +5,7 @@
 	imports = [
 		./modules/package-groups.nix
 		./modules/modlib.nix
+		./modules/keep-paths.nix
 	];
 
 	# Configuration for things related to Nix itself.
@@ -112,7 +113,6 @@
 		hyfetch
 		jq
 		yq
-		watchlog
 		yt-dlp
 		pstree
 		silicon
@@ -163,9 +163,7 @@
 		jujutsu
 		repgrep
 		rink
-		dysk
 		uni
-		xcp
 		ansi2html
 		qyriad.agenix
 		qyriad.age-plugin-openpgp-card
@@ -175,5 +173,7 @@
 		spacer
 		dasel
 		graphviz
+		dyff
+		sacad
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }
