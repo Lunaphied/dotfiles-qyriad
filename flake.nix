@@ -72,6 +72,7 @@
 		flake-utils,
 		nix-darwin,
 		agenix,
+		lix-module,
 		...
 	}: let
 		inherit (nixpkgs) lib;
@@ -118,7 +119,7 @@
 		perSystemOutputs = flake-utils.lib.eachDefaultSystem (system: let
 			pkgs = import nixpkgs {
 				inherit system;
-				overlays = [ self.overlays.default ];
+				overlays = [ self.overlays.default lix-module.overlays.default];
 			};
 			filterDerivations = lib.filterAttrs (lib.const lib.isDerivation);
 		in {
@@ -163,7 +164,7 @@
 		universalOutputs = {
 			lib = let
 				pkgs = import nixpkgs {
-					overlays = [ self.overlays.default ];
+					overlays = [ self.overlays.default lix-module.overlays.deault ];
 				};
 			in pkgs.qlib;
 
