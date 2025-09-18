@@ -56,6 +56,7 @@
 			trusted-users = [
 				"root"
 				"qyriad"
+				"lunaphied"
 			];
 
 			keep-outputs = true;

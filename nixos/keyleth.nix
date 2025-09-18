@@ -28,14 +28,14 @@
 				"cgroups"
 				"auto-allocate-uids"
 			];
-			trusted-users = [ "qyriad" ];
+			trusted-users = [ "qyriad" "lunaphied" B];
 			repl-overlays = [ ../nix/repl-overlay.nix ];
 		};
 
 		nixPath = [ "nixpkgs=flake:nixpkgs" ];
 	};
 
-	system.primaryUser = "qyriad";
+	system.primaryUser = "lunaphied";
 	system.defaults.CustomUserPreferences = {
 		# Yes really...
 		${lib.escapeShellArg "Apple Global Domain"} = {

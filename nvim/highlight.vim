@@ -69,5 +69,17 @@ use {
 	--	},
 	--},
 }
+
+use {
+	"nvimdev/indentmini.nvim",
+	config = function() 
+		-- Colors are applied automatically based on user-defined highlight groups.
+		-- There is no default value.
+		vim.cmd.highlight('IndentLine guifg=#123456')
+		-- Current indent line highlight
+		vim.cmd.highlight('IndentLineCurrent guifg=#123456')
+		require("indentmini").setup() -- use default config
+	end
+}
 EOF
 

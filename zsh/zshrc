@@ -512,3 +512,6 @@ compdef _gf greatfet
 h=$(hostname -s) # get hostname
 h=${(L)h} # convert to lowercase
 source_if "$HOME/.config/host/$h/zsh/zshrc"
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/lunaphied/.lmstudio/bin"
