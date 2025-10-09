@@ -66,11 +66,11 @@
 		#	inputs.nixpkgs.follows = "nixpkgs";
 		#	inputs.flake-utils.follows = "flake-utils";
 		#};
-		hdrvulkan = {
-			#url = "github:TheTallestJJ/vulkan-hdr-layer-flake";
-			url = "git+file:./nixos/pkgs/vulkan-hdr-layer-flake";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+		#hdrvulkan = {
+		#	#url = "github:TheTallestJJ/vulkan-hdr-layer-flake";
+		#	url = "git+file:./nixos/pkgs/vulkan-hdr-layer-flake";
+		#	inputs.nixpkgs.follows = "nixpkgs";
+		#};
 		nil-source = {
 			url = "github:oxalica/nil";
 			flake = false;
@@ -177,7 +177,7 @@
 
 				ran = mkConfig "x86_64-linux" [
 					./nixos/ran.nix
-					({ pkgs, ... }: { environment.systemPackages = [ inputs.hdrvulkan.packages.${pkgs.system}.default ]; })
+					#({ pkgs, ... }: { environment.systemPackages = [ inputs.hdrvulkan.packages.${pkgs.system}.default ]; })
 				];
 				Ran = ran;
 

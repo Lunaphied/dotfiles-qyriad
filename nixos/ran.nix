@@ -154,9 +154,9 @@
 	# TODO: Fix the plymouth issue and also try to figure out a way to hide
 	# other outputs. hm.
 
-	environment.variables = {
-		ENABLE_HDR_WSI = "1";
-	};
+	#environment.variables = {
+	#	ENABLE_HDR_WSI = "1";
+	#};
 
 	#programs.xwayland.enable = true;
 	#programs.ssh.setXAuthLocation = true;
@@ -172,6 +172,9 @@
 
 	services.freshrss = {
 	};
+
+	fonts.fontconfig.useEmbeddedBitmaps = true;
+	fonts.fontconfig.subpixel.rgba = "rgb";
 
 	# This value determines the NixOS release from which the default
 	# settings for stateful data, like file locations and database versions
