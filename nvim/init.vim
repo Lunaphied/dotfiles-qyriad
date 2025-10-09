@@ -35,7 +35,7 @@ source $CONFIGPATH/core.vim
 source $CONFIGPATH/utils.vim
 source $CONFIGPATH/syntax.vim
 source $CONFIGPATH/highlight.vim
-source $CONFIGPATH/lsp.vim
+source $CONFIGPATH/lsp.lua
 source $CONFIGPATH/statusline.vim
 
 
@@ -76,7 +76,8 @@ nnoremap <leader>ga <Cmd>Gitsigns stage_hunk greedy=false<CR>
 nnoremap <leader>gb <Cmd>Gitsigns blame_line<CR>
 
 nnoremap <leader>tg <Cmd>Telescope live_grep<CR>
-nnoremap <leader>tf <Cmd>Telescope find_files<CR>
+nnoremap <leader>tf <Cmd>Telescope git_files<CR>
+nnoremap <leader>tF <Cmd>Telescope find_files<CR>
 "nnoremap <leader>tb <Cmd>Telescope buffers<CR>
 lua <<EOF
 vim.keymap.set("n", "<leader>tb", "", {
@@ -209,6 +210,8 @@ use {
 			['"'] = { close = false },
 			["'"] = { close = false },
 			["`"] = { close = false },
+			-- Don't autoclose square brackets either.
+			["["] = { close = false },
 			--["<CR>"] = { close = false },
 		},
 	},
@@ -273,6 +276,7 @@ use 'tpope/vim-characterize' -- ga
 use 'tpope/vim-abolish'
 use 'tpope/vim-obsession'
 use 'tpope/vim-fugitive'
+use 'tpope/vim-scriptease'
 use 'gennaro-tedesco/nvim-peekup'
 use 'AndrewRadev/bufferize.vim'
 use {
@@ -340,6 +344,26 @@ use {
 		},
 	},
 }
+
+use {
+	'walkersumida/fusen.nvim',
+	event = "VimEnter",
+	opts = {
+		keymaps = {
+			add_mark = '<leader>me',
+			clear_mark = '<leader>mc',
+			next_mark = '<leader>]m',
+			prev_mark = '<leader>[m',
+		},
+		annotation_display = {
+			mode = 'both',
+		},
+		sign_priority = 100,
+	},
+}
+vim.cmd[[
+nnoremap <leader>ml <Cmd>Telescope fusen marks<CR>
+]]
 
 --use 'Konfekt/vim-alias'
 --use 'thinca/vim-ft-vim_fold'

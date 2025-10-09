@@ -18,15 +18,21 @@
 	# Yes mount /tmp as a tmpfs.
 	boot.tmp.useTmpfs = true;
 
+	nix.settings.use-cgroups = true;
+
 	services.smartd = {
 		enable = true;
 		autodetect = true;
 	};
 
-	# Make the systemd stop timeout more reasonable.
-	systemd.extraConfig = lib.trim ''
-		DefaultTimeoutStopSec=20
-	'';
+	systemd.settings.Manager = {
+		# Make the systemd stop timeout more reasonable.
+		DefaultTimeoutStopSec = 20;
+
+		# I think these are default but I'm forcing the issue.
+		DefaultMemoryAccounting = "yes";
+		DefaultTasksAccounting = "yes";
+	};
 
 	systemd.slices.system-builder.sliceConfig = config.resources.builderSliceConfig;
 	systemd.user.slices.user-builder.sliceConfig = config.resources.builderSliceConfig;
@@ -97,7 +103,18 @@
 	#	#"sparc-linux"
 	#];
 
-	i18n.defaultLocale = "en_US.UTF-8";
+	i18n.defaultLocale = "en_GB.UTF-8";
+	i18n.extraLocaleSettings = {
+		LC_ADDRESS = "en_US.UTF-8";
+		LC_IDENTIFICATION = "en_US.UTF-8";
+		LC_MEASUREMENT = "en_CA.UTF-8";
+		LC_MONETARY = "en_US.UTF-8";
+		LC_NAME = "en_US.UTF-8";
+		LC_NUMERIC = "en_US.UTF-8";
+		LC_PAPER = "en_US.UTF-8";
+		LC_TELEPHONE = "en_US.UTF-8";
+		LC_TIME = "en_GB.UTF-8";
+	};
 
 	# Add ~/.local/bin to system path.
 	environment.localBinInPath = true;
@@ -190,6 +207,11 @@
 
 	programs.usbtop.enable = true;
 
+	services.keyd = {
+		# TODO: configure
+		enable = false;
+	};
+
 	services.udev.packages = [
 		pkgs.qyriad.udev-rules
 		pkgs.qyriad.udev-rules-i2c
@@ -200,9 +222,6 @@
 
 	services.nixseparatedebuginfod.enable = true;
 	systemd.services.nixseparatedebuginfod.serviceConfig = {
-		PrivateTmp = lib.mkForce false;
-	};
-	systemd.services.ModemManager.serviceConfig = {
 		PrivateTmp = lib.mkForce false;
 	};
 	systemd.services.cups.serviceConfig = {
@@ -248,23 +267,25 @@
 		usbutils
 		pciutils
 		(gdb.override { enableDebuginfod = true; })
-		qyriad.strace-process-tree
+		qpkgs.strace-process-tree
 		zps
 		kmon
 		# Needs AppKit on macOS?
 		heh
 		sysstat
+		lm_sensors
 		# apksigner dependency fails to build on macOS
 		(diffoscope.overrideAttrs { enableBloat = false; })
 		rpm
-		binutils
+		qyriad.binutils-nolink
 		lsof
 		iotop
 		difftastic
-		qyriad.strace-with-colors
-		qyriad.intentrace
+		qpkgs.strace-with-colors
+		qpkgs.intentrace
 		ltrace
 		bpftrace
+		watchexec
 		exfatprogs
 		caligula
 		trashy
@@ -284,26 +305,32 @@
 		watchlog
 		dysk
 		xcp
-	]
-	++ lib.optionals config.services.pipewire.enable [
+		ttylog
+		app2unit
+		#systemd-wait # cannot import GLib, introspection typelib not found
+		pipectl
+		appimage-run
+		havn
+		below
+	] ++ lib.optionals config.services.pipewire.enable [
 		alsa-utils
 		pulsemixer
-		qyriad.wiremix
-	]
-	++ lib.optionals config.services.smartd.enable [
+		qpkgs.wiremix
+	] ++ lib.optionals config.services.smartd.enable [
 		smartmontools
-	]
-	++ lib.optionals config.hardware.openrazer.enable [
+	] ++ lib.optionals config.hardware.openrazer.enable [
 		razer-cli
 		polychromatic
 		razergenie
-	]
-	++ lib.optionals config.services.ratbagd.enable [
+	] ++ lib.optionals config.services.ratbagd.enable [
 		config.services.ratbagd.package
-	]
-	++ config.systemd.packages # I want system services to also be in /run/current-system please.
-    ++ config.services.udev.packages # Same for udev...
-	++ config.fonts.packages # and fonts...
-	++ config.console.packages # and including console fonts too...
-	++ config.boot.extraModulePackages; # and extra kernel modules.
+	] ++ lib.optionals config.services.acpid.enable [
+		acpid
+	] ++ lib.concatLists [
+		config.systemd.packages # I want system services to also be in /run/current-system please.
+		config.services.udev.packages # Same for udev...
+		config.fonts.packages # and fonts...
+		config.console.packages # and including console fonts too...
+		config.boot.extraModulePackages # and extra kernel modules.
+	];
 }

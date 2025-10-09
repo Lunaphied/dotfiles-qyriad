@@ -48,6 +48,19 @@ endfunction
 
 command! SynNameStack echomsg SynNameStack()
 
+" Allow us to `let b/w/t/g:cpp = v:true` to make `.h` files count as C++.
+" FIXME: this needs a better name
+let g:cpp = v:false
+function! MaybeCppHeaders() abort
+	if get(b:, 'cpp', get(w:, 'cpp', get(t:, 'cpp', get(g:, 'cpp', v:false))))
+		set filetype=cpp
+	endif
+endfunction
+
+augroup CppHeaders
+	autocmd! BufRead,BufNewFile *.h call MaybeCppHeaders()
+augroup END
+
 " NOTE: In Rust, "@class" is each "item".
 nnoremap ]c <Cmd>TSTextobjectGotoNextEnd @class.outer<CR>
 xnoremap ]c <Cmd>TSTextobjectGotoNextEnd @class.outer<CR>
@@ -114,9 +127,9 @@ use { 'chikamichi/mediawiki.vim', ft = "mediawiki" }
 use { 'dzeban/vim-log-syntax', ft = "log" }
 -- use "meatballs/vim-xonsh"
 use { 'linkinpark342/xonsh-vim', ft = "xonsh" }
-use { 'terminalnode/sway-vim-syntax', ft = "swayconfig" }
 use { 'peterhoeg/vim-qml', ft = "qml" }
 use { 'nickel-lang/vim-nickel', ft = "nickel" }
+use { 'qnighy/lalrpop.vim' }
 use {
 	'nvim-treesitter/nvim-treesitter',
 	lazy = false,
@@ -171,6 +184,17 @@ use {
 use {
 	'nvim-treesitter/nvim-treesitter-textobjects',
 	after = 'nvim-treesitter',
+}
+use {
+	'Wansmer/treesj',
+	dependencies = { 'nvim-treesitter/nvim-treesitter' },
+	opts = {
+		use_default_keymaps = false,
+	},
+	keys = {
+		{ 'gS', '<Cmd>TSJSplit<CR>', desc = "Split block" },
+		{ 'gJ', '<Cmd>TSJJoin<CR>', desc = 'Join block' },
+	},
 }
 use {
 	'phelipetls/jsonpath.nvim',

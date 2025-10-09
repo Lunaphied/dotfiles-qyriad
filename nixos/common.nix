@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 
 {
 	imports = [
@@ -18,6 +18,20 @@
 	#	"non-source"
 	#];
 	#nixpkgs.config.fetchedSourceNameDefault = "versioned";
+	# HACK: I'm trying out this fancy new thing called "-N"
+	nixpkgs.overlays = let
+		patchLixOverlay = final: prev: {
+			nix = prev.nix.overrideAttrs (prev: {
+				doInstallCheck = false;
+				patches = [
+					./pkgs/lix-nix-build-short-no-link.patch
+				];
+			});
+		};
+	in [
+		patchLixOverlay
+	];
+
 	nix = {
 		settings = {
 			experimental-features = [
@@ -48,7 +62,7 @@
 			];
 
 			keep-outputs = true;
-			keep-derivations = true;
+			show-trace = true;
 
 			repl-overlays = [ ../nix/repl-overlay.nix ];
 		};
@@ -101,7 +115,7 @@
 		diskus
 		parallel-disk-usage
 		moreutils
-		qyriad.grc
+		grc
 		file
 		delta
 		difftastic
@@ -122,9 +136,15 @@
 		qyriad.nix-helpers
 		any-nix-shell
 		nix-du
+		nix-tree
+		nix-btm
+		nix-info
+		nix-query-tree-viewer
+		nix-top
+		#nix-visualize
 		qyriad.niz
 		qyriad.pzl
-		qyriad.xil
+		#qyriad.xil
 		bat
 		ncdu
 		lnav
@@ -148,6 +168,7 @@
 		nix-output-monitor
 		qyriad.git-point
 		git-branchless
+		openssl
 		btop
 		numbat
 		dust
@@ -157,16 +178,20 @@
 		fcp
 		mediainfo
 		qyriad.glances
-		qyriad.otree
-		qyriad.cyme
+		qpkgs.otree
+		qpkgs.cyme
+		qpkgs.sequin
+		# OSC52 tool. Mostly for debugging.
+		osc
 		srgn
 		jujutsu
 		repgrep
 		rink
+		duf
 		uni
 		ansi2html
 		qyriad.agenix
-		qyriad.age-plugin-openpgp-card
+		qpkgs.age-plugin-openpgp-card
 		abcmidi
 		pastel
 		jo
@@ -174,6 +199,8 @@
 		dasel
 		graphviz
 		dyff
-		sacad
+		sacad # Download album covers
+		trippy # Network diagnostic tool
+		carl # Calendar
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

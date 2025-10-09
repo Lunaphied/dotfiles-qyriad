@@ -9,7 +9,7 @@
 		./linux-gui.nix
 		./dev.nix
 		./resources.nix
-		#./mount-shizue.nix
+		./mount-shizue.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
@@ -19,7 +19,40 @@
 		options = [ "discard" "nofail" ];
 	};
 
+	systemd.user = {
+		sockets.dbus-monitor-pcap = {
+			unitConfig.ConditionPathExists = "%t/bus";
+			socketConfig.ListenFIFO = "%t/bus.pcap";
+			wantedBy = [ "sockets.target" ];
+		};
+		services.dbus-monitor-pcap = {
+			unitConfig.ConditionPathExists = [
+				"%t/bus"
+				"/run/current-system/sw/bin/dbus-monitor"
+			];
+			serviceConfig = {
+				Type = "simple";
+				ExecStart = "/run/current-system/sw/bin/dbus-monitor --session --pcap";
+				Sockets = config.systemd.user.sockets.dbus-monitor-pcap.name;
+				StandardOutput = "fd:${config.systemd.user.sockets.dbus-monitor-pcap.name}";
+			};
+		};
+	};
+
 	networking.hostName = "Yuki";
+
+	# Optimize Lix. Why not.
+	nixpkgs.overlays = let
+		optimizeLix = final: prev: {
+			nix = prev.nix.override {
+				stdenv = final.stdenvAdapters.impureUseNativeOptimizations final.clangStdenv;
+			};
+		};
+	in [
+		optimizeLix
+	];
+
+	security.pam.sshAgentAuth.enable = true;
 
 	environment.etc."xkb" = {
 		enable = true;
@@ -43,6 +76,8 @@
 		cpus = 32;
 	};
 
+	systemd.services.nix-daemon.serviceConfig.IOWriteBandwidthMax = "/dev/nvme3n1p2 30M";
+
 	# Non-NixOS-generated hardware configuration.
 	hardware.cpu.amd.updateMicrocode = true;
 
@@ -55,7 +90,7 @@
 		"i2c-dev"
 	];
 
-	boot.kernelPackages = pkgs.linuxPackages_latest;
+	#boot.kernelPackages = pkgs.linuxPackages_latest;
 
 	environment.etc."modprobe.d/v4l2loopback.conf" = {
 		text = (lib.trim ''
@@ -63,7 +98,7 @@
 		'') + "\n";
 	};
 
-	environment.enableDebugInfo = true;
+	#environment.enableDebugInfo = true;
 	environment.extraOutputsToInstall = [
 		"dev"
 	];
@@ -114,12 +149,19 @@
 	# Priority exactly 1 stronger than the default.
 	hardware.steam-hardware.enable = lib.mkForce false;
 
+	programs.wireshark = {
+		enable = true;
+		package = pkgs.wireshark-qt;
+		usbmon.enable = true;
+	};
+	users.users.qyriad.extraGroups = [ "wireshark" ];
+
 	environment.systemPackages = with pkgs; [
 		qyriad.steam-launcher-script
 		config.programs.steam.package.run
 		makemkv
 		valgrind
-		ryujinx
+		ryubing
 		shotcut
 		davinci-resolve
 		blender
@@ -128,6 +170,7 @@
 		obs-cmd
 		odin2
 		qyriad.nvtop-yuki
+		libreoffice-qt6-fresh
 	];
 
 	# This value determines the NixOS release from which the default

@@ -9,9 +9,11 @@
 		./linux-gui.nix
 		./dev.nix
 		./resources.nix
-		./mount-shizue.nix
+		#./mount-shizue.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
+
+	package-groups.music-production.enable = false;
 
 	networking.hostName = "Futaba";
 

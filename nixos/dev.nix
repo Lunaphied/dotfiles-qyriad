@@ -67,8 +67,8 @@
 		taplo
 		oxlint
 		scspell
-		#autotools-language-server
-		qyriad.lsptrace
+		autotools-language-server
+		qpkgs.lsptrace
 	] ++ lib.optionals config.nixpkgs.hostPlatform.isLinux [
 		systemd-lsp
 	];
