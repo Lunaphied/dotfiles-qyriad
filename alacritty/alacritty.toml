@@ -22,9 +22,12 @@ yellow = "0xe6c540"
 background = "0x000000"
 foreground = "0xeaeaea"
 
+[font]
+size = 12
+
 [font.normal]
 family = "InconsolataGo Nerd Font Mono"
-#family = "Intel One Mono"
+#family = "Hack"
 
 [[keyboard.bindings]]
 chars = "\u001B08"

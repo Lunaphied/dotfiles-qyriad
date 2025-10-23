@@ -360,12 +360,12 @@ use {
 	event = 'LspAttach',
 	opts = { },
 }
-use {
-    "MysticalDevil/inlay-hints.nvim",
-	event = "LspAttach",
-	dependencies = { "neovim/nvim-lspconfig" },
-	config = {}
-}
+--use {
+--    "MysticalDevil/inlay-hints.nvim",
+--	event = "LspAttach",
+--	dependencies = { "neovim/nvim-lspconfig" },
+--	config = {}
+--}
 use { 'nanotee/nvim-lsp-basics', lazy = true }
 --use { 'weilbith/nvim-code-action-menu', lazy = true }
 use { 'tamago324/nlsp-settings.nvim', event = "LspAttach" }
