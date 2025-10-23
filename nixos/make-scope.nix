@@ -3,7 +3,8 @@
 	pkgs,
 	lib,
 	agenix,
-	qyriad-nur,
+	qyriad-nur ? throw "provide either qyriad-nur or qpkgs",
+	qpkgs ? import qyriad-nur { inherit pkgs lib; },
 	niz,
 	log2compdb,
 	pzl,
@@ -13,10 +14,10 @@
 	xonsh-source,
 }: let
 
-	qpkgs = import qyriad-nur { inherit pkgs; };
 	agenix' = import agenix { inherit pkgs; };
+	shellArray = name: "\${${name}[@]}";
 
-in lib.makeScope pkgs.newScope (self: qpkgs // {
+in lib.makeScope qpkgs.newScope (self: {
 	# Just like `pkgs.runCommandLocal`, but without stdenv's default hooks,
 	# which do things like check man pages and patch ELFs.
 	runCommandMinimal = name: attrs: text: let
@@ -25,6 +26,8 @@ in lib.makeScope pkgs.newScope (self: qpkgs // {
 		else
 			"";
 		attrs' = attrs // {
+			__structuredAttrs = true;
+			strictDeps = true;
 			preHook = userPreHook + ''
 				defaultNativeBuildInputs=()
 			'';
@@ -32,8 +35,8 @@ in lib.makeScope pkgs.newScope (self: qpkgs // {
 	in pkgs.runCommandLocal name attrs' text;
 
 	steam-launcher-script = pkgs.writeShellScriptBin "launch-steam" ''
-		export STEAM_FORCE_DESKTOPUI_SCALING=1.5
-		export GDK_SCALE=1.5
+		export STEAM_FORCE_DESKTOPUI_SCALING=2.0
+		export GDK_SCALE=2
 		# Fix crackling audio in Rivals 2.
 		export PULSE_LATENCY_MSEC=126
 		export PIPEWIRE_LATENCY="2048/48000"
@@ -48,7 +51,7 @@ in lib.makeScope pkgs.newScope (self: qpkgs // {
 
 	obs-studio = pkgs.wrapOBS {
 		plugins = [
-			self.obs-chapter-marker-manager
+			qpkgs.obs-chapter-marker-manager
 		] ++ lib.attrValues {
 			inherit (pkgs.obs-studio-plugins)
 				input-overlay
@@ -160,42 +163,6 @@ in lib.makeScope pkgs.newScope (self: qpkgs // {
 		];
 	});
 
-	vesktop = pkgs.vesktop.overrideAttrs (prev: {
-		desktopItems = lib.forEach prev.desktopItems (item: item.override {
-			exec = lib.concatStringsSep " " [
-				(lib.getExe pkgs.vesktop)
-				"--enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer"
-				"--ozone-platform-hint=wayland"
-				#"--gtk-version=4"
-				"--enable-wayland-ime"
-				"--wayland-text-input-version=3"
-				"%U"
-			];
-			#exec = "vesktop --enable-features=UseOzonePlatform --ozone-platform=wayland --use-wayland-ime %U";
-		});
-	});
-
-	obsidian = pkgs.obsidian.overrideAttrs (prev: {
-		desktopItem = prev.desktopItem.override {
-			exec = lib.concatStringsSep " " [
-				"obsidian"
-				"--enable-features=UseOzonePlatform,WaylandWindowDecorations,WebRTCPipeWireCapturer"
-				"--ozone-platform-hint=wayland"
-				"--gtk-version=4"
-				"--enable-wayland-ime"
-				"--wayland-text-input-version=3"
-				"%U"
-			];
-		};
-	});
-
-	grc = pkgs.grc.overrideAttrs (prev: {
-		permitUserSite = true;
-		makeWrapperArgs = prev.makeWrapperArgs or [ ] ++ [
-			"--set-default" "PYTHONUNBUFFERED" "1"
-		];
-	});
-
 	xkeyboard_config-patched-inet = self.callPackage ./pkgs/xkb-config-patched-inet.nix { };
 
 	nix-update = pkgs.nix-update.overrideAttrs (prev: {
@@ -220,4 +187,28 @@ in lib.makeScope pkgs.newScope (self: qpkgs // {
 				--set NIXPKGS_QT6_QML_IMPORT_PATH '/run/current-system/sw/lib/qt-6/qml'
 		'';
 	});
+
+	# binutils without "toolchain" stuff like `ld`, `ar`, etc.
+	binutils-nolink = self.runCommandMinimal "binutils-nolink" {
+		inherit (pkgs) binutils;
+		outputs = [ "out" "man" "info" ];
+		binutilsMan = lib.getMan pkgs.binutils;
+		binutilsInfo = lib.getOutput "info" pkgs.binutils;
+		passthru = pkgs.binutils;
+		commandNames = [
+			"addr2line"
+			"nm"
+			"objdump"
+			"readelf"
+			"size"
+			"strings"
+		];
+	} (lib.trim ''
+		for name in "${shellArray "commandNames"}"; do
+			install -Dm655 "$binutils/bin/$name" --target-directory "$out/bin/"
+		done
+
+		cp --reflink=auto -r "$binutilsMan" "$man"
+		cp --reflink=auto -r "$binutilsInfo" "$info"
+	'');
 })

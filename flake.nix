@@ -64,6 +64,10 @@
 			url = "github:oxalica/nil";
 			flake = false;
 		};
+		disko = {
+			url = "github:nix-community/disko/latest";
+			inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
+		};
 	};
 
 	outputs = inputs @ {
@@ -129,13 +133,45 @@
 			# or not overriden packages in nixpkgs, as flake.packages.foo is preferred over
 			# flake.legacyPackages.foo by commands like `nix build`.
 			legacyPackages = pkgs;
+
+			# Whatever.
+			apps.nix-flake-upgrade-most = let
+				mostInputs = lib.removeAttrs inputs [ "nixpkgs" ] |> lib.attrNames;
+				drv = pkgs.writeShellScriptBin "nix-flake-upgrade-most" (lib.trim ''
+					set -euo pipefail
+					niz flake update --commit-lock-file ${lib.concatStringsSep " " mostInputs}
+					systemd-inhibit --what=sleep rebuild build
+				'');
+			in {
+				program = lib.getExe drv;
+				type = "app";
+			};
+
+			#checks = {
+			#	nixosEvals = self.nixosConfigurations
+			#	|> lib.mapAttrs (nixos: lib.deepSeq (toString nixos.config.system.build.toplevel) pkgs.empty)
+			#	;
+			#};
+			#checks = self.nixosConfigurations
+			#|> lib.mapAttrs (host: nixos: lib.deepSeq (toString nixos.config.system.build.toplevel) pkgs.empty);
+			#checks.yuki = pkgs.empty.overrideAttrs (prev: {
+			#	env = {
+			#		yuki = let
+			#			nixos = self.nixosConfigurations.yuki;
+			#		in lib.seq (toString nixos.config.system.build.toplevel) nixos.config.system.build.toplevel.drvPath;
+			#	};
+			#});
 		});
 
 		# NixOS configuration outputs, which are each for one specific system.
 		universalOutputs = {
-			lib = qlib;
+			lib = let
+				pkgs = import nixpkgs {
+					overlays = [ self.overlays.default ];
+				};
+			in pkgs.qlib;
 
-			overlays.default = import ./nixos/make-overlay.nix {
+			overlays.main = import ./nixos/make-overlay.nix {
 				inherit (nixpkgs) lib;
 				inherit (inputs)
 					agenix
@@ -150,6 +186,12 @@
 					nil-source
 				;
 			};
+			overlays.killWrappers = import ./nixos/kill-wrappers-overlay.nix;
+
+			overlays.default = lib.composeManyExtensions [
+				self.overlays.main
+				self.overlays.killWrappers
+			];
 
 			nixosConfigurations = rec {
 				futaba = mkConfig "x86_64-linux" [
@@ -158,7 +200,8 @@
 				Futaba = futaba;
 
 				yuki = mkConfig "x86_64-linux" [
-					./nixos/yuki.nix
+					./nixos/yuki
+					inputs.disko.nixosModules.disko
 				];
 				Yuki = yuki;
 
@@ -196,6 +239,10 @@
 				rust = {
 					path = ./nixos/templates/rust;
 					description = "rust flake template";
+				};
+				python = {
+					path = ./nixos/templates/python;
+					description = "our basic python template";
 				};
 				meson-cpp = {
 					path = ./nixos/templates/cpp-meson;

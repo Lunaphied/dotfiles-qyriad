@@ -1,3 +1,13 @@
+if not $XONSH_INTERACTIVE:
+	$RAISE_SUBPROC_ERROR = True
+
+try:
+	# Nixpkgs likes to set this for purity, but I want Xonsh to be able to use
+	# --user packages.
+	del $PYTHONNOUSERSITE
+except KeyError:
+	pass
+
 # XXX VERY HACK for NixOS
 import xonsh
 if "IN_NIX_SHELL" not in ${...}:
@@ -11,7 +21,7 @@ if "IN_NIX_SHELL" not in ${...}:
 
 import builtins, operator, typing
 import os, sys, io, errno, ctypes
-import struct, re, shlex, textwrap, functools
+import struct, re, shlex, shutil, textwrap, functools
 from datetime import datetime, timedelta
 import zoneinfo
 from zoneinfo import ZoneInfo
@@ -20,13 +30,21 @@ from pathlib import Path
 
 import xonsh
 from xonsh.events import events
+from xonsh.procs.specs import SpecAttrDecoratorAlias
 
 # These variables are set to lambdas, and are not exported to subprocesses
 # unless they have been evaluated at least once, it seems.
 $HOSTNAME
 $HOSTTYPE
 
+# Not available on Windows.
 try:
+	import fcntl
+except ImportError:
+	pass
+
+try:
+	import psutil
 	from psutils import Process
 except ImportError:
 	pass
@@ -50,13 +68,17 @@ try:
 	#
 	def response_repr(self):
 		s = [f"<Response [{self.status_code}]>"]
-		if json_data := self.json():
-			s.append(str(json_data))
-		elif self.content:
-			s.append(self.content.decode(errors="backslashreplace"))
+		try:
+			if json_data := self.json():
+				s.append(str(json_data))
+			elif self.content:
+				s.append(self.content.decode(errors="backslashreplace"))
 
-		return "\n".join(s)
+			return "\n".join(s)
+		except requests.exceptions.JSONDecodeError:
+			return self._original_repr()
 
+	requests.Response._original_repr = requests.Response.__repr__
 	requests.Response.__repr__ = response_repr
 
 except ImportError:
@@ -86,13 +108,18 @@ def shlvl_diff():
 	return str(int($SHLVL) - 1)
 
 if "TMUX" in ${...}:
+	# "Start of heading"
+	SOH = "\x01"
+	# "Start of text"
+	STX = "\x02"
 	def _prompt_escape():
-		return "\x01\x1b]133;A\x1b\\\x02"
+		return f"{SOH}\x1b]133;A\x1b\\{STX}"
 else:
 	def _prompt_escape():
 		return ""
 
 
+$ENABLE_ASYNC_PROMPT = True
 $PROMPT_FIELDS['exit_code'] = exit_code
 $PROMPT_FIELDS['exit_color'] = exit_color
 $PROMPT_FIELDS['shlvl'] = shlvl_diff
@@ -107,12 +134,32 @@ $XONSH_AUTOPAIR = False
 $AUTO_PUSHD = True
 $COMMANDS_CACHE_SIZE_WARNING = 8000
 $CMD_COMPLETIONS_SHOW_DESC = True # Show path to binary in description of command completions.
-$XONSH_HISTORY_SIZE = "10 GB"
+$XONSH_HISTORY_BACKEND = 'sqlite'
+
+xontrib load -s abbrevs
+if 'abbrevs' not in globals():
+	maybe_abbrevs = aliases
+else:
+	maybe_abbrevs = abbrevs
+	abbrevs['gitcb'] = lambda buffer, word: XSH.shell.shell.prompt_formatter('<edit>{curr_branch}')
+
 
 aliases['ni-ignore'] = ['rg', '-v', r'(-usr)|(-env)|(-fhs)|(-extracted)']
 aliases['nej'] = ['nix-eval-jobs', '--log-format', 'bar-with-logs', '--option', 'allow-import-from-derivation', 'false', '--verbose']
 
-aliases['sudo'] = lambda args : $[@($(which -s sudo)) @(aliases.eval_alias(args))]
+@aliases.register
+@aliases.return_command
+def _sudo(args: list) -> str:
+	if not args:
+		return "sudo"
+	if expanded := aliases.eval_alias(args):
+		return [$(which -s sudo), *expanded]
+	return args
+
+def _penv(args):
+	cat f'/proc/{args[0]}/environ' | tr '\0' '\n'
+
+aliases['penv'] = _penv
 
 # Use Neovim for everything.
 $EDITOR = $(which nvim)
@@ -123,6 +170,12 @@ $NETCTL_EDITOR = $EDITOR
 # Open nvim in read-only mode, pretending that the specified file is not actually a file
 aliases['nvimscratch'] = 'nvim -R "+setlocal buftype=nofile bufhidden=hide noswapfile"'
 aliases['rnvim'] = 'nvim -R'
+def _vimman(args: list):
+	assert len(args) == 1, f"should only be one argument: {args=}"
+	topic = args[0]
+	$[nvim -c @("ManCur {}".format(topic))]
+
+aliases['vimman'] = _vimman
 
 # Fix Neovim for stuff like git commit.
 #no_thread = lambda *a, **kw: False
@@ -144,7 +197,8 @@ $LESSKEY = $XDG_CONFIG_HOME + '/less/lesskey'
 aliases['tmux'] = 'tmux -u'
 
 $PAGER = $(which moar).strip()
-$DELTA_PAGER = 'less'
+$DELTA_PAGER = 'less --redraw-on-quit -F'
+$NIX_PAGER = 'less'
 
 def Pipe__repr__(self):
 	return str(self())
@@ -171,7 +225,10 @@ aliases['grep'] = 'grep --color=auto'
 aliases['egrep'] = 'egrep --color=auto'
 aliases['sed'] = 'sed -E'
 aliases['less'] = 'less -R'
-aliases['tp'] = 'trash-put -v'
+if shutil.which("trash-put"):
+	aliases['tp'] = 'trash-put'
+else:
+	aliases['tp'] = 'trash put'
 aliases['lsof'] = 'grc lsof +c0'
 #aliases['man'] = ['env', 'MANWIDTH=@(min(int($(tput cols)), 120))',  'man']
 
@@ -214,14 +271,14 @@ maybe_colorize['lsdsk'] = 'lsblk -o NAME,FSTYPE,LABEL,TYPE,MOUNTPOINT,SIZE'
 
 
 # Color output. Note: aliases recursive into aliases other than themselves.
-if !(which grc):
+if shutil.which('grc'):
 
 	# Forced color grc.
 	grcc = 'grc --colour=on'
 	aliases['grcc'] = grcc
 
 	commands = \
-		['df', 'free', 'ip', 'mount', 'netstat', 'ping', 'as', 'last', 'lsusb', 'netstat', 'lsof', 'ifconfig']
+		['df', 'free', 'ip', 'mount', 'netstat', 'ping', 'as', 'last', 'lsusb', 'netstat', 'ifconfig']
 
 	for command in commands:
 		aliases[command] = 'grc ' + command
@@ -300,6 +357,15 @@ aliases['striptext'] = lambda args, stdin: stdin.read().strip()
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
 aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat'
+aliases['nosleep'] = 'systemd-inhibit --what=sleep'
+def _nix_tmp(pkg: list):
+	""" Build a package, symlink it in /tmp, and ls --tree it """
+	pkg, *rest = pkg
+	for out_path in $(@lines niz build f"nixpkgs#{pkg}" -o f"/tmp/result-{pkg}" @(rest)):
+		print(out_path, flush=True)
+		ls --tree @(out_path)
+
+aliases['nix-tmp'] = _nix_tmp
 # strace --color=always --silence=attach,exit --signal=none -y -e read,write -s999
 # strace handy arguments:
 # -z / --successful-only
@@ -311,32 +377,33 @@ aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat'
 # -X verbose / --const-print-style=verbose (output named constants as numbers with name as a comment)
 # -s 64 --string-limit=64
 # --tips / --tips=id:random,format:compact
-aliases['stracey'] = ['strace', '-yyY', '-s', '128', '--silence=attach,exit', '--signal=none', '--tips=id:random,format:compact']
-aliases['strace-exec'] = ['strace', '--silent=attach,exit', '-s', '9999', '--signal=!all', '--successful-only' '--follow-forks' '--seccomp-bpf', '-e' 'execve']
+#aliases['stracey'] = ['strace', '-yyY', '-s', '128', '--silence=attach,exit', '--signal=none', '--tips=id:random,format:compact']
+aliases['stracey'] = [
+	'strace',
+	'--decode-fds=all', # -yy
+	'--decode-pids=comm', # -Y
+	'--string-limit=128', # -s128
+	'--silence=attach,exit',
+	'--signal=none',
+	'--tips=id:random,format:compact',
+]
+aliases['strace-exec'] = ['strace', '--silent=attach,exit', '-s', '9999', '--signal=!all', '--successful-only', '--follow-forks', '--seccomp-bpf', '-e', 'execve']
 
 # objdump handy arguments:
 # -M intel
 # --demangle
 aliases['objdumpx'] = ['objdump', '--special-syms', '--disassembler-color=extended', '--visualize-jumps=extended-color']
 
+aliases['@lines'] = SpecAttrDecoratorAlias(dict(output_format="list_lines"), "Use list_lines output format")
+aliases['@path'] = SpecAttrDecoratorAlias({
+	"output_format": lambda lines: Path(":".join(lines)),
+})
+
 
 $YTDLP_YOUTUBE = '%(channel)s/%(upload_date>%Y-%m-%d,release_date>%Y-%m-%d)s - %(title)s [%(id)s].%(ext)s'
 $YTDLP_TWITCH  = '%(uploader)s/%(upload_date>%Y-%m-%d,release_date>%Y-%m-%d)s - %(title)s [%(id)s].%(ext)s'
 
 $FFMPEG_MUX_ONLY = shlex.split("-map_metadata 0 -map_chapters 0 -map 0 -c:v copy -c:a copy -c:s copy")
-
-xontrib load abbrevs
-if 'abbrevs' not in globals():
-	aliases['mesoncomp'] = 'meson compile -C build'
-	aliases['mesoncompile'] = 'meson compile -C build'
-	aliases['mesontest'] = 'meson test -C build'
-	aliases['mesoninstall'] = 'meson install -C build'
-else:
-	abbrevs['mesoncomp'] = 'meson compile -C build'
-	abbrevs['mesoncompile'] = 'meson compile -C build'
-	abbrevs['mesontest'] = 'meson test -C build'
-	abbrevs['mesoninstall'] = 'meson install -C build'
-	abbrevs['gitcb'] = lambda buffer, word: XSH.shell.shell.prompt_formatter('<edit>{curr_branch}')
 
 def _wine32(args):
 	overrides = {

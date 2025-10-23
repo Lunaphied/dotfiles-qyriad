@@ -49,6 +49,9 @@
 	current-series = rev-parse --abbrev-ref SHEAD
 	abbrev-ref = rev-parse --abbrev-ref
 	#c = !tmux split-window -v "git commit && exit"
+	rl = reflog --pretty=reflog
+[pretty]
+	reflog = %C(auto)%h %<|(20)%gd %C(blue)%cr%C(reset) %gs (%s, %C(blue)%ar%C(reset))
 [rebase]
 	autostash = true
 [commit]
@@ -106,6 +109,8 @@
 	fetchJobs = 4
 [url "ssh://git@github.com"]
 	pushInsteadOf = "https://github.com"
+[url "ssh://git@codeberg.org"]
+	pushInsteadOf = "https://codeberg.org"
 [git-extras "get"]
 	clone-path = /Users/qyriad/code/builds
 [rerere]

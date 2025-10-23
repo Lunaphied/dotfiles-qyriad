@@ -17,8 +17,12 @@
 		enableQt5Integration = true;
 	};
 
+	# Things NixOS enables by default with Plasma 6 but we don't need.
+	services.accounts-daemon.enable = lib.mkForce false;
+	services.orca.enable = false;
+
 	# Use Qt settings from KDE.
-	qt.platformTheme = "kde6";
+	qt.platformTheme = "kde";
 
 	environment.plasma6.excludePackages = with pkgs.kdePackages; [
 		# We use our patched nixos-khelpcenter instead.
@@ -68,7 +72,7 @@
 		alsa.enable = true;
 		alsa.support32Bit = true;
 		pulse.enable = true;
-		#jack.enable = true;
+		jack.enable = true;
 
 		# use the example session manager (no others are packaged yet so this is enabled by default,
 		# no need to redefine it in your config for now).
@@ -106,6 +110,7 @@
 	nixpkgs.config.permittedInsecurePackages = [
 		"olm-3.2.16" # For Cinny
 		"jitsi-meet-1.0.8043" # For Element
+		"libsoup-2.74.3" # For Cinny?
 	];
 
 	package-groups = {
@@ -118,14 +123,14 @@
 		libva-utils
 		glxinfo
 		alacritty
-		qyriad.ghostty
+		ghostty
 		wezterm
 		# Backup.
 		#konsole
 		qyriad.mpv
-		qyriad.obsidian
+		obsidian
 		pandoc
-		qyriad.vesktop
+		vesktop
 		# For voice.
 		discord
 		calibre
@@ -158,14 +163,15 @@
 		signal-desktop
 		thunderbird
 		seer
-		mattermost-desktop
-		cinny-desktop
+		#mattermost-desktop
+		#cinny-desktop
 		firefoxpwa
 		#darling
 		glibc.debug
 		qt6.qtbase
-		qemu_full
-		qemu-utils
+		# ceph is broken. again.
+		#qemu_full
+		#qemu-utils
 		xorg.xlsclients
 		xorg.xset # Make OBS shut up.
 		xorg.xcursorgen
@@ -177,7 +183,7 @@
 		tesseract
 		smile
 		gst_all_1.gstreamer
-		gjs
+		#gjs
 		libnotify
 		# Sigh.
 		chromium
@@ -213,15 +219,25 @@
 		vulkan-tools
 		wayland-utils
 		kdePackages.kconfig
+		kdePackages.konversation
 		qyriad.nixos-khelpcenter
 		systemdgenie
 		kdotool
+		kid3-kde
+		# Might want to use this to hack some idle detection scripts or something.
+		#awatcher
+		# Symlink the thing that includes the default XCompose files into current-system
+		xorg.libX11
 	] ++ lib.optionals config.services.pipewire.enable [
 		pavucontrol
 		lxqt.pavucontrol-qt
 		pwvucontrol
-		sonusmix
 		wayfarer
+		qpwgraph
+		# Cursed. But gives me access to pactl.
+		(lib.getBin pulseaudio)
+		pulseaudio
+		qpkgs.qjackctl
 	] ++ lib.optionals config.services.ratbagd.enable [
 		piper
 	];
@@ -259,7 +275,7 @@
 		firefox.enable = true;
 		kdeconnect.enable = true;
 		_1password-gui = {
-			enable = false; # XXX: 1password GUI seems very broken on Wayland at the moment.
+			enable = true;
 			polkitPolicyOwners = [
 				"qyriad"
 			];
@@ -267,7 +283,7 @@
 	};
 
 	# Used for noise suppression.
-	#programs.noisetorch.enable = true;
+	programs.noisetorch.enable = true;
 
 	# Setup the terminal font we use, and make CJK render nicely.
 	fonts.packages = with pkgs; [

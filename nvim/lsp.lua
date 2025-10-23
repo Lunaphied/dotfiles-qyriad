@@ -1,5 +1,4 @@
-" cSpell:enableCompoundWords
-
+vim.cmd[[
 "
 " Configuration related to LSP and LSP-like stuff, such as autocompletion and linting.
 "
@@ -40,6 +39,8 @@ nnoremap <leader>xc <Cmd>TroubleToggle<CR>
 
 " LSP-related highlights.
 highlight! NotifyBackground guibg=#1b1b1b
+
+command! LspClients echo v:lua.qyriad.lsp_iter_clients()
 
 
 if exists('g:tagbar_sort')
@@ -101,6 +102,8 @@ nnoremap <leader>h <Cmd>call v:lua.vim.lsp.buf.document_highlight()<CR>
 nnoremap <leader>sr <Cmd>call v:lua.vim.lsp.buf.rename()<CR>
 nnoremap <leader>sh <Cmd>ClangdSwitchSourceHeader<CR>
 
+" NOTE: no explicit binding for formatting. gq will use `formatexpr`.
+
 " 'Notification dismiss'.
 nnoremap <leader>nd <Cmd>lua p.notify.dismiss({ pending = true })<CR>
 
@@ -109,8 +112,8 @@ function! DiagnosticsComplete(arglead, cmdline, cursorpos) abort
 endfunction
 
 "command! -complete=customlist,DiagnosticsComplete -nargs=? Diagnostics call v:lua._cmd_diagnostics_impl(<f-args>)
+]]
 
-lua << EOF
 function lsp_quiet()
 	-- This function is called in map-expr context, where we can't change text in
 	-- buffers. The signature floating window is also a buffer, so that applies.
@@ -164,7 +167,7 @@ vim.lsp.config('*', qyriad.nested_tbl {
 	['capabilities.textDocument.completion.completionItem.snippetSupport'] = false,
 })
 
-vim.lsp.enable({
+local lsp_modules = {
 	'rust-analyzer',
 	'vimls',
 	'luals',
@@ -174,18 +177,44 @@ vim.lsp.enable({
 	'basedpyright',
 	'taplo',
 	'autotools',
-})
+}
+local req_no_config = setmetatable({ }, { __index = table })
+local req_no_exe = setmetatable({ }, { __index = table })
+for _, modname in ipairs(lsp_modules) do
+	local config = vim.lsp.config[modname]
+	if not config then
+		req_no_config:insert(modname)
+	else
+		local exe = config.cmd[1]
+		if vim.fn.executable(exe) ~= 1 then
+			req_no_exe:insert(modname)
+		end
+	end
+end
+
+if #req_no_config > 0 then
+	req_no_config = string.format([['%s']], vim.iter(req_no_config):join(", '"))
+	vim.notify(string.format("LSP: requested but no config: %s", req_no_config), vim.log.levels.WARN)
+end
+if #req_no_exe > 0 then
+	req_no_exe = string.format([['%s']], vim.iter(req_no_exe):join(", '"))
+	vim.notify(string.format("LSP: requested but no executable: %s", req_no_exe), vim.log.levels.WARN)
+end
+--req_no_exe:foreachi(function(modname)
+--	vim.notify(string.format("LSP '%s' requested but executable '%s' not found", modname, exe), vim.log.levels.WARN)
+--end)
+
+vim.lsp.enable(lsp_modules)
 
 --lsp_vim_capabilities = vim.lsp.protocol.make_client_capabilities()
 
 clients = {}
-EOF
 
+vim.cmd[[
 augroup DiagnosticToQfList
 	autocmd! DiagnosticChanged * lua vim.diagnostic.setqflist({ open = false })
 augroup END
-
-lua <<EOF
+]]
 
 last_completion_item = { }
 
@@ -294,8 +323,8 @@ vim.api.nvim_create_user_command(
 	}
 )
 
-EOF
 
+vim.cmd[[
 function! SetupFormatOnSave(buffer) abort
 	let b:format_on_save = v:true
 	augroup FormatOnSave
@@ -311,9 +340,8 @@ function! StopFormatOnSave(buffer) abort
 	augroup END
 endfunction
 command! NoFormatOnSave call StopFormatOnSave("<buffer>")
+]]
 
-" cSpell: disable
-lua << EOF
 use {
 	'neovim/nvim-lspconfig',
 	ft = lsp_filetypes,
@@ -407,4 +435,3 @@ use {
   },
   config = function(_, opts) require('lsp_signature').setup(opts) end
 }
-EOF
