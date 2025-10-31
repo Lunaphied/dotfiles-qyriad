@@ -179,6 +179,7 @@ local lsp_modules = {
 	'nil',
 	'mesonlsp',
 	'basedpyright',
+	--'pyright',
 	'taplo',
 	'autotools',
 }

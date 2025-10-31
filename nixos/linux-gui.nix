@@ -161,6 +161,7 @@
 		kdePackages.kcachegrind
 		flamegraph
 		signal-desktop
+		#qpkgs.signal-desktop
 		thunderbird
 		seer
 		#mattermost-desktop

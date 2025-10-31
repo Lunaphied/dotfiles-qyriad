@@ -144,6 +144,7 @@ in lib.makeScope qpkgs.newScope (self: {
 		];
 	});
 
+
 	# Optimize Ghostty for x86-64-v4
 	ghostty = pkgs.ghostty.overrideAttrs (prev: let
 		inherit (pkgs.stdenv) hostPlatform;

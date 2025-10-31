@@ -75,6 +75,10 @@
 			url = "github:oxalica/nil";
 			flake = false;
 		};
+		# temp until current NixOS matches the Signal database we updated to by mistake.
+		nixpkgs-signal = {
+			url = "github:nixos/nixpkgs/fb5cf53218b987f2703a5bbc292a030c0fe33443";
+		};
 	};
 
 	outputs = inputs @ {
@@ -84,6 +88,7 @@
 		nix-darwin,
 		agenix,
 		nixos-boot,
+		nixpkgs-signal,
 		...
 	}: let
 		inherit (nixpkgs) lib;
@@ -213,10 +218,20 @@
 				];
 				Yuki = yuki;
 
-				ran = mkConfig "x86_64-linux" [
-					./nixos/ran.nix
-					#({ pkgs, ... }: { environment.systemPackages = [ inputs.hdrvulkan.packages.${pkgs.system}.default ]; })
-				];
+				ran = let
+					signalfix = {pkgs, ...}: {
+						nixpkgs.overlays = let
+							signalfix-overlay = _: final: {
+									signal-desktop = (import nixpkgs-signal { localSystem = pkgs.stdenv.hostPlatform; }).signal-desktop;
+							};
+						in [ signalfix-overlay ];
+					};
+				in
+					mkConfig "x86_64-linux" [
+						./nixos/ran.nix
+						signalfix
+						#({ pkgs, ... }: { environment.systemPackages = [ inputs.hdrvulkan.packages.${pkgs.system}.default ]; })
+					];
 				Ran = ran;
 
 				#minimal-aarch64-linux = mkConfig "aarch64-linux" [

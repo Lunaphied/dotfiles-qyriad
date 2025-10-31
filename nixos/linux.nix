@@ -70,6 +70,7 @@
 	# Automatically enabled by enabling NetworkManager.
 	# I don't need it though.
 	networking.modemmanager.enable = false;
+	systemd.network.wait-online.enable = false;
 
 	services.tailscale = {
 		enable = true;

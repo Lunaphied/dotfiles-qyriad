@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, modulesPath, ... }:
+{ config, pkgs, lib, modulesPath, ... }:
 
 {
 	imports = [
@@ -9,10 +9,25 @@
 		./linux-gui.nix
 		./dev.nix
 		./resources.nix
-		./mount-yorha.nix
+		# Temporary until we setup the NAS again
+		#./mount-yorha.nix
 		./modules/package-groups.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
+
+	programs.nix-ld = {
+		enable = true;
+		libraries = with pkgs; [
+			ncurses5
+			ncurses6
+			xorg.libX11
+			xorg.libXext
+			xorg.libXrender
+			xorg.libXtst
+			xorg.libXi
+			freetype
+		];
+	};
 
 	services.pipewire.extraConfig.pipewire = {
 		"10-allowed-rates" = {
@@ -107,27 +122,56 @@
 	#	theme = "catppuccin-sddm-corners";
 	#};
 
+	nix.distributedBuilds = true;
+
+	# I don't need steam hardware support. This is enabled by default with
+	# `programs.steam.enable`.
+	# Priority exactly 1 stronger than the default.
+	hardware.steam-hardware.enable = lib.mkForce false;
+
+	programs.wireshark = {
+		enable = true;
+		package = pkgs.wireshark-qt;
+		usbmon.enable = true;
+	};
+	users.users.qyriad.extraGroups = [ "wireshark" ];
+	users.users.lunaphied.extraGroups = [ "wireshark" ];
+
+	# Optimize Lix. Why not.
+	nixpkgs.overlays = let
+		optimizeLix = final: prev: {
+			nix = prev.nix.override {
+				stdenv = final.stdenvAdapters.impureUseNativeOptimizations final.clangStdenv;
+			};
+		};
+	in [
+		optimizeLix
+	];
+
+	security.pam.sshAgentAuth.enable = true;
+
+	environment.etc."xkb" = {
+		enable = true;
+		source = pkgs.qyriad.xkeyboard_config-patched-inet;
+	};
+
 	environment.systemPackages = with pkgs; [
 		catppuccin-sddm-corners
 		qyriad.steam-launcher-script
 		config.programs.steam.package.run
 		makemkv
 		valgrind
-		ryujinx
+		ryubing
 		shotcut
 		davinci-resolve
 		blender
 		jetbrains.rust-rover
 		config.boot.kernelPackages.perf
 		obs-cmd
-		cider
 		odin2
-		retroarch-assets
-		retroarchFull
-		#konversation
-		iodine
+		qyriad.nvtop-yuki
+		libreoffice-qt6-fresh
 		networkmanager-iodine
-		#cura
 	];
 
 	services.hardware.openrgb.enable = true;
