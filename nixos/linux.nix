@@ -105,17 +105,29 @@
 	#];
 
 	i18n.defaultLocale = "en_GB.UTF-8";
+	i18n.extraLocales = [
+		"nl_NL.UTF-8/UTF-8"
+	];
 	i18n.extraLocaleSettings = {
 		LC_ADDRESS = "en_US.UTF-8";
 		LC_IDENTIFICATION = "en_US.UTF-8";
 		LC_MEASUREMENT = "en_CA.UTF-8";
 		LC_MONETARY = "en_US.UTF-8";
+		LC_MESSAGES = "en_US.UTF-8";
 		LC_NAME = "en_US.UTF-8";
 		LC_NUMERIC = "en_US.UTF-8";
 		LC_PAPER = "en_US.UTF-8";
 		LC_TELEPHONE = "en_US.UTF-8";
 		LC_TIME = "en_GB.UTF-8";
 	};
+
+	# Some programs (Signal) use this variable for what spellcheck languages to offer.
+	# We want most programs to remain in English (for now), though, so we put it higher
+	# in the priority order.
+	# However we also have to put "C" before "nl" as well, or programs that just use the
+	# *default* locale for English (which is a lot) will ignore "en" and go straight to "nl".
+	# *sighs*.
+	environment.sessionVariables."LANGUAGES" = "en:C:nl:es";
 
 	# Add ~/.local/bin to system path.
 	environment.localBinInPath = true;
@@ -221,8 +233,8 @@
 	# Let us use our yubikey with age.
 	services.pcscd.enable = true;
 
-	services.nixseparatedebuginfod.enable = true;
-	systemd.services.nixseparatedebuginfod.serviceConfig = {
+	services.nixseparatedebuginfod2.enable = true;
+	systemd.services.nixseparatedebuginfod2.serviceConfig = {
 		PrivateTmp = lib.mkForce false;
 	};
 	systemd.services.cups.serviceConfig = {

@@ -79,6 +79,10 @@
 		nixpkgs-signal = {
 			url = "github:nixos/nixpkgs/fb5cf53218b987f2703a5bbc292a030c0fe33443";
 		};
+		disko = {
+			url = "github:nix-community/disko/latest";
+			inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
+		};
 	};
 
 	outputs = inputs @ {
@@ -214,7 +218,8 @@
 				Futaba = futaba;
 
 				yuki = mkConfig "x86_64-linux" [
-					./nixos/yuki.nix
+					./nixos/yuki
+					inputs.disko.nixosModules.disko
 				];
 				Yuki = yuki;
 
@@ -263,6 +268,10 @@
 				rust = {
 					path = ./nixos/templates/rust;
 					description = "rust flake template";
+				};
+				python = {
+					path = ./nixos/templates/python;
+					description = "our basic python template";
 				};
 				meson-cpp = {
 					path = ./nixos/templates/cpp-meson;

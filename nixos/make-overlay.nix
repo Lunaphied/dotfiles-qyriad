@@ -46,11 +46,9 @@
 
 		#lib = prev.lib // final.qpkgs.nurLib;
 		# XXX: FIXME: ^ SHOULD work but isn't. so we're doing this for now.
-		lib = if prev ? qpkgs then (
-			prev.lib // final.qpkgs.nurLib // final.qlib
-		) else (
-			prev.lib
-		);
+		lib = prev.lib // import (qyriad-nur + "/lib") {
+			lib = prev.lib;
+		};
 
 		qlib = final.qyriad.qlib;
 
@@ -68,16 +66,6 @@
 		lnav = prev.lnav.override {
 			# Nixpkgs forgot to make this dependency conditional on not-Darwin.
 			gpm = lib.optionalDrvAttr (availableOnHost prev.gpm) prev.gpm;
-		};
-
-		# You know maybe asserting that cinny web and cinny desktop had the same version wasn't
-		# the best idea afterall.
-		cinny-desktop = prev.cinny-desktop.override {
-			# HACK: Affect *only* the `.version` attribute in the attrset returned by
-			# `mkDerivation`. This will NOT change `$version` in the derivation.
-			cinny = final.cinny // {
-				version = final.cinny-desktop.version;
-			};
 		};
 
 		kdePackages = prev.kdePackages.overrideScope (kdeFinal: kdePrev: {

@@ -3,13 +3,13 @@
 
 {
 	imports = [
-		./yuki-hardware.nix
-		./common.nix
-		./linux.nix
-		./linux-gui.nix
-		./dev.nix
-		./resources.nix
-		./mount-shizue.nix
+		./hardware.nix
+		../common.nix
+		../linux.nix
+		../linux-gui.nix
+		../dev.nix
+		../resources.nix
+		#./mount-shizue.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
@@ -52,8 +52,6 @@
 		optimizeLix
 	];
 
-	security.pam.sshAgentAuth.enable = true;
-
 	environment.etc."xkb" = {
 		enable = true;
 		source = pkgs.qyriad.xkeyboard_config-patched-inet;
@@ -76,8 +74,6 @@
 		cpus = 32;
 	};
 
-	systemd.services.nix-daemon.serviceConfig.IOWriteBandwidthMax = "/dev/nvme3n1p2 30M";
-
 	# Non-NixOS-generated hardware configuration.
 	hardware.cpu.amd.updateMicrocode = true;
 
@@ -89,6 +85,8 @@
 		# For DDC/CI.
 		"i2c-dev"
 	];
+
+	systemd.sleep.extraConfig = "HibernateDelaySec=30m";
 
 	#boot.kernelPackages = pkgs.linuxPackages_latest;
 
@@ -165,7 +163,6 @@
 		shotcut
 		davinci-resolve
 		blender
-		jetbrains.rust-rover
 		config.boot.kernelPackages.perf
 		obs-cmd
 		odin2
@@ -179,5 +176,5 @@
 	# this value at the release version of the first install of this system.
 	# Before changing this value read the documentation for this option
 	# (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-	system.stateVersion = "22.11"; # Did you read the comment?
+	system.stateVersion = "25.05"; # Did you read the comment?
 }

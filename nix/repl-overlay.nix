@@ -1,6 +1,7 @@
 info: final: prev:
 
-rec {
+let
+self = rec {
   # Things I don't want to have to type `builtins.` before.
   inherit (builtins) attrValues attrNames getFlake parseFlakeRef flakeRefToString typeOf getEnv tryEval;
 
@@ -24,11 +25,32 @@ rec {
   currentSystem = info.currentSystem;
   system = info.currentSystem;
 
+  config = { allowUnfree = true; };
+
+	/** HACK: `import` that ignores deprecation warnings. */
+	importQuiet = let
+		ESC = "";
+		bt = builtins;
+		isDeprecated = s: bt.match ''${ESC}\[1;35m(evaluation warning:.*deprecated).*'' s != null;
+		traceNoDeprecated = msg: v: if bt.isString msg && isDeprecated msg then (
+			v
+		) else (
+			bt.trace msg v
+		);
+	in scopedImport {
+		builtins = builtins // {
+			trace = traceNoDeprecated;
+		};
+		import = importQuiet;
+	};
+
   # Instantiated forms of those flakes.
-  pkgs = import nixpkgs {
+  pkgs = importQuiet nixpkgs {
     system = info.currentSystem;
     overlays = attrValues qyriad.overlays;
+    inherit config;
   };
+  nixosLib = import (nixpkgs + "/nixos/lib") { inherit (pkgs) lib; };
   fenixLib = import fenix { inherit pkgs; };
   qpkgs = import qyriad-nur { inherit pkgs; };
 
@@ -45,4 +67,9 @@ rec {
   flakePackages = f.packages.${currentSystem};
   local = qlib.importAutocall PWD;
   shell = qlib.importAutocall (PWD + "/shell.nix");
-}
+
+  t = lib.types;
+};
+
+# HACK: don't fetch the flakes for these lazily.
+in builtins.seq self.lib builtins.seq self.qyriad builtins.seq self.pkgs self
