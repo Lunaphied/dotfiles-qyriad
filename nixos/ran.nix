@@ -10,7 +10,7 @@
 		./dev.nix
 		./resources.nix
 		# Temporary until we setup the NAS again
-		#./mount-yorha.nix
+		./mount-yorha.nix
 		./modules/package-groups.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
@@ -93,6 +93,15 @@
 
 	hardware.bluetooth.enable = true;
 	hardware.enableAllFirmware = true;
+	hardware.amdgpu.opencl.enable = true;
+
+	nixpkgs.config.rocmSupport = true;
+
+	services.ollama = {
+		enable = true;
+		# Make ourselves appear as a gfx1030 instead of gfx1031... why.
+		rocmOverrideGfx = "10.3.0";
+	};
 
 	services.fwupd.enable = true;
 	services.resolved.enable = true;

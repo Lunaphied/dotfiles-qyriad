@@ -19,6 +19,7 @@
 			"multi-user.target"
 			#"avahi-daemon.service"
 		];
+
 		requires = after;
 
 		mountConfig = {
@@ -37,6 +38,7 @@
 			type = "cifs";
 			what = "//yorha.local/Media";
 			where = "/media/yorha/media";
+			#enable = false;
 
 			inherit after requires wantedBy mountConfig unitConfig;
 		};
@@ -45,6 +47,7 @@
 			type = "cifs";
 			what = "//yorha.local/Backup";
 			where = "/media/yorha/archive";
+			#enable = false;
 
 			inherit after requires wantedBy mountConfig unitConfig;
 		};

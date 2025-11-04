@@ -318,7 +318,6 @@
 		poke
 		libtree
 		lurk
-		pinentry
 		qyriad.cappy
 		bluetui
 		watchlog
