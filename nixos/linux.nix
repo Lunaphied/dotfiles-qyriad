@@ -18,7 +18,13 @@
 	# Yes mount /tmp as a tmpfs.
 	boot.tmp.useTmpfs = true;
 
-	nix.settings.use-cgroups = true;
+	nix.settings = {
+		experimental-features = [
+			"cgroups"
+		];
+
+		use-cgroups = true;
+	};
 
 	services.smartd = {
 		enable = true;
@@ -62,7 +68,7 @@
 	services.geoclue2.enable = true;
 
 	services.resolved.enable = true;
-	services.resolved.extraConfig = lib.trim ''
+	services.resolved.extraConfig = lib.dedent ''
 		MulticastDNS=yes
 	'';
 	networking.networkmanager.enable = true;
@@ -325,6 +331,7 @@
 		appimage-run
 		havn
 		below
+		rclone
 	] ++ lib.optionals config.services.pipewire.enable [
 		alsa-utils
 		pulsemixer

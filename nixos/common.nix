@@ -41,8 +41,8 @@
 				"no-url-literals"
 				"lix-custom-sub-commands"
 				#"impure-derivations"
-				"cgroups"
 				"auto-allocate-uids"
+				"fetch-closure"
 			];
 
 			extra-substituters = [
@@ -63,6 +63,8 @@
 
 			keep-outputs = true;
 			show-trace = true;
+
+			auto-allocate-uids = true;
 
 			repl-overlays = [ ../nix/repl-overlay.nix ];
 		};

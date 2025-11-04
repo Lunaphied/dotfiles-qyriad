@@ -101,6 +101,22 @@
 		"dev"
 	];
 
+	systemd.network = {
+		enable = true;
+		# We're using NetworkManager.
+		wait-online.enable = false;
+		#netdevs."30-virt" = {
+		#	netdevConfig.Name = "br13";
+		#	netdevConfig.Kind = "bridge";
+		#};
+		#networks."30-virt" = {
+		#	matchConfig.Name = "br13";
+		#	networkConfig = {
+		#		DHCP = "yes";
+		#	};
+		#};
+	};
+
 	services.freshrss = {
 	};
 
@@ -166,7 +182,7 @@
 		config.boot.kernelPackages.perf
 		obs-cmd
 		odin2
-		qyriad.nvtop-yuki
+		#qyriad.nvtop-yuki
 		libreoffice-qt6-fresh
 	];
 

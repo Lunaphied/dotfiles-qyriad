@@ -136,7 +136,7 @@ in lib.makeScope qpkgs.newScope (self: {
 	glances = pkgs.glances.overridePythonAttrs (prev: {
 		propagatedBuildInputs = with pkgs.python3Packages; (prev.propagatedBuildInputs or [ ]) ++ [
 			nvidia-ml-py
-			pysmart-smartx
+			pysmart
 			zeroconf
 		] ++ lib.optionals pkgs.stdenv.isLinux [
 			batinfo
@@ -204,7 +204,7 @@ in lib.makeScope qpkgs.newScope (self: {
 			"size"
 			"strings"
 		];
-	} (lib.trim ''
+	} (lib.dedent ''
 		for name in "${shellArray "commandNames"}"; do
 			install -Dm655 "$binutils/bin/$name" --target-directory "$out/bin/"
 		done

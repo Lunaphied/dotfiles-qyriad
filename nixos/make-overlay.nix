@@ -11,10 +11,11 @@
 	xil,
 	xonsh-source,
 	nil-source,
+	tmux-source,
 	getScope ? { pkgs, lib, qpkgs }: import ./make-scope.nix {
+		lib = lib // import (qyriad-nur + "/lib") { inherit lib; };
 		inherit
 			pkgs
-			lib
 			agenix
 			qpkgs
 			niz
@@ -52,9 +53,6 @@
 
 		qlib = final.qyriad.qlib;
 
-		# I don't need to build aws-sdk-cpp every time, tbh.
-		nix = prev.nix.override { aws-sdk-cpp = null; };
-
 		# Nil HEAD has support for pipe operator.
 		nil = prev.nil.overrideAttrs {
 			src = nil-source;
@@ -63,10 +61,21 @@
 			};
 		};
 
+		tmux = prev.tmux.overrideAttrs {
+			version = prev.tmux.version + ".${tmux-source.shortRev}";
+			src = tmux-source;
+		};
+
 		lnav = prev.lnav.override {
 			# Nixpkgs forgot to make this dependency conditional on not-Darwin.
 			gpm = lib.optionalDrvAttr (availableOnHost prev.gpm) prev.gpm;
 		};
+
+		systemdgenie = prev.systemdgenie.overrideAttrs (prev: {
+			cmakeFlags = prev.cmakeFlags or [ ] ++ [
+				"-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+			];
+		});
 
 		kdePackages = prev.kdePackages.overrideScope (kdeFinal: kdePrev: {
 			# Ripples to:

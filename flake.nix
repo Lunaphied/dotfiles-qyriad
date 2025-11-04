@@ -66,11 +66,10 @@
 		#	inputs.nixpkgs.follows = "nixpkgs";
 		#	inputs.flake-utils.follows = "flake-utils";
 		#};
-		#hdrvulkan = {
-		#	#url = "github:TheTallestJJ/vulkan-hdr-layer-flake";
-		#	url = "git+file:./nixos/pkgs/vulkan-hdr-layer-flake";
-		#	inputs.nixpkgs.follows = "nixpkgs";
-		#};
+		tmux-source = {
+			url = "github:tmux/tmux";
+			flake = false;
+		};
 		nil-source = {
 			url = "github:oxalica/nil";
 			flake = false;
@@ -101,6 +100,8 @@
 		qlib = import ./nixos/qlib.nix {
 			inherit lib;
 		};
+
+		qpkgsLib = import (inputs.qyriad-nur + "/lib") { inherit lib; };
 
 		/** NixOS module for configs defined in this flake.
 		 This is the only module that relies on flakeyness directly.
@@ -133,6 +134,8 @@
 
 			in mkConfigFn.${system'.parsed.kernel.name} {
 				inherit system modules;
+				# HACK: pass our combined lib to modules.
+				specialArgs.lib = lib // qpkgsLib;
 			}
 		;
 
@@ -202,6 +205,7 @@
 					xil
 					xonsh-source
 					nil-source
+					tmux-source
 				;
 			};
 			overlays.killWrappers = import ./nixos/kill-wrappers-overlay.nix;
