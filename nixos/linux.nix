@@ -312,7 +312,8 @@
 		# Let us use our yubikey with age.
 		age-plugin-yubikey
 		yubikey-manager
-		glasgow
+		# Broken at the moment for some reason
+		# glasgow
 		# Broken at the moment as dependency `pkgs.linux-doc` is broken.
 		#systeroid
 		poke

@@ -9,9 +9,9 @@
 		./linux-gui.nix
 		./dev.nix
 		./resources.nix
-		# Temporary until we setup the NAS again
 		./mount-yorha.nix
 		./modules/package-groups.nix
+		./modules/pam-u2f.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 

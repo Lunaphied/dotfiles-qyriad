@@ -183,6 +183,8 @@
 			};
 		});
 
+		onnxruntime = prev.onnxruntime.override { rocmSupport = false; };
+
 		grc = prev.grc.overrideAttrs (prev: {
 			permitUserSite = true;
 			makeWrapperArgs = prev.makeWrapperArgs or [ ] ++ [
