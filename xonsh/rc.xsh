@@ -119,6 +119,9 @@ else:
 		return ""
 
 
+if p'/run/current-system/sw'.exists():
+	$BASH_COMPLETIONS = ['/run/current-system/sw/share/bash-completion/bash_completion']
+
 $ENABLE_ASYNC_PROMPT = True
 $PROMPT_FIELDS['exit_code'] = exit_code
 $PROMPT_FIELDS['exit_color'] = exit_color
@@ -170,12 +173,12 @@ $NETCTL_EDITOR = $EDITOR
 # Open nvim in read-only mode, pretending that the specified file is not actually a file
 aliases['nvimscratch'] = 'nvim -R "+setlocal buftype=nofile bufhidden=hide noswapfile"'
 aliases['rnvim'] = 'nvim -R'
+@aliases.register
+@aliases.return_command
 def _vimman(args: list):
 	assert len(args) == 1, f"should only be one argument: {args=}"
 	topic = args[0]
-	$[nvim -c @("ManCur {}".format(topic))]
-
-aliases['vimman'] = _vimman
+	return ['nvim', '-c', f'ManCur {topic}']
 
 # Fix Neovim for stuff like git commit.
 #no_thread = lambda *a, **kw: False
@@ -356,7 +359,7 @@ aliases['dedent'] = lambda args, stdin: textwrap.dedent(stdin.read())
 aliases['striptext'] = lambda args, stdin: stdin.read().strip()
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
-aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat'
+aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat NIX_PAGER=cat SYSTEMD_PAGER=cat'
 aliases['nosleep'] = 'systemd-inhibit --what=sleep'
 def _nix_tmp(pkg: list):
 	""" Build a package, symlink it in /tmp, and ls --tree it """
@@ -781,7 +784,6 @@ def _per_line(args: list, stdin: io.TextIOWrapper):
 	"""
 	callback: typing.Callable[[str], str] = args[0]
 	output = "\n".join([str(callback(line)) for line in stdin])
-	print(output)
 	return output
 
 aliases["pl"] = _per_line

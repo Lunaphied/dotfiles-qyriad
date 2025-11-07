@@ -175,7 +175,7 @@
 		davinci-resolve
 		blender
 		jetbrains.rust-rover
-		config.boot.kernelPackages.perf
+		perf
 		obs-cmd
 		odin2
 		qyriad.nvtop-yuki
@@ -185,20 +185,34 @@
 
 	services.hardware.openrgb.enable = true;
 
+
+	# THESE ACTUALLY WORK!
+    boot.consoleLogLevel = 3;
+    boot.kernelParams = [ "quiet" "udev.log_level=3" ];
+	boot.initrd = {
+		verbose = false;
+		systemd.enable = true;
+	};
+
 	virtualisation.waydroid.enable = true;
 	programs.virt-manager.enable = true;
 	virtualisation.libvirtd = {
 		enable = true;
 	};
 
-	nixos-boot = {
-		# TODO: Fix the display of these, default is just blank looking, evil is small and not centered.
-		enable = false;
-
-		# Evil's plymouth script is a bit broken and looks weird.
-		#theme = "evil-nixos";
-		duration = 3.0;
+	boot.plymouth = {
+		enable = true;
+		theme = "fade-in";
 	};
+
+	#nixos-boot = {
+	#	# TODO: Fix the display of these, default is just blank looking, evil is small and not centered.
+	#	enable = false;
+	#
+	#	# Evil's plymouth script is a bit broken and looks weird.
+	#	#theme = "evil-nixos";
+	#	duration = 3.0;
+	#};
 
 	services.invidious.enable = true;
 	services.invidious.database.createLocally = true;
