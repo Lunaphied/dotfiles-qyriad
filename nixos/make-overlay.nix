@@ -13,7 +13,7 @@
 	nil-source,
 	tmux-source,
 	getScope ? { pkgs, lib, qpkgs }: import ./make-scope.nix {
-		lib = lib // import (qyriad-nur + "/lib") { inherit lib; };
+		lib = import qyriad-nur { mode = "lib"; inherit lib; };
 		inherit
 			pkgs
 			agenix
@@ -45,10 +45,9 @@
 
 		inherit (final.qpkgs) nurLib;
 
-		#lib = prev.lib // final.qpkgs.nurLib;
-		# XXX: FIXME: ^ SHOULD work but isn't. so we're doing this for now.
-		lib = prev.lib // import (qyriad-nur + "/lib") {
-			lib = prev.lib;
+		lib = import qyriad-nur {
+			mode = "lib";
+			inherit (prev) lib;
 		};
 
 		qlib = final.qyriad.qlib;

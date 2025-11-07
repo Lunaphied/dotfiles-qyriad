@@ -122,7 +122,7 @@
 		delta
 		difftastic
 		direnv
-		moar
+		moor
 		faketty
 		htop
 		inxi
