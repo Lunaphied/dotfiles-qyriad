@@ -188,7 +188,8 @@
 
 	# THESE ACTUALLY WORK!
     boot.consoleLogLevel = 3;
-    boot.kernelParams = [ "quiet" "udev.log_level=3" ];
+    boot.kernelParams = [ "amdgpu" "quiet" "udev.log_level=3" ];
+	boot.loader.timeout = 0;
 	boot.initrd = {
 		verbose = false;
 		systemd.enable = true;
@@ -196,34 +197,21 @@
 
 	virtualisation.waydroid.enable = true;
 	programs.virt-manager.enable = true;
-	virtualisation.libvirtd = {
-		enable = true;
-	};
+	virtualisation.libvirtd.enable = true;
 
 	boot.plymouth = {
 		enable = true;
-		theme = "fade-in";
-	};
+		# Unfortunately things get decently blurry and this breaks the bgrt graphics for some reason.
+		extraConfig = lib.trim ''
+			DeviceScale=1
+		'';
 
-	#nixos-boot = {
-	#	# TODO: Fix the display of these, default is just blank looking, evil is small and not centered.
-	#	enable = false;
-	#
-	#	# Evil's plymouth script is a bit broken and looks weird.
-	#	#theme = "evil-nixos";
-	#	duration = 3.0;
-	#};
+		theme = "breeze";
+	};
 
 	services.invidious.enable = true;
 	services.invidious.database.createLocally = true;
 	services.postgresql.enable = true;
-
-	# TODO: Fix the plymouth issue and also try to figure out a way to hide
-	# other outputs. hm.
-
-	#environment.variables = {
-	#	ENABLE_HDR_WSI = "1";
-	#};
 
 	#programs.xwayland.enable = true;
 	#programs.ssh.setXAuthLocation = true;
