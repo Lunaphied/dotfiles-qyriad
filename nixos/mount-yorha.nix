@@ -1,6 +1,8 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
 { pkgs, ... }:
 
+let location = "169.254.5.38"; # Yorha.local on direct adapter
+in
 {
 	systemd.mounts = let
 		yorhaOpts = pkgs.qlib.genMountOpts {
@@ -36,7 +38,7 @@
 
 		media-yorha-media = {
 			type = "cifs";
-			what = "//yorha.local/Media";
+			what = "//${location}/Media";
 			where = "/media/yorha/media";
 			#enable = false;
 
@@ -45,7 +47,7 @@
 
 		media-yorha-archive = {
 			type = "cifs";
-			what = "//yorha.local/Backup";
+			what = "//${location}/Backup";
 			where = "/media/yorha/archive";
 			#enable = false;
 
