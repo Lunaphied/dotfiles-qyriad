@@ -202,11 +202,11 @@
 	boot.plymouth = {
 		enable = true;
 		# Unfortunately things get decently blurry and this breaks the bgrt graphics for some reason.
-		extraConfig = lib.trim ''
-			DeviceScale=1
-		'';
+		#extraConfig = lib.trim ''
+		#	DeviceScale=4
+		#'';
 
-		theme = "breeze";
+		#theme = "breeze";
 	};
 
 	services.invidious.enable = true;
