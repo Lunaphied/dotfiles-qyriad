@@ -174,7 +174,8 @@
 	#programs.ssh.forwardX11 = null;
 
 	# Supposedly this is better
-	boot.kernelPackages = pkgs.linuxKernel.packages.linux_zen;
+        # But ZFS is broken for this kernel version apparently...
+	#boot.kernelPackages = pkgs.linuxKernel.packages.linux_zen;
 
 	systemd.sleep.extraConfig = "HibernateDelaySec=30m";
 
