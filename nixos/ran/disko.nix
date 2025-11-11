@@ -37,7 +37,7 @@
     };
 
     zpool = {
-      zroot = {
+      ran-zroot = {
         type = "zpool";
 
         rootFsOptions = {

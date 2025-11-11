@@ -6,7 +6,7 @@
 	boot.loader = {
 		systemd-boot.enable = true;
 		efi.canTouchEfiVariables = true;
-		efi.efiSysMountPoint = "/boot";
+		efi.efiSysMountPoint = "/boot/efi";
 	};
 
 	# We want sysrqs to work.

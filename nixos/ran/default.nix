@@ -3,7 +3,7 @@
 
 {
 	imports = [
-		../ran-hardware.nix
+		./hardware.nix
 		../common.nix
 		../linux.nix
 		../linux-gui.nix
@@ -50,6 +50,7 @@
 	};
 
 	networking.hostName = "Ran";
+	networking.hostId = "845de7ab";
 
 	nixpkgs.config.allowUnfree = true;
 
