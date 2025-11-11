@@ -60,7 +60,6 @@
 			url = "github:xonsh/xonsh";
 			flake = false;
 		};
-		nixos-boot.url = "github:Melkor333/nixos-boot";
 		#helix-ext = {
 		#	url = "github:omentic/helix-ext";
 		#	inputs.nixpkgs.follows = "nixpkgs";
@@ -90,7 +89,6 @@
 		flake-utils,
 		nix-darwin,
 		agenix,
-		nixos-boot,
 		nixpkgs-signal,
 		...
 	}: let
@@ -126,7 +124,6 @@
 
 				modules = nixosModules ++ [
 					inputs.lix-module.nixosModules.default
-					inputs.nixos-boot.nixosModules.default
 					flake-module
 				] ++ lib.optionals system'.isDarwin [
 					inputs.mac-app-util.darwinModules.default
@@ -237,9 +234,9 @@
 					};
 				in
 					mkConfig "x86_64-linux" [
-						./nixos/ran.nix
+						./nixos/ran
 						signalfix
-						#({ pkgs, ... }: { environment.systemPackages = [ inputs.hdrvulkan.packages.${pkgs.system}.default ]; })
+						inputs.disko.nixosModules.disko
 					];
 				Ran = ran;
 

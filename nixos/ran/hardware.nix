@@ -7,6 +7,7 @@
 {
 	imports = [
 		(modulesPath + "/installer/scan/not-detected.nix")
+		./disko.nix
 	];
 
 	boot.initrd.availableKernelModules = [
@@ -22,23 +23,27 @@
 	boot.kernelModules = [
 		"kvm-amd"
 	];
-	boot.extraModulePackages = [ ];
+	boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
 
-	# This is causing buildfailures that I don't feel like debugging right now.
-	#hardware.opengl.driSupport32Bit = true;
-
-
-	fileSystems."/" = {
-		device = "/dev/disk/by-uuid/b63a90b6-1b72-42bd-87d6-71893a1e7d8f";
-		fsType = "ext4";
+	hardware.amdgpu = {
+		initrd.enable = true;
+		opencl.enable = true;
 	};
 
-	fileSystems."/boot" = {
-		device = "/dev/disk/by-uuid/48CA-0A7A";
-		fsType = "vfat";
-	};
+	hardware.graphics.enable32Bit = true;
 
-	swapDevices = [ ];
+
+	#fileSystems."/" = {
+	#	device = "/dev/disk/by-uuid/b63a90b6-1b72-42bd-87d6-71893a1e7d8f";
+	#	fsType = "ext4";
+	#};
+	#
+	#fileSystems."/boot" = {
+	#	device = "/dev/disk/by-uuid/48CA-0A7A";
+	#	fsType = "vfat";
+	#};
+	#
+	#swapDevices = [ ];
 
 	# Enables DHCP on each ethernet and wireless interface. In case of scripted networking
 	# (the default) this is the recommended approach. When using systemd-networkd it's
