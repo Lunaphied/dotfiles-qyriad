@@ -342,7 +342,7 @@ aliases['tn'] = r"tr -d '\n'"
 # XXX
 #aliases['remake'] = 'mkdir $PWD ; cd $PWD'
 aliases['rsync'] = 'rsync --recursive -hhh --links -v --info=progress2'
-aliases['lsync'] = 'systemd-inhibit --mode=block --what=shutdown:sleep:idle --who=qyriad --why=rsync --no-pager --no-legend rsync --whole-file --recursive -hhh --links -v --info=PROGRESS2'
+aliases['lsync'] = 'systemd-inhibit --mode=block --what=shutdown:sleep:idle --who=lunaphied --why=rsync --no-pager --no-legend rsync --whole-file --recursive -hhh --links -v --info=PROGRESS2'
 aliases['lsyncn'] = '/usr/bin/rsync -rvhhh --links --checksum --whole-file --info=progress2'
 aliases['rclone'] = 'rclone -P'
 aliases['pgrep'] = 'pgrep -i'
@@ -897,9 +897,9 @@ class ShortcutAutovar:
 #$gitb = ShortcutAutovar(xonsh.prompt.vc.current_branch)
 
 #$LIB = EnvPath([
-#	'/home/qyriad/.local/opt/xwin/crt/lib/x64/',
-#	'/home/qyriad/.local/opt/xwin/sdk/Lib/ucrt/x64',
-#	'/home/qyriad/.local/opt/xwin/sdk/lib/um/x64/'
+#	'/home/lunaphied/.local/opt/xwin/crt/lib/x64/',
+#	'/home/lunaphied/.local/opt/xwin/sdk/Lib/ucrt/x64',
+#	'/home/lunaphied/.local/opt/xwin/sdk/lib/um/x64/'
 #])
 
 
