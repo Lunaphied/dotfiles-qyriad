@@ -142,6 +142,15 @@ in lib.makeScope qpkgs.newScope (self: {
 			batinfo
 			wifi
 		];
+
+		# This fixes some insane bug that Raito's large builder has and for some reason
+		# we can't just disable the failing tests because when we do that those args end up somehow passed
+		# to glances directly
+		disabledTestPaths = (prev.disabledTestPaths or []) ++ [
+			"tests/test_core.py"
+			"tests/test_memoryleak.py"
+			"tests/test_perf.py"
+		];
 	});
 
 

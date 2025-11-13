@@ -10,11 +10,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1761656077,
-        "narHash": "sha256-lsNWuj4Z+pE7s0bd2OKicOFq9bK86JE0ZGeKJbNqb94=",
+        "lastModified": 1762618334,
+        "narHash": "sha256-wyT7Pl6tMFbFrs8Lk/TlEs81N6L+VSybPfiIgzU8lbQ=",
         "owner": "ryantm",
         "repo": "agenix",
-        "rev": "9ba0d85de3eaa7afeab493fed622008b6e4924f5",
+        "rev": "fcdea223397448d35d9b31f798479227e80183f6",
         "type": "github"
       },
       "original": {
@@ -187,11 +187,11 @@
     "lix": {
       "flake": false,
       "locked": {
-        "lastModified": 1762453176,
-        "narHash": "sha256-AWf5Oyhr/9sO/XiUcizJ5h9xlfizksdCQcdp+Z239PA=",
+        "lastModified": 1762940421,
+        "narHash": "sha256-dX1+h4+MBPXj+pC3260gRrd6Zxw0zcz40ANq7ADWjnQ=",
         "ref": "refs/heads/main",
-        "rev": "f00d720d83ec4c8531c69013c1948d7a3fea7ee9",
-        "revCount": 18502,
+        "rev": "78bdc60c11031d2293b2e77a0e44140ff7b88f12",
+        "revCount": 18507,
         "type": "git",
         "url": "https://git.lix.systems/lix-project/lix"
       },
@@ -293,11 +293,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1762501326,
-        "narHash": "sha256-QbhsksHaIN6qU3oXhwUFbYycKX1GRxObpQSWAM5fhRY=",
+        "lastModified": 1762627886,
+        "narHash": "sha256-/QLk1bzmbcqJt9sU43+y/3tHtXhAy0l8Ck0MoO2+evQ=",
         "owner": "nix-darwin",
         "repo": "nix-darwin",
-        "rev": "e2b82ebd0f990a5d1b68fcc761b3d6383c86ccfd",
+        "rev": "5125a3cd414dc98bbe2c528227aa6b62ee61f733",
         "type": "github"
       },
       "original": {
@@ -340,11 +340,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1762363567,
-        "narHash": "sha256-YRqMDEtSMbitIMj+JLpheSz0pwEr0Rmy5mC7myl17xs=",
+        "lastModified": 1762844143,
+        "narHash": "sha256-SlybxLZ1/e4T2lb1czEtWVzDCVSTvk9WLwGhmxFmBxI=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ae814fd3904b621d8ab97418f1d0f2eb0d3716f4",
+        "rev": "9da7f1cf7f8a6e2a7cb3001b048546c92a8258b4",
         "type": "github"
       },
       "original": {
@@ -357,11 +357,11 @@
     "niz": {
       "flake": false,
       "locked": {
-        "lastModified": 1756384270,
-        "narHash": "sha256-jIPyCL/YD6ffIc6hSbDlIrjz63i6N22L4XC4Wh0LIPs=",
+        "lastModified": 1763032502,
+        "narHash": "sha256-5/1T2mxJJ/20QoBZ5eDzNy2gq+PgUjIIVIvoTzoJGqA=",
         "owner": "Qyriad",
         "repo": "niz",
-        "rev": "c7528244c7bb7d16d52371d238196f0e07e7948d",
+        "rev": "cb1c10f7954d5a8766b2343152cb849a52a774dd",
         "type": "github"
       },
       "original": {
@@ -389,11 +389,11 @@
     "qyriad-nur": {
       "flake": false,
       "locked": {
-        "lastModified": 1762262769,
-        "narHash": "sha256-hY28Go6xeGXTvMMVU4oHJ1O7mPDjLFaX6PoFb+7nDZc=",
+        "lastModified": 1763034212,
+        "narHash": "sha256-zbLixhlH7NsXxTFjDemSmNSjuD3Z+3B9Xl7CJTwrN4M=",
         "owner": "Qyriad",
         "repo": "nur-packages",
-        "rev": "74582058dc49c63d902d9ba7de1674aad4a0d161",
+        "rev": "5eec1169e1f1d3e3a3013c28438a15a085823ed9",
         "type": "github"
       },
       "original": {
@@ -473,11 +473,11 @@
     "tmux-source": {
       "flake": false,
       "locked": {
-        "lastModified": 1762171266,
-        "narHash": "sha256-Ze/CXFGvf3H25gCqlPsVCm+0WNwj1A9qqNSwzICFewQ=",
+        "lastModified": 1763018333,
+        "narHash": "sha256-JFHG/ytNPDn2S8ddnUUkh77N0N8FmG8zGiW6PEetW3Y=",
         "owner": "tmux",
         "repo": "tmux",
-        "rev": "815f7ecffbf5e7f6daecb3ce6e550bdb32b0d887",
+        "rev": "768042d29d5151c6024f8be1b01ed388237a34c1",
         "type": "github"
       },
       "original": {
@@ -530,11 +530,11 @@
     "xonsh-source": {
       "flake": false,
       "locked": {
-        "lastModified": 1762330075,
-        "narHash": "sha256-osDhaSBhseZOkZ5YZJfbxs2dUx7cnl6Zrqw71S2VRJQ=",
+        "lastModified": 1762937601,
+        "narHash": "sha256-26BCMwBJFK1KjreW97IEmshgsFyGvC+vmm4/zBY76SI=",
         "owner": "xonsh",
         "repo": "xonsh",
-        "rev": "15b6f1e110169e95ccdfa533a74a4fcedc4af4a7",
+        "rev": "d55c5c7370b0ed91b0451f7e359d329855e2a36e",
         "type": "github"
       },
       "original": {

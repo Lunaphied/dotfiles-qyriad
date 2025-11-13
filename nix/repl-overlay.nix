@@ -50,7 +50,7 @@ self = rec {
     overlays = attrValues qyriad.overlays;
     inherit config;
   };
-  nixosLib = import (nixpkgs + "/nixos/lib") { inherit (pkgs) lib; config.minimalModules = true; };
+  nixosLib = import (nixpkgs + "/nixos/lib") { inherit (pkgs) lib; featureFlags.minimalModules = true; };
   fenixLib = import fenix { inherit pkgs; };
   qpkgs = import qyriad-nur { inherit pkgs; };
 
@@ -65,6 +65,9 @@ self = rec {
   # Stuff that lets me inspect the current directory easily.
   f = getFlake "git+file:${PWD}";
   flakePackages = f.packages.${currentSystem};
+	fpkgs = f.packages.${currentSystem};
+	fchecks = f.checks.${currentSystem};
+	fout = f.outputs;
   local = qlib.importAutocall PWD;
 	l = local;
 	ll = local.lib;
