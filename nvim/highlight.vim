@@ -8,13 +8,6 @@ set termguicolors
 
 command! Hitest :source $VIMRUNTIME/syntax/hitest.vim
 
-let g:rainbow_active = 1 " luochen1990/rainbow
-
-" Disable rainbow for cmake, mediawiki, and tvtropes
-augroup ft_disable_rainbow
-	autocmd! FileType cmake,mediawiki,tvtropes RainbowToggleOff
-augroup END
-
 " idk why setup() in lazy's config() isn't working.
 augroup PaintHighlightRust
 	autocmd! FileType rust call v:lua.p.paint.setup(g:paint_highlights)
@@ -50,7 +43,8 @@ use {
 	priority = 100,
 }
 use "gko/vim-coloresque"
-use "luochen1990/rainbow"
+--use "luochen1990/rainbow"
+use 'hiphish/rainbow-delimiters.nvim'
 -- Briefly highlight text that changes during an undo or redo.
 use {
 	"tzachar/highlight-undo.nvim",
@@ -68,6 +62,17 @@ use {
 	--		}
 	--	},
 	--},
+}
+use {
+	"lukas-reineke/indent-blankline.nvim",
+	main = "ibl",
+	opts = function(_, opts)
+		-- Other blankline configuration here
+		return require("indent-rainbowline").make_opts(opts)
+	end,
+	dependencies = {
+		"TheGLander/indent-rainbowline.nvim",
+	},
 }
 EOF
 

@@ -158,7 +158,7 @@ end
 --config.leader = {
 --	key = "`"
 --}
-
+config.disable_default_key_bindings = true
 config.keys = {
 	---- Equivalent to `bind-key -T prefix "`" send-prefix`
 	--bind_leader("`", wezterm.action.SendString("`")),

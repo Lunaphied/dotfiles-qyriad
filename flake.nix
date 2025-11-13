@@ -60,13 +60,26 @@
 			url = "github:xonsh/xonsh";
 			flake = false;
 		};
+		#helix-ext = {
+		#	url = "github:omentic/helix-ext";
+		#	inputs.nixpkgs.follows = "nixpkgs";
+		#	inputs.flake-utils.follows = "flake-utils";
+		#};
+		tmux-source = {
+			url = "github:tmux/tmux";
+			flake = false;
+		};
 		nil-source = {
 			url = "github:oxalica/nil";
 			flake = false;
 		};
+		# temp until current NixOS matches the Signal database we updated to by mistake.
+		nixpkgs-signal = {
+			url = "github:nixos/nixpkgs/fb5cf53218b987f2703a5bbc292a030c0fe33443";
+		};
 		disko = {
 			url = "github:nix-community/disko/latest";
-			inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
+			inputs.nixpkgs.follows = "nixpkgs";
 		};
 	};
 
@@ -76,6 +89,7 @@
 		flake-utils,
 		nix-darwin,
 		agenix,
+		nixpkgs-signal,
 		...
 	}: let
 		inherit (nixpkgs) lib;
@@ -84,6 +98,8 @@
 		qlib = import ./nixos/qlib.nix {
 			inherit lib;
 		};
+
+		qpkgsLib = import inputs.qyriad-nur { mode = "lib"; inherit lib; };
 
 		/** NixOS module for configs defined in this flake.
 		 This is the only module that relies on flakeyness directly.
@@ -115,6 +131,8 @@
 
 			in mkConfigFn.${system'.parsed.kernel.name} {
 				inherit system modules;
+				# HACK: pass our combined lib to modules.
+				specialArgs.lib = lib // qpkgsLib;
 			}
 		;
 
@@ -184,6 +202,7 @@
 					xil
 					xonsh-source
 					nil-source
+					tmux-source
 				;
 			};
 			overlays.killWrappers = import ./nixos/kill-wrappers-overlay.nix;
@@ -204,6 +223,22 @@
 					inputs.disko.nixosModules.disko
 				];
 				Yuki = yuki;
+
+				ran = let
+					signalfix = {pkgs, ...}: {
+						nixpkgs.overlays = let
+							signalfix-overlay = _: final: {
+									signal-desktop = (import nixpkgs-signal { localSystem = pkgs.stdenv.hostPlatform; }).signal-desktop;
+							};
+						in [ signalfix-overlay ];
+					};
+				in
+					mkConfig "x86_64-linux" [
+						./nixos/ran
+						signalfix
+						inputs.disko.nixosModules.disko
+					];
+				Ran = ran;
 
 				#minimal-aarch64-linux = mkConfig "aarch64-linux" [
 				#	./nixos/minimal.nix

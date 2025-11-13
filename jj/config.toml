@@ -98,3 +98,11 @@ email = "lunaphied@lunaphied.me"
 pager = "delta"
 diff-formatter = ":git"
 #log-word-wrap = true
+
+[signing]
+behavior = "drop"
+backend = "ssh"
+key = "~/.ssh/id_ed25519_sk.pub"
+
+[git]
+sign-on-push = true

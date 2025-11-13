@@ -35,8 +35,8 @@ in lib.makeScope qpkgs.newScope (self: {
 	in pkgs.runCommandLocal name attrs' text;
 
 	steam-launcher-script = pkgs.writeShellScriptBin "launch-steam" ''
-		export STEAM_FORCE_DESKTOPUI_SCALING=2.0
-		export GDK_SCALE=2
+		#export STEAM_FORCE_DESKTOPUI_SCALING=2.0
+		#export GDK_SCALE=2
 		# Fix crackling audio in Rivals 2.
 		export PULSE_LATENCY_MSEC=126
 		export PIPEWIRE_LATENCY="2048/48000"
@@ -136,13 +136,14 @@ in lib.makeScope qpkgs.newScope (self: {
 	glances = pkgs.glances.overridePythonAttrs (prev: {
 		propagatedBuildInputs = with pkgs.python3Packages; (prev.propagatedBuildInputs or [ ]) ++ [
 			nvidia-ml-py
-			pysmart-smartx
+			pysmart
 			zeroconf
 		] ++ lib.optionals pkgs.stdenv.isLinux [
 			batinfo
 			wifi
 		];
 	});
+
 
 	# Optimize Ghostty for x86-64-v4
 	ghostty = pkgs.ghostty.overrideAttrs (prev: let
@@ -203,7 +204,7 @@ in lib.makeScope qpkgs.newScope (self: {
 			"size"
 			"strings"
 		];
-	} (lib.trim ''
+	} (lib.dedent ''
 		for name in "${shellArray "commandNames"}"; do
 			install -Dm655 "$binutils/bin/$name" --target-directory "$out/bin/"
 		done

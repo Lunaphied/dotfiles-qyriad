@@ -17,7 +17,13 @@
 	# Yes mount /tmp as a tmpfs.
 	boot.tmp.useTmpfs = true;
 
-	nix.settings.use-cgroups = true;
+	nix.settings = {
+		experimental-features = [
+			"cgroups"
+		];
+
+		use-cgroups = true;
+	};
 
 	services.smartd = {
 		enable = true;
@@ -61,7 +67,7 @@
 	services.geoclue2.enable = true;
 
 	services.resolved.enable = true;
-	services.resolved.extraConfig = lib.trim ''
+	services.resolved.extraConfig = lib.dedent ''
 		MulticastDNS=yes
 	'';
 	networking.networkmanager.enable = true;
@@ -69,6 +75,7 @@
 	# Automatically enabled by enabling NetworkManager.
 	# I don't need it though.
 	networking.modemmanager.enable = false;
+	systemd.network.wait-online.enable = false;
 
 	services.tailscale = {
 		enable = true;
@@ -103,17 +110,29 @@
 	#];
 
 	i18n.defaultLocale = "en_GB.UTF-8";
+	i18n.extraLocales = [
+		"nl_NL.UTF-8/UTF-8"
+	];
 	i18n.extraLocaleSettings = {
 		LC_ADDRESS = "en_US.UTF-8";
 		LC_IDENTIFICATION = "en_US.UTF-8";
 		LC_MEASUREMENT = "en_CA.UTF-8";
 		LC_MONETARY = "en_US.UTF-8";
+		LC_MESSAGES = "en_US.UTF-8";
 		LC_NAME = "en_US.UTF-8";
 		LC_NUMERIC = "en_US.UTF-8";
 		LC_PAPER = "en_US.UTF-8";
 		LC_TELEPHONE = "en_US.UTF-8";
 		LC_TIME = "en_GB.UTF-8";
 	};
+
+	# Some programs (Signal) use this variable for what spellcheck languages to offer.
+	# We want most programs to remain in English (for now), though, so we put it higher
+	# in the priority order.
+	# However we also have to put "C" before "nl" as well, or programs that just use the
+	# *default* locale for English (which is a lot) will ignore "en" and go straight to "nl".
+	# *sighs*.
+	environment.sessionVariables."LANGUAGES" = "en:C:nl:es";
 
 	# Add ~/.local/bin to system path.
 	environment.localBinInPath = true;
@@ -143,19 +162,28 @@
 		description = "Qyriad";
 		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "i2c" ];
 		shell = pkgs.zsh;
+
+		openssh.authorizedKeys.keys = [
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDI6Tdxcbr3XSD2Ok2tUb4RJ3nOszqKklkqXUrgnFM1F cardno:26 907 287"
+		];
 	};
 
 	users.users.lunaphied = {
 		isNormalUser = true;
 		description = "Lunaphied";
-		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" ];
+		extraGroups = [ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "libvirtd" "gamemode" ];
 		shell = pkgs.zsh;
 	};
 
-	users.groups = {
-		plugdev = { };
-		video = { };
-		cdrom = { };
+	users.users.puckipedia = {
+		isNormalUser = true;
+		description = "puck";
+		shell = pkgs.zsh;
+
+		openssh.authorizedKeys.keys = [
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII8MUpzP9HB8xgDRZNPTCEZjSP9ntwn7GFyMbsmKrOQM"
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAi59cUbyB8ZWarlP2arpgz040a+KnhNNOIh8Plp3Nlf"
+		];
 	};
 
 	documentation = {
@@ -210,8 +238,8 @@
 	# Let us use our yubikey with age.
 	services.pcscd.enable = true;
 
-	services.nixseparatedebuginfod.enable = true;
-	systemd.services.nixseparatedebuginfod.serviceConfig = {
+	services.nixseparatedebuginfod2.enable = true;
+	systemd.services.nixseparatedebuginfod2.serviceConfig = {
 		PrivateTmp = lib.mkForce false;
 	};
 	systemd.services.cups.serviceConfig = {
@@ -283,6 +311,8 @@
 		# Let us use our yubikey with age.
 		age-plugin-yubikey
 		yubikey-manager
+		# Broken at the moment for some reason
+		# glasgow
 		# Broken at the moment as dependency `pkgs.linux-doc` is broken.
 		#systeroid
 		poke
@@ -300,6 +330,7 @@
 		appimage-run
 		havn
 		below
+		rclone
 	] ++ lib.optionals config.services.pipewire.enable [
 		alsa-utils
 		pulsemixer

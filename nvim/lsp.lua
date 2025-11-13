@@ -140,6 +140,12 @@ vim.lsp.log = require('vim.lsp.log')
 vim.lsp.protocol = require('vim.lsp.protocol')
 vim.lsp.set_log_level(vim.lsp.log_levels.INFO)
 
+-- We are using lsp_lines for virtual text instead.
+vim.diagnostic.config {
+	virtual_text = false,
+	virtal_lines = true,
+}
+
 lsp_filetypes = {
 	"vim",
 	"c",
@@ -175,6 +181,7 @@ local lsp_modules = {
 	'nil',
 	'mesonlsp',
 	'basedpyright',
+	--'pyright',
 	'taplo',
 	'autotools',
 }
@@ -278,7 +285,7 @@ function on_lsp_attach(bufnr, client_id)
 	-- then there's probably something the tags are giving us that LSP is not.
 	vim.bo.tagfunc = ""
 
-	--vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+	vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 
 	--if client.name == 'nil_ls' then
 	--	client.server_capabilities.semanticTokensProvider = nil
@@ -410,8 +417,8 @@ vim.g.rustaceanvim = {
 }
 use {
 	"mrcjkb/rustaceanvim",
+	version = '^6',
 	lazy = false,
-	--ft = "rust",
 }
 use { 'simrat39/symbols-outline.nvim', event = "LspAttach" }
 use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach", config = {} }

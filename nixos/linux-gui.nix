@@ -108,9 +108,8 @@
 	networking.firewall.enable = false;
 
 	nixpkgs.config.permittedInsecurePackages = [
-		"olm-3.2.16" # For Cinny
+		"olm-3.2.16" # For Nheko.
 		"jitsi-meet-1.0.8043" # For Element
-		"libsoup-2.74.3" # For Cinny?
 	];
 
 	package-groups = {
@@ -121,7 +120,7 @@
 	environment.systemPackages = with pkgs; [
 		libinput
 		libva-utils
-		glxinfo
+		mesa-demos
 		alacritty
 		ghostty
 		wezterm
@@ -136,7 +135,7 @@
 		calibre
 		kicad
 		krita
-		olive-editor
+		#olive-editor
 		# TODO: possibly switch to sddm.extraPackages if it's added
 		# https://github.com/NixOS/nixpkgs/pull/242009 (nixos/sddm: enable Wayland support)
 		weston
@@ -151,7 +150,7 @@
 		nfs-utils
 		ntfs3g
 		ddcutil
-		sequoia
+		sequoia-sq
 		sioyek
 		#neochat
 		#fluffychat
@@ -161,10 +160,10 @@
 		kdePackages.kcachegrind
 		flamegraph
 		signal-desktop
+		#qpkgs.signal-desktop
 		thunderbird
 		seer
 		#mattermost-desktop
-		#cinny-desktop
 		firefoxpwa
 		#darling
 		glibc.debug
@@ -178,7 +177,7 @@
 		seer
 		qyriad.obs-studio
 		v4l-utils
-		gajim
+		#gajim
 		inlyne
 		tesseract
 		smile
@@ -293,6 +292,7 @@
 
 	# NixOS's KDE module sets the default monospace font to [ "Hack" "Noto Sans Mono" ].
 	fonts.fontconfig.defaultFonts.monospace = lib.mkForce [
+		"MonoLisa"
 		"InconsolataGo Nerd Font Mono"
 		"Hack"
 		"Noto Sans Mono"

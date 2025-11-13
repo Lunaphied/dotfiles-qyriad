@@ -50,7 +50,7 @@ self = rec {
     overlays = attrValues qyriad.overlays;
     inherit config;
   };
-  nixosLib = import (nixpkgs + "/nixos/lib") { inherit (pkgs) lib; };
+  nixosLib = import (nixpkgs + "/nixos/lib") { inherit (pkgs) lib; config.minimalModules = true; };
   fenixLib = import fenix { inherit pkgs; };
   qpkgs = import qyriad-nur { inherit pkgs; };
 
@@ -66,6 +66,8 @@ self = rec {
   f = getFlake "git+file:${PWD}";
   flakePackages = f.packages.${currentSystem};
   local = qlib.importAutocall PWD;
+	l = local;
+	ll = local.lib;
   shell = qlib.importAutocall (PWD + "/shell.nix");
 
   t = lib.types;
