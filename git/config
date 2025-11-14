@@ -1,6 +1,6 @@
 [user]
 	name = Lunaphied
-	email = lunaphied@lunaphiped.me
+	email = lunaphied@lunaphied.me
 [merge]
 	tool = vimdiff
 	conflictStyle = diff3
@@ -49,7 +49,9 @@
 	current-series = rev-parse --abbrev-ref SHEAD
 	abbrev-ref = rev-parse --abbrev-ref
 	#c = !tmux split-window -v "git commit && exit"
+	leash = push --force-with-lease
 	rl = reflog --pretty=reflog
+	refetch = fetch --refetch
 [pretty]
 	reflog = %C(auto)%h %<|(20)%gd %C(blue)%cr%C(reset) %gs (%s, %C(blue)%ar%C(reset))
 [rebase]
@@ -112,7 +114,7 @@
 [url "ssh://git@codeberg.org"]
 	pushInsteadOf = "https://codeberg.org"
 [git-extras "get"]
-	clone-path = /Users/qyriad/code/builds
+	clone-path = /home/lunaphied/code/builds
 [rerere]
 	enabled = true
 [log]

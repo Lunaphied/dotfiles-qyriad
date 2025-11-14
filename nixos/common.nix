@@ -41,16 +41,18 @@
 				"no-url-literals"
 				"lix-custom-sub-commands"
 				#"impure-derivations"
-				"cgroups"
 				"auto-allocate-uids"
+				"fetch-closure"
 			];
 
 			extra-substituters = [
 				"https://cache.lix.systems"
+				"https://nix-community.cachix.org"
 			];
 
 			trusted-public-keys = [
 				"cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
+				"nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
 			];
 
 			trusted-users = [
@@ -61,6 +63,8 @@
 
 			keep-outputs = true;
 			show-trace = true;
+
+			auto-allocate-uids = true;
 
 			repl-overlays = [ ../nix/repl-overlay.nix ];
 		};
@@ -118,7 +122,7 @@
 		delta
 		difftastic
 		direnv
-		moar
+		moor
 		faketty
 		htop
 		inxi
@@ -134,6 +138,12 @@
 		qyriad.nix-helpers
 		any-nix-shell
 		nix-du
+		nix-tree
+		nix-btm
+		nix-info
+		nix-query-tree-viewer
+		nix-top
+		#nix-visualize
 		qyriad.niz
 		qyriad.pzl
 		#qyriad.xil
@@ -150,7 +160,6 @@
 		git-series
 		git-revise
 		p7zip
-		dig
 		dogdns
 		doggo
 		magic-wormhole
@@ -160,6 +169,7 @@
 		nix-output-monitor
 		qyriad.git-point
 		git-branchless
+		openssl
 		btop
 		numbat
 		dust
@@ -172,6 +182,8 @@
 		qpkgs.otree
 		qpkgs.cyme
 		qpkgs.sequin
+		# OSC52 tool. Mostly for debugging.
+		osc
 		srgn
 		jujutsu
 		repgrep
@@ -188,6 +200,8 @@
 		dasel
 		graphviz
 		dyff
-		sacad
+		sacad # Download album covers
+		trippy # Network diagnostic tool
+		carl # Calendar
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

@@ -26,7 +26,7 @@ zstyle ':completion:*' max-errors 2
 zstyle ':completion:*' menu select=1
 zstyle ':completion:*' preserve-prefix '//[^/]##/'
 zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
-zstyle :compinstall filename '/home/qyriad/.zshrc'
+zstyle :compinstall filename '/home/lunaphied/.zshrc'
 
 autoload -Uz compinit
 compinit
@@ -49,25 +49,25 @@ setopt autopushd
 # Use natural sort for *
 setopt NUMERIC_GLOB_SORT
 
-bindkey "^[[1;3D" backward-word # <A-<Left>>
-bindkey "^[[1;3C" forward-word # <A-<Right>>
-bindkey "^[[1~" beginning-of-line # <home>
-bindkey "^[[4~" end-of-line # <end>
-bindkey "^[[3~" delete-char # <del>
-bindkey "<M-Del>" kill-word # <S-Del>
+#bindkey "^[[1;3D" backward-word # <A-<Left>>
+#bindkey "^[[1;3C" forward-word # <A-<Right>>
+#bindkey "^[[1~" beginning-of-line # <home>
+#bindkey "^[[4~" end-of-line # <end>
+#bindkey "^[[3~" delete-char # <del>
+#bindkey "<M-Del>" kill-word # <S-Del>
 
 # prompt_toolkit style history search on <Up> but with <PageUp> instead
 
 autoload -Uz history-search-end
 zle -N history-beginning-search-backward-end history-search-end
 zle -N history-beginning-search-forward-end history-search-end
-bindkey '^[[5~' history-beginning-search-backward-end
-bindkey '^[[6~' history-beginning-search-forward-end
+#bindkey '^[[5~' history-beginning-search-backward-end
+#bindkey '^[[6~' history-beginning-search-forward-end
 
 # Allow editing the command in vim
 autoload -Uz edit-command-line # Load the function from ZSH runtime 
 zle -N edit-command-line # Expose the function as a widget
-bindkey "" "edit-command-line" # Call the widget upon <C-X><C-E>
+#bindkey "" "edit-command-line" # Call the widget upon <C-X><C-E>
 
 # This zle widget funcvtion cancels the current command, keeping the buffer,
 # and moving to the next line, but without setting the error code
@@ -85,7 +85,7 @@ function enter-without-exec()
 
 # expose the function as a widget and bind it
 zle -N enter-without-exec
-bindkey "" enter-without-exec
+#bindkey "" enter-without-exec
 
 # zle widget function for bash-style word kill
 function bash-backward-kill-word()
@@ -98,7 +98,7 @@ function bash-backward-kill-word()
 # expose the function as a widget and bind it
 zle -N bash-backward-kill-word
 # ^[08 is <C-<BS>>, which I bound in Alacritty's config
-bindkey '^[08' bash-backward-kill-word
+#bindkey '^[08' bash-backward-kill-word
 
 # zle widget function for bash-style word movement left
 function bash-backward-word()
@@ -110,7 +110,7 @@ function bash-backward-word()
 # expose the function as a widget and bind it
 zle -N bash-backward-word
 # Alacritty default for <C-<Left>>
-bindkey '^[[1;5D' bash-backward-word
+#bindkey '^[[1;5D' bash-backward-word
 
 # zle widget function for bash-style word-movement right
 function bash-forward-word()
@@ -122,23 +122,23 @@ function bash-forward-word()
 # expose the function as a widget and bind it
 zle -N bash-forward-word
 # Alacritty default for <C-<Right>>
-bindkey '^[[1;5C' bash-forward-word
+#bindkey '^[[1;5C' bash-forward-word
 
-# Add shortcut for pushing the line onto the stack
-bindkey "" "push-input"
-
-# <Esc>ia for select-in-shell-word
-bindkey 'ia' select-in-shell-word
-
-# <Esc>v for toggle visual mode
-bindkey 'v' visual-mode
-
-# <Esc>u for undo
-bindkey 'u' undo
-
-# completion help
-bindkey '' _complete_help
-
+## Add shortcut for pushing the line onto the stack
+#bindkey "" "push-input"
+#
+## <Esc>ia for select-in-shell-word
+#bindkey 'ia' select-in-shell-word
+#
+## <Esc>v for toggle visual mode
+#bindkey 'v' visual-mode
+#
+## <Esc>u for undo
+#bindkey 'u' undo
+#
+## completion help
+#bindkey '' _complete_help
+#
 
 #export PATH="$HOME/.local/bin:/usr/local/bin:$HOME/.local/share/cargo/bin:$PATH"
 
@@ -254,9 +254,9 @@ alias vipw='sudo -E vipw'
 alias vigr='sudo -E vigr'
 alias vrt='nvr --remote-silent -sp' # Vim Remote Tab
 alias xxpreview='xxd -l 512'
-alias rsync='systemd-inhibit --mode=block --what=shutdown:sleep:idle --who=qyriad --why=rsync --no-pager --no-legend rsync --recursive -hhh --links -v --info=PROGRESS2'
+alias rsync='systemd-inhibit --mode=block --what=shutdown:sleep:idle --who=lunaphied --why=rsync --no-pager --no-legend rsync --recursive -hhh --links -v --info=PROGRESS2'
 alias rsyncn='/usr/bin/rsync --recursive -hhh --links -v --info=PROGRESS2'
-alias lsync='systemd-inhibit --mode=block --what=shutdown:sleep:idle --who=qyriad --why=rsync --no-pager --no-legend rsync --whole-file --recursive -hhh --links -v --info=PROGRESS2'
+alias lsync='systemd-inhibit --mode=block --what=shutdown:sleep:idle --who=lunaphied --why=rsync --no-pager --no-legend rsync --whole-file --recursive -hhh --links -v --info=PROGRESS2'
 alias lsyncn='/usr/bin/rsync -rvhhh --links --checksum --whole-file --info=progress2'
 alias rclone='rclone -P'
 alias pgrep='pgrep --list-full --ignore-case'

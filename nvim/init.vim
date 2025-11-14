@@ -210,6 +210,8 @@ use {
 			['"'] = { close = false },
 			["'"] = { close = false },
 			["`"] = { close = false },
+			-- Don't autoclose square brackets either.
+			["["] = { close = false },
 			--["<CR>"] = { close = false },
 		},
 	},
@@ -342,6 +344,26 @@ use {
 		},
 	},
 }
+
+use {
+	'walkersumida/fusen.nvim',
+	event = "VimEnter",
+	opts = {
+		keymaps = {
+			add_mark = '<leader>me',
+			clear_mark = '<leader>mc',
+			next_mark = '<leader>]m',
+			prev_mark = '<leader>[m',
+		},
+		annotation_display = {
+			mode = 'both',
+		},
+		sign_priority = 100,
+	},
+}
+vim.cmd[[
+nnoremap <leader>ml <Cmd>Telescope fusen marks<CR>
+]]
 
 --use 'Konfekt/vim-alias'
 --use 'thinca/vim-ft-vim_fold'

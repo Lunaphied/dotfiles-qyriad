@@ -27,8 +27,8 @@
   httpx,
   tqdm,
   pip,
- # pydbus,
- # sdbus,
+  pydbus,
+  sdbus,
   jeepney,
   pygobject3,
   ds-store,
@@ -59,10 +59,6 @@
     httpx
     tqdm
     pip
-    pydbus
-    sdbus
-    jeepney
-    pygobject3
     ds-store
     xmltodict
     python-box

@@ -22,8 +22,12 @@ yellow = "0xe6c540"
 background = "0x000000"
 foreground = "0xeaeaea"
 
-[font.normal]
-family = "InconsolataGo Nerd Font Mono"
+[font]
+size = 12
+normal.family = "InconsolataGo Nerd Font Mono"
+
+#normal.family = "MonoLisa"
+builtin_box_drawing = false
 
 [[keyboard.bindings]]
 chars = "\u001B08"
@@ -35,6 +39,9 @@ hide_when_typing = false
 
 [scrolling]
 multiplier = 1
+
+[terminal]
+osc52 = "CopyPaste"
 
 [terminal.shell]
 #args = ["--login", "-c", "xonsh"]

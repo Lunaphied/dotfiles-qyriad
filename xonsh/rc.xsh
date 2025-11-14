@@ -60,13 +60,17 @@ try:
 	#
 	def response_repr(self):
 		s = [f"<Response [{self.status_code}]>"]
-		if json_data := self.json():
-			s.append(str(json_data))
-		elif self.content:
-			s.append(self.content.decode(errors="backslashreplace"))
+		try:
+			if json_data := self.json():
+				s.append(str(json_data))
+			elif self.content:
+				s.append(self.content.decode(errors="backslashreplace"))
 
-		return "\n".join(s)
+			return "\n".join(s)
+		except requests.exceptions.JSONDecodeError:
+			return self._original_repr()
 
+	requests.Response._original_repr = requests.Response.__repr__
 	requests.Response.__repr__ = response_repr
 
 except ImportError:
@@ -107,6 +111,9 @@ else:
 		return ""
 
 
+if p'/run/current-system/sw'.exists():
+	$BASH_COMPLETIONS = ['/run/current-system/sw/share/bash-completion/bash_completion']
+
 $ENABLE_ASYNC_PROMPT = True
 $PROMPT_FIELDS['exit_code'] = exit_code
 $PROMPT_FIELDS['exit_color'] = exit_color
@@ -124,7 +131,7 @@ $COMMANDS_CACHE_SIZE_WARNING = 8000
 $CMD_COMPLETIONS_SHOW_DESC = True # Show path to binary in description of command completions.
 $XONSH_HISTORY_BACKEND = 'sqlite'
 
-xontrib load abbrevs
+xontrib load -s abbrevs
 if 'abbrevs' not in globals():
 	maybe_abbrevs = aliases
 else:
@@ -136,11 +143,23 @@ aliases['ni-ignore'] = ['rg', '-v', r'(-usr)|(-env)|(-fhs)|(-extracted)']
 aliases['nej'] = ['nix-eval-jobs', '--log-format', 'bar-with-logs', '--option', 'allow-import-from-derivation', 'false', '--verbose']
 
 @aliases.register
+def _nix_print(args: list) -> str:
+	expr = shlex.join(args)
+	echo @(expr) | niz repl
+
+@aliases.register
 @aliases.return_command
 def _sudo(args: list) -> str:
-	return [$(which -s sudo), *aliases.eval_alias(args)]
+	if not args:
+		return "sudo"
+	if expanded := aliases.eval_alias(args):
+		return [$(which -s sudo), *expanded]
+	return args
 
-aliases['sudo'] = lambda args : $[@($(which -s sudo)) @(aliases.eval_alias(args))]
+def _penv(args):
+	cat f'/proc/{args[0]}/environ' | tr '\0' '\n'
+
+aliases['penv'] = _penv
 
 # Use Neovim for everything.
 $EDITOR = $(which nvim)
@@ -151,12 +170,12 @@ $NETCTL_EDITOR = $EDITOR
 # Open nvim in read-only mode, pretending that the specified file is not actually a file
 aliases['nvimscratch'] = 'nvim -R "+setlocal buftype=nofile bufhidden=hide noswapfile"'
 aliases['rnvim'] = 'nvim -R'
+@aliases.register
+@aliases.return_command
 def _vimman(args: list):
 	assert len(args) == 1, f"should only be one argument: {args=}"
 	topic = args[0]
-	$[nvim -c @("ManCur {}".format(topic))]
-
-aliases['vimman'] = _vimman
+	return ['nvim', '-c', f'ManCur {topic}']
 
 # Fix Neovim for stuff like git commit.
 #no_thread = lambda *a, **kw: False
@@ -177,7 +196,7 @@ $LESSHISTFILE = $XDG_CACHE_HOME + '/less/history'
 $LESSKEY = $XDG_CONFIG_HOME + '/less/lesskey'
 aliases['tmux'] = 'tmux -u'
 
-$PAGER = $(which moar).strip()
+$PAGER = $(which moor).strip()
 $DELTA_PAGER = 'less --redraw-on-quit -F'
 $NIX_PAGER = 'less'
 
@@ -320,7 +339,7 @@ aliases['tn'] = r"tr -d '\n'"
 # XXX
 #aliases['remake'] = 'mkdir $PWD ; cd $PWD'
 aliases['rsync'] = 'rsync --recursive -hhh --links -v --info=progress2'
-aliases['lsync'] = 'systemd-inhibit --mode=block --what=shutdown:sleep:idle --who=qyriad --why=rsync --no-pager --no-legend rsync --whole-file --recursive -hhh --links -v --info=PROGRESS2'
+aliases['lsync'] = 'systemd-inhibit --mode=block --what=shutdown:sleep:idle --who=lunaphied --why=rsync --no-pager --no-legend rsync --whole-file --recursive -hhh --links -v --info=PROGRESS2'
 aliases['lsyncn'] = '/usr/bin/rsync -rvhhh --links --checksum --whole-file --info=progress2'
 aliases['rclone'] = 'rclone -P'
 aliases['pgrep'] = 'pgrep -i'
@@ -337,7 +356,7 @@ aliases['dedent'] = lambda args, stdin: textwrap.dedent(stdin.read())
 aliases['striptext'] = lambda args, stdin: stdin.read().strip()
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
-aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat'
+aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat NIX_PAGER=cat SYSTEMD_PAGER=cat'
 aliases['nosleep'] = 'systemd-inhibit --what=sleep'
 def _nix_tmp(pkg: list):
 	""" Build a package, symlink it in /tmp, and ls --tree it """
@@ -762,7 +781,6 @@ def _per_line(args: list, stdin: io.TextIOWrapper):
 	"""
 	callback: typing.Callable[[str], str] = args[0]
 	output = "\n".join([str(callback(line)) for line in stdin])
-	print(output)
 	return output
 
 aliases["pl"] = _per_line
@@ -876,9 +894,9 @@ class ShortcutAutovar:
 #$gitb = ShortcutAutovar(xonsh.prompt.vc.current_branch)
 
 #$LIB = EnvPath([
-#	'/home/qyriad/.local/opt/xwin/crt/lib/x64/',
-#	'/home/qyriad/.local/opt/xwin/sdk/Lib/ucrt/x64',
-#	'/home/qyriad/.local/opt/xwin/sdk/lib/um/x64/'
+#	'/home/lunaphied/.local/opt/xwin/crt/lib/x64/',
+#	'/home/lunaphied/.local/opt/xwin/sdk/Lib/ucrt/x64',
+#	'/home/lunaphied/.local/opt/xwin/sdk/lib/um/x64/'
 #])
 
 

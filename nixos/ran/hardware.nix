@@ -7,6 +7,7 @@
 {
 	imports = [
 		(modulesPath + "/installer/scan/not-detected.nix")
+		./disko.nix
 	];
 
 	boot.initrd.availableKernelModules = [
@@ -15,47 +16,34 @@
 		"ahci"
 		"usbhid"
 		"usb_storage"
+		"uas"
 		"sd_mod"
 	];
 	boot.initrd.kernelModules = [ ];
 	boot.kernelModules = [
 		"kvm-amd"
-		"nvidia"
 	];
 	boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
-	services.xserver.videoDrivers = [
-		"nvidia"
-	];
 
-	hardware.nvidia = {
-		modesetting.enable = true;
-		package = config.boot.kernelPackages.nvidiaPackages.stable;
-		open = true;
-		powerManagement.enable = true;
+	hardware.amdgpu = {
+		initrd.enable = true;
+		opencl.enable = true;
 	};
+
 	hardware.graphics.enable32Bit = true;
 
 
-	fileSystems."/" = {
-		device = "/dev/disk/by-uuid/4a86932f-5e2d-464e-9699-cde6d010847d";
-		fsType = "ext4";
-		options = [ "discard" ];
-	};
-
-	fileSystems."/boot/efi" = {
-		device = "/dev/disk/by-uuid/137E-C800";
-		fsType = "vfat";
-	};
-
-	# All partitions of GPT type "Linux swap", per the Linux Userspace API Group's
-	# Discoverable Partitions Speficiation, will be automatically `swapon()`'d, by
-	# systemd-gpt-auto-generator(8).
-	swapDevices = [ ];
-
-	boot.resumeDevice = "/dev/disk/by-label/I660-Swap-FS";
-
-	# Does… this do anything?
-	hardware.deviceTree.enable = true;
+	#fileSystems."/" = {
+	#	device = "/dev/disk/by-uuid/b63a90b6-1b72-42bd-87d6-71893a1e7d8f";
+	#	fsType = "ext4";
+	#};
+	#
+	#fileSystems."/boot" = {
+	#	device = "/dev/disk/by-uuid/48CA-0A7A";
+	#	fsType = "vfat";
+	#};
+	#
+	#swapDevices = [ ];
 
 	# Enables DHCP on each ethernet and wireless interface. In case of scripted networking
 	# (the default) this is the recommended approach. When using systemd-networkd it's

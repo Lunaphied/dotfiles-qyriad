@@ -20,7 +20,7 @@
 		qyriad.log2compdb
 		dprint
 		just
-		clang-tools_18
+		llvmPackages.clang-tools
 		ruby
 		basedpyright
 		nodePackages.vim-language-server
@@ -69,6 +69,7 @@
 		scspell
 		autotools-language-server
 		qpkgs.lsptrace
+		mergiraf
 	] ++ lib.optionals config.nixpkgs.hostPlatform.isLinux [
 		systemd-lsp
 	];

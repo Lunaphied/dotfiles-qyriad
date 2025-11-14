@@ -5,7 +5,7 @@
 	# Interface.
 	options.storePathsToKeep = lib.mkOption {
 		type = with lib.types; attrsOf pathInStore;
-		default = [ ];
+		default = { };
 		description = ''
 			Store paths to prevent from being garbage collected in this NixOS generation
 			Useful for flake inputs.
@@ -16,8 +16,17 @@
 	};
 
 	options.systemKeptPaths = lib.mkOption {
-		type = lib.types.package;
+		type = lib.types.nullOr lib.types.package;
 		readOnly = true;
+
+		default = pkgs.qyriad.runCommandMinimal "system-kept-paths" {
+			# Load bearing. keep-paths.sh does not work without structured attrs.
+			__structuredAttrs = true;
+
+			storePathNames = lib.attrNames config.storePathsToKeep;
+			storePathValues = lib.map pkgs.writeClosure (lib.attrValues config.storePathsToKeep);
+			inherit (config) echoKeptStorePaths;
+		} <| lib.readFile ./keep-paths.sh;
 	};
 
 	options.echoKeptStorePaths = lib.mkOption {
@@ -29,20 +38,10 @@
 	};
 
 	# Implementation.
-	config = lib.mkIf (config.storePathsToKeep != {}) {
-
+	config = lib.mkIf (config.storePathsToKeep != { }) {
 		environment.pathsToLink = [ "/share/nix-support" ];
-
-		systemKeptPaths = pkgs.qyriad.runCommandMinimal "system-kept-paths" {
-			# Load bearing. keep-paths.sh does not work without structured attrs.
-			__structuredAttrs = true;
-
-			storePathNames = lib.attrNames config.storePathsToKeep;
-			storePathValues = lib.map pkgs.writeClosure (lib.attrValues config.storePathsToKeep);
-			inherit (config) echoKeptStorePaths;
-
-		} <| lib.readFile ./keep-paths.sh;
 
 		environment.systemPackages = [ config.systemKeptPaths ];
 	};
+
 }

@@ -60,9 +60,26 @@
 			url = "github:xonsh/xonsh";
 			flake = false;
 		};
+		#helix-ext = {
+		#	url = "github:omentic/helix-ext";
+		#	inputs.nixpkgs.follows = "nixpkgs";
+		#	inputs.flake-utils.follows = "flake-utils";
+		#};
+		tmux-source = {
+			url = "github:tmux/tmux";
+			flake = false;
+		};
 		nil-source = {
 			url = "github:oxalica/nil";
 			flake = false;
+		};
+		# temp until current NixOS matches the Signal database we updated to by mistake.
+		nixpkgs-signal = {
+			url = "github:nixos/nixpkgs/fb5cf53218b987f2703a5bbc292a030c0fe33443";
+		};
+		disko = {
+			url = "github:nix-community/disko/latest";
+			inputs.nixpkgs.follows = "nixpkgs";
 		};
 	};
 
@@ -72,7 +89,7 @@
 		flake-utils,
 		nix-darwin,
 		agenix,
-		lix-module,
+		nixpkgs-signal,
 		...
 	}: let
 		inherit (nixpkgs) lib;
@@ -81,6 +98,8 @@
 		qlib = import ./nixos/qlib.nix {
 			inherit lib;
 		};
+
+		qpkgsLib = import inputs.qyriad-nur { mode = "lib"; inherit lib; };
 
 		/** NixOS module for configs defined in this flake.
 		 This is the only module that relies on flakeyness directly.
@@ -112,6 +131,8 @@
 
 			in mkConfigFn.${system'.parsed.kernel.name} {
 				inherit system modules;
+				# HACK: pass our combined lib to modules.
+				specialArgs.lib = lib // qpkgsLib;
 			}
 		;
 
@@ -119,7 +140,7 @@
 		perSystemOutputs = flake-utils.lib.eachDefaultSystem (system: let
 			pkgs = import nixpkgs {
 				inherit system;
-				overlays = [ self.overlays.default lix-module.overlays.default];
+				overlays = [ self.overlays.default ];
 			};
 			filterDerivations = lib.filterAttrs (lib.const lib.isDerivation);
 		in {
@@ -164,7 +185,7 @@
 		universalOutputs = {
 			lib = let
 				pkgs = import nixpkgs {
-					overlays = [ self.overlays.default lix-module.overlays.deault ];
+					overlays = [ self.overlays.default ];
 				};
 			in pkgs.qlib;
 
@@ -181,6 +202,7 @@
 					xil
 					xonsh-source
 					nil-source
+					tmux-source
 				;
 			};
 			overlays.killWrappers = import ./nixos/kill-wrappers-overlay.nix;
@@ -197,13 +219,35 @@
 				Futaba = futaba;
 
 				yuki = mkConfig "x86_64-linux" [
-					./nixos/yuki.nix
+					./nixos/yuki
+					inputs.disko.nixosModules.disko
 				];
 				Yuki = yuki;
+
+				ran = let
+					signalfix = {pkgs, ...}: {
+						nixpkgs.overlays = let
+							signalfix-overlay = _: final: {
+									signal-desktop = (import nixpkgs-signal { localSystem = pkgs.stdenv.hostPlatform; }).signal-desktop;
+							};
+						in [ signalfix-overlay ];
+					};
+				in
+					mkConfig "x86_64-linux" [
+						./nixos/ran
+						signalfix
+						inputs.disko.nixosModules.disko
+					];
+				Ran = ran;
 
 				#minimal-aarch64-linux = mkConfig "aarch64-linux" [
 				#	./nixos/minimal.nix
 				#];
+
+				lain = mkConfig "x86_64-linux" [
+					./nixos/lain.nix
+				];
+				Lain = lain;
 			};
 			darwinConfigurations = rec {
 				Aigis = mkConfig "aarch64-darwin" [
@@ -230,6 +274,10 @@
 				rust = {
 					path = ./nixos/templates/rust;
 					description = "rust flake template";
+				};
+				python = {
+					path = ./nixos/templates/python;
+					description = "our basic python template";
 				};
 				meson-cpp = {
 					path = ./nixos/templates/cpp-meson;

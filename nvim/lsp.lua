@@ -102,6 +102,8 @@ nnoremap <leader>h <Cmd>call v:lua.vim.lsp.buf.document_highlight()<CR>
 nnoremap <leader>sr <Cmd>call v:lua.vim.lsp.buf.rename()<CR>
 nnoremap <leader>sh <Cmd>ClangdSwitchSourceHeader<CR>
 
+" NOTE: no explicit binding for formatting. gq will use `formatexpr`.
+
 " 'Notification dismiss'.
 nnoremap <leader>nd <Cmd>lua p.notify.dismiss({ pending = true })<CR>
 
@@ -138,6 +140,12 @@ vim.lsp.log = require('vim.lsp.log')
 vim.lsp.protocol = require('vim.lsp.protocol')
 vim.lsp.set_log_level(vim.lsp.log_levels.INFO)
 
+-- We are using lsp_lines for virtual text instead.
+vim.diagnostic.config {
+	virtual_text = false,
+	virtal_lines = true,
+}
+
 lsp_filetypes = {
 	"vim",
 	"c",
@@ -173,6 +181,7 @@ local lsp_modules = {
 	'nil',
 	'mesonlsp',
 	'basedpyright',
+	--'pyright',
 	'taplo',
 	'autotools',
 }
@@ -276,7 +285,7 @@ function on_lsp_attach(bufnr, client_id)
 	-- then there's probably something the tags are giving us that LSP is not.
 	vim.bo.tagfunc = ""
 
-	--vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+	vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 
 	--if client.name == 'nil_ls' then
 	--	client.server_capabilities.semanticTokensProvider = nil
@@ -386,6 +395,12 @@ use {
 	event = 'LspAttach',
 	opts = { },
 }
+--use {
+--    "MysticalDevil/inlay-hints.nvim",
+--	event = "LspAttach",
+--	dependencies = { "neovim/nvim-lspconfig" },
+--	config = {}
+--}
 use { 'nanotee/nvim-lsp-basics', lazy = true }
 --use { 'weilbith/nvim-code-action-menu', lazy = true }
 use { 'tamago324/nlsp-settings.nvim', event = "LspAttach" }
@@ -400,13 +415,15 @@ vim.g.rustaceanvim = {
 		},
 	},
 }
---use {
---	"mrcjkb/rustaceanvim",
---	lazy = false,
---	--ft = "rust",
---}
+use {
+	"mrcjkb/rustaceanvim",
+	version = '^6',
+	lazy = false,
+}
 use { 'simrat39/symbols-outline.nvim', event = "LspAttach" }
---use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach" }
+use { 'https://git.sr.ht/~whynothugo/lsp_lines.nvim', event = "LspAttach", config = {} }
+-- FIXME: this plugin is no longer maintained.
+use { 'folke/lsp-colors.nvim', event = "LspAttach" }
 use { 'https://git.sr.ht/~p00f/clangd_extensions.nvim', ft = { "c", "cpp" } }
 --use {
 --	'folke/trouble.nvim',
