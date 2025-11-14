@@ -197,7 +197,7 @@ $LESSKEY = $XDG_CONFIG_HOME + '/less/lesskey'
 aliases['tmux'] = 'tmux -u'
 
 $PAGER = $(which moor).strip()
-$DELTA_PAGER = 'less --redraw-on-quit -F'
+$DELTA_PAGER = 'less -R --redraw-on-quit -F'
 $NIX_PAGER = 'less'
 
 def Pipe__repr__(self):

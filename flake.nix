@@ -210,6 +210,7 @@
 			overlays.default = lib.composeManyExtensions [
 				self.overlays.main
 				self.overlays.killWrappers
+				inputs.lix-module.overlays.default
 			];
 
 			nixosConfigurations = rec {
