@@ -196,7 +196,6 @@ $LESSKEY = $XDG_CONFIG_HOME + '/less/lesskey'
 aliases['tmux'] = 'tmux -u'
 
 $PAGER = $(which moor).strip()
-$DELTA_PAGER = 'less --redraw-on-quit -F'
 $DELTA_PAGER = 'moor --no-clear-on-exit --no-clear-on-exit-margin=1 --quit-if-one-screen --tab-size=4 --no-statusbar'
 $NIX_PAGER = 'less'
 
@@ -356,6 +355,17 @@ aliases['dedent'] = lambda args, stdin: textwrap.dedent(stdin.read())
 aliases['striptext'] = lambda args, stdin: stdin.read().strip()
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
+
+# Takes a relative or absolute string or Path object and copies the targetted file to be pasted
+@aliases.register
+@aliases.return_command
+def _pcopy(args: list) -> list:
+    try:
+        args[0] = Path(args[0]).absolute().as_uri()
+    except IndexError:
+        pass
+    return ['wl-copy', '-t', 'text/uri-list', *args]
+
 aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat NIX_PAGER=cat SYSTEMD_PAGER=cat'
 aliases['nosleep'] = 'systemd-inhibit --what=sleep'
 def _nix_tmp(pkg: list):

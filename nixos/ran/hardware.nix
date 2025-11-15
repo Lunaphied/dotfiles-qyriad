@@ -32,6 +32,9 @@
 
 	hardware.graphics.enable32Bit = true;
 
+	# Do this here since Lain is different still?
+	boot.loader.efi.efiSysMountPoint = "/boot/efi";
+
 
 	#fileSystems."/" = {
 	#	device = "/dev/disk/by-uuid/b63a90b6-1b72-42bd-87d6-71893a1e7d8f";

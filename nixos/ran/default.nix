@@ -12,6 +12,7 @@
 		../mount-yorha.nix
 		../modules/package-groups.nix
 		../modules/pam-u2f.nix
+		#../modules/vr.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
@@ -94,7 +95,7 @@
 	# I don't need steam hardware support. This is enabled by default with
 	# `programs.steam.enable`.
 	# Priority exactly 1 stronger than the default.
-	hardware.steam-hardware.enable = lib.mkForce false;
+	#hardware.steam-hardware.enable = lib.mkForce false;
 
 	programs.wireshark = {
 		enable = true;
@@ -119,6 +120,7 @@
 		odin2
 		#qyriad.nvtop-yuki
 		libreoffice-qt6-fresh
+		halloy
 	];
 
 	# Optimize Lix. Why not.
@@ -204,6 +206,15 @@
 		#	};
 		#};
 	};
+
+	#boot.kernelPackages = (pkgs.linuxPackagesFor pkgs.linux.override {
+	#	extraStructuredConfig = with lib.kernel; {
+	#		ISDN = yes;
+	#		MISDN = yes;
+	#		MISDN_DSP = yes;
+	#		MISDN_L1OIP = yes;
+	#	};
+	#});
 
 	services.freshrss = {
 	};

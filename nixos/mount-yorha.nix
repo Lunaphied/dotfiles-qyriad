@@ -10,6 +10,7 @@ in
 			_netdev = null;
 			nofail = null;
 			credentials = "/etc/secrets/yorha.cred";
+			uid = "lunaphied";
 			gid = "users";
 			file_mode = "0764";
 			dir_mode = "0775";
