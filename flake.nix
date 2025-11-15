@@ -140,7 +140,7 @@
 		perSystemOutputs = flake-utils.lib.eachDefaultSystem (system: let
 			pkgs = import nixpkgs {
 				inherit system;
-				overlays = [ self.overlays.default ];
+				overlays = [ self.overlays.default inputs.lix-module.overlays.default ];
 			};
 			filterDerivations = lib.filterAttrs (lib.const lib.isDerivation);
 		in {
@@ -210,7 +210,6 @@
 			overlays.default = lib.composeManyExtensions [
 				self.overlays.main
 				self.overlays.killWrappers
-				inputs.lix-module.overlays.default
 			];
 
 			nixosConfigurations = rec {
