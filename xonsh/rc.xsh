@@ -131,13 +131,12 @@ $COMMANDS_CACHE_SIZE_WARNING = 8000
 $CMD_COMPLETIONS_SHOW_DESC = True # Show path to binary in description of command completions.
 $XONSH_HISTORY_BACKEND = 'sqlite'
 
-xontrib load -s abbrevs
-if 'abbrevs' not in globals():
-	maybe_abbrevs = aliases
-else:
-	maybe_abbrevs = abbrevs
+try:
+	xontrib load -s abbrevs
 	abbrevs['gitcb'] = lambda buffer, word: XSH.shell.shell.prompt_formatter('<edit>{curr_branch}')
-
+	abbrevs["|&"] = "2>&1 |"
+except:
+	pass
 
 aliases['ni-ignore'] = ['rg', '-v', r'(-usr)|(-env)|(-fhs)|(-extracted)']
 aliases['nej'] = ['nix-eval-jobs', '--log-format', 'bar-with-logs', '--option', 'allow-import-from-derivation', 'false', '--verbose']
@@ -902,12 +901,8 @@ class ShortcutAutovar:
 
 
 # xontrib-abbrevs, xonsh-direnv, xontrib-term-integrations, xontrib-broot
-xontrib load -s abbrevs, direnv, term_integration, broot
+xontrib load -s direnv, term_integration, broot
 
-if "abbrevs" in globals():
-	abbrevs["|&"] = "2>&1 |"
-
-abbrevs['procinfo'] = 'ps -wwch -o user,pid,ppid,ucomm,state,%mem=MEM%,%cpu=CPU%,args -p'
 
 #xontrib load output_search
 #xontrib load whole_word_jumping
