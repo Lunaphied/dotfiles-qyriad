@@ -81,6 +81,10 @@
 			url = "github:nix-community/disko/latest";
 			inputs.nixpkgs.follows = "nixpkgs";
 		};
+		originfox-source = {
+			url = "sourcehut:icewind/originfox?host=codeberg.org";
+			flake = false;
+		};
 	};
 
 	outputs = inputs @ {
@@ -125,6 +129,7 @@
 				modules = nixosModules ++ [
 					inputs.lix-module.nixosModules.default
 					flake-module
+					agenix.nixosModules.default
 				] ++ lib.optionals system'.isDarwin [
 					inputs.mac-app-util.darwinModules.default
 				];
@@ -203,6 +208,7 @@
 					xonsh-source
 					nil-source
 					tmux-source
+					originfox-source
 				;
 			};
 			overlays.killWrappers = import ./nixos/kill-wrappers-overlay.nix;

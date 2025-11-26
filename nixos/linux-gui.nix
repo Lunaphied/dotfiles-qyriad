@@ -95,6 +95,7 @@
 			fcitx5-mozc
 			fcitx5-gtk
 			kdePackages.fcitx5-qt
+			fcitx5-table-other
 		];
 	};
 
@@ -237,6 +238,7 @@
 		(lib.getBin pulseaudio)
 		pulseaudio
 		qpkgs.qjackctl
+		playerctl
 	] ++ lib.optionals config.services.ratbagd.enable [
 		piper
 	];

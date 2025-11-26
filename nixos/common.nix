@@ -1,5 +1,5 @@
 # vim: shiftwidth=4 tabstop=4 noexpandtab
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
 	imports = [
@@ -21,14 +21,14 @@
 	# HACK: I'm trying out this fancy new thing called "-N"
 	nixpkgs.overlays = let
 		patchLixOverlay = final: prev: {
-			nix = prev.nix.overrideAttrs (prev: {
+			lix = prev.lix.overrideAttrs {
 				doInstallCheck = false;
 				patches = [
 					./pkgs/lix-nix-build-short-no-link.patch
 				];
-			});
+			};
 		};
-	in [
+	in lib.mkAfter [
 		patchLixOverlay
 	];
 
@@ -38,11 +38,9 @@
 				"nix-command"
 				"flakes"
 				"pipe-operator"
-				"no-url-literals"
 				"lix-custom-sub-commands"
 				#"impure-derivations"
 				"auto-allocate-uids"
-				"fetch-closure"
 			];
 
 			extra-substituters = [
@@ -64,7 +62,9 @@
 			keep-outputs = true;
 			show-trace = true;
 
-			auto-allocate-uids = true;
+			auto-allocate-uids = pkgs.stdenv.hostPlatform.isLinux;
+
+			sandbox = "relaxed";
 
 			repl-overlays = [ ../nix/repl-overlay.nix ];
 		};
@@ -148,6 +148,7 @@
 		qyriad.pzl
 		#qyriad.xil
 		bat
+		guesswidth # column -t but smarter
 		ncdu
 		lnav
 		fblog
@@ -203,5 +204,6 @@
 		sacad # Download album covers
 		trippy # Network diagnostic tool
 		carl # Calendar
+		dolt # "Git for data"
 	] ++ config.fonts.packages; # I want font stuff to also be in /run/current-system please.
 }

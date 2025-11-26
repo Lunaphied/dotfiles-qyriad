@@ -10,6 +10,14 @@ except KeyError:
 
 # XXX VERY HACK for NixOS
 import xonsh
+if "IN_NIX_SHELL" not in ${...}:
+	if xonsh.__path__[0].startswith('/nix/store'):
+		to_delete = []
+		for elem in $PATH:
+			if pf'{elem}/xonsh'.is_file() and not elem.startswith('/run'):
+				to_delete.append(elem)
+		for elem in to_delete:
+			$PATH.remove(elem)
 
 import builtins, operator, typing
 import os, sys, io, errno, ctypes
@@ -131,12 +139,13 @@ $COMMANDS_CACHE_SIZE_WARNING = 8000
 $CMD_COMPLETIONS_SHOW_DESC = True # Show path to binary in description of command completions.
 $XONSH_HISTORY_BACKEND = 'sqlite'
 
-try:
-	xontrib load -s abbrevs
+xontrib load -s abbrevs
+if 'abbrevs' not in globals():
+	maybe_abbrevs = aliases
+else:
+	maybe_abbrevs = abbrevs
 	abbrevs['gitcb'] = lambda buffer, word: XSH.shell.shell.prompt_formatter('<edit>{curr_branch}')
-	abbrevs["|&"] = "2>&1 |"
-except:
-	pass
+
 
 aliases['ni-ignore'] = ['rg', '-v', r'(-usr)|(-env)|(-fhs)|(-extracted)']
 aliases['nej'] = ['nix-eval-jobs', '--log-format', 'bar-with-logs', '--option', 'allow-import-from-derivation', 'false', '--verbose']
@@ -148,12 +157,22 @@ def _nix_print(args: list) -> str:
 
 @aliases.register
 @aliases.return_command
-def _sudo(args: list) -> str:
-	if not args:
-		return "sudo"
-	if expanded := aliases.eval_alias(args):
-		return [$(which -s sudo), *expanded]
-	return args
+def _pcopy(args: list) -> list:
+	try:
+		args[0] = Path(args[0]).absolute().as_uri()
+	except IndexError:
+		pass
+	return ['wl-copy', '-t', 'text/uri-list', *args]
+
+
+@aliases.register
+@aliases.return_command
+def _sudo(args: list) -> list:
+	try:
+		return ['sudo', *aliases.eval_alias(args)]
+	except ValueError:
+		return ['sudo', *args]
+
 
 def _penv(args):
 	cat f'/proc/{args[0]}/environ' | tr '\0' '\n'
@@ -217,9 +236,9 @@ aliases['mv'] = 'mv -vi'
 aliases['rm'] = 'rm -vI'
 aliases['ln'] = 'ln -vi'
 aliases['mkdir'] = 'mkdir -vp'
-#aliases['chmod'] = 'chmod -v --preserve-root'
-#aliases['chown'] = 'chown -v --preserve-root'
-#aliases['chgrp'] = 'chgrp -v --preserve-root'
+aliases['chmod'] = 'chmod -v --preserve-root'
+aliases['chown'] = 'chown -v --preserve-root'
+aliases['chgrp'] = 'chgrp -v --preserve-root'
 aliases['grep'] = 'grep --color=auto'
 aliases['egrep'] = 'egrep --color=auto'
 aliases['sed'] = 'sed -E'
@@ -355,17 +374,6 @@ aliases['dedent'] = lambda args, stdin: textwrap.dedent(stdin.read())
 aliases['striptext'] = lambda args, stdin: stdin.read().strip()
 aliases['tcopy'] = 'tmux load-buffer -w -'
 aliases['tpaste'] = 'tmux save-buffer -'
-
-# Takes a relative or absolute string or Path object and copies the targetted file to be pasted
-@aliases.register
-@aliases.return_command
-def _pcopy(args: list) -> list:
-    try:
-        args[0] = Path(args[0]).absolute().as_uri()
-    except IndexError:
-        pass
-    return ['wl-copy', '-t', 'text/uri-list', *args]
-
 aliases['nopager'] = 'env PAGER=cat GIT_PAGER=cat NIX_PAGER=cat SYSTEMD_PAGER=cat'
 aliases['nosleep'] = 'systemd-inhibit --what=sleep'
 def _nix_tmp(pkg: list):
@@ -911,8 +919,11 @@ class ShortcutAutovar:
 
 
 # xontrib-abbrevs, xonsh-direnv, xontrib-term-integrations, xontrib-broot
-xontrib load -s direnv, term_integration, broot
+xontrib load -s abbrevs, direnv, term_integration, broot
 
+if "abbrevs" in globals():
+	abbrevs["|&"] = "2>&1 |"
+	abbrevs['procinfo'] = 'ps -wwc -o user,pid,ppid,ucomm,state,%mem=MEM%,%cpu=CPU%,args -p'
 
 #xontrib load output_search
 #xontrib load whole_word_jumping

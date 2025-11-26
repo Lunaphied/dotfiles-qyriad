@@ -9,7 +9,7 @@
 		../linux-gui.nix
 		../dev.nix
 		../resources.nix
-		#./mount-shizue.nix
+		../mount-shizue.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
 
@@ -40,17 +40,6 @@
 	};
 
 	networking.hostName = "Yuki";
-
-	# Optimize Lix. Why not.
-	nixpkgs.overlays = let
-		optimizeLix = final: prev: {
-			nix = prev.nix.override {
-				stdenv = final.stdenvAdapters.impureUseNativeOptimizations final.clangStdenv;
-			};
-		};
-	in [
-		optimizeLix
-	];
 
 	environment.etc."xkb" = {
 		enable = true;
@@ -185,6 +174,8 @@
 		#qyriad.nvtop-yuki
 		libreoffice-qt6-fresh
 		anki
+		beeper
+		qyriad.originfox
 	];
 
 	# This value determines the NixOS release from which the default

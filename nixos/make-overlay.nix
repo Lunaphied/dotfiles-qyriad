@@ -12,6 +12,7 @@
 	xonsh-source,
 	nil-source,
 	tmux-source,
+	originfox-source,
 	getScope ? { pkgs, lib, qpkgs }: import ./make-scope.nix {
 		lib = import qyriad-nur { mode = "lib"; inherit lib; };
 		inherit
@@ -25,6 +26,7 @@
 			git-point
 			xil
 			xonsh-source
+			originfox-source
 		;
 	}, # getScope
 
@@ -53,7 +55,7 @@
 		qlib = final.qyriad.qlib;
 
 		# Nil HEAD has support for pipe operator.
-		nil = prev.nil.overrideAttrs {
+		nil = (prev.nil.override { nix = final.lix; }).overrideAttrs {
 			src = nil-source;
 			cargoDeps = final.rustPlatform.importCargoLock {
 				lockFile = nil-source + "/Cargo.lock";
