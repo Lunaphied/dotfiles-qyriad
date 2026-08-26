@@ -241,8 +241,8 @@ private-commits = 'priv'
 auto-track = "none()"
 
 [user]
-name = "Qyriad"
-email = "qyriad@qyriad.me"
+name = "Lunaphied"
+email = "lunaphied@lunaphied.me"
 
 [ui]
 # https://docs.jj-vcs.dev/latest/config/#processing-contents-to-be-paged

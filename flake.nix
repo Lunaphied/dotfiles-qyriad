@@ -241,6 +241,11 @@
 				];
 				Rosie = rosie;
 
+				ran = mkConfig "x86_64-linux" [
+					./nixos/ran
+				];
+				Ran = ran;
+
 				#minimal-aarch64-linux = mkConfig "aarch64-linux" [
 				#	./nixos/minimal.nix
 				#];

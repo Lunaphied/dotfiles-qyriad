@@ -137,7 +137,8 @@ include "%L"
 # Narrow no-break space (NNBSP)
 <Multi_key> <n> <s> <p> : " "
 
-<Multi_key> <z> <m> : "🔴M>"
-<Multi_key> <z> <l> : "🔵L>"
-<Multi_key> <z> <v> : "🟣V>"
-<Multi_key> <z> <c> : "🟢C>"
+<Multi_key> <z> <l> : "🔴L>"
+<Multi_key> <z> <i> : "🔵I>"
+<Multi_key> <z> <a> : "🟣A>"
+<Multi_key> <z> <p> : "🟢P>"
+<Multi_key> <z> <n> : "🟠N>"

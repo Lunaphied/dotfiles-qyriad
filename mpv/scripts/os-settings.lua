@@ -5,7 +5,7 @@ if string.find(home, [[^/Users]]) then
 	--macOS
 elseif string.find(home, [[^/home]]) then
 	--Linux
-	mp.command("set gpu-context wayland")
+	--mp.command("set gpu-context wayland")
 else
 	--Windows
 end
