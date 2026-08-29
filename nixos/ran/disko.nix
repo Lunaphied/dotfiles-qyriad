@@ -1,4 +1,5 @@
 {
+	boot.zfs.forceImportRoot = false;
   disko.devices = {
 
     disk = {

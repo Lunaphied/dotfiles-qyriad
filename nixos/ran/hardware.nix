@@ -24,6 +24,18 @@
 		"kvm-amd"
 	];
 	boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+	environment.systemPackages = with config.boot.kernelPackages; [ v4l2loopback.bin ];
+
+	warnings = let
+		latest = pkgs.linuxPackages_latest.kernel.version;
+		stable = pkgs.linuxPackages.kernel.version;
+		zen = pkgs.linuxPackages_zen.kernel.version;
+		current = config.boot.kernelPackages.kernel.version;
+	in lib.mkIf (current != latest) [
+		"Ran's Linux (${current}) is no longer latest (${latest}) (stable: ${stable}, zen: ${zen})"
+	];
+
+	boot.kernelPackages = pkgs.linuxPackages_zen;
 
 	hardware.amdgpu = {
 		initrd.enable = true;

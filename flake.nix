@@ -243,6 +243,7 @@
 
 				ran = mkConfig "x86_64-linux" [
 					./nixos/ran
+					inputs.disko.nixosModules.disko
 				];
 				Ran = ran;
 
