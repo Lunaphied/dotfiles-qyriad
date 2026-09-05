@@ -14,6 +14,7 @@
 		../modules/dnssd.nix
 		../modules/plasma-xdgdata-hack.nix
 		../modules/pam-u2f.nix
+		./lavender.nix
 		#../modules/vr.nix
 		(modulesPath + "/installer/scan/not-detected.nix")
 	];
@@ -474,8 +475,18 @@
 		settings = {
 			experimental-features = [ "rpc-sockets" ];
 			# This apparently works to make sure we prioritize the experimental RPC protocol.
-			store = "auto?protocol=any";
+			# store = "auto?protocol=any";
+			# Theoretically we might have a better solution
 		};
 	};
+
+	# The theoretical better solution.
+	environment.variables."NIX_REMOTE" = "daemon?protocol=any";
+
+	# Enable debugging logs.
+	# XXX: Ugh this is harder than expected.
+	# systemd.services."nix-daemon@" = {
+	# 	serviceConfig.ExecStart = "@/nix/store/vcr0mx96dxp3gr3nly2a6p6z54qpyx59-lix-patched-2.96.0-dev-pre20260902-dev_f009349/bin/nix-daemon nix-daemon --for-socket-activation --debug";
+	# };
 
 }

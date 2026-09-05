@@ -1,0 +1,210 @@
+diff -u a/include/client.h b/include/client.h
+--- a/include/client.h
++++ b/include/client.h
+@@ -118,6 +118,7 @@
+ 	struct bwe* bwe;
+ 	int32_t inflight_bytes;
+ 	bool has_ext_mouse_buttons;
++	bool pointer_relative;
+ 	struct aml_idle* close_task;
+ 	bool needs_desktop_name_update;
+ 
+diff -u a/include/neatvnc.h b/include/neatvnc.h
+--- a/include/neatvnc.h
++++ b/include/neatvnc.h
+@@ -137,6 +137,8 @@
+ 		enum nvnc_button_mask);
+ typedef void (*nvnc_normalised_pointer_fn)(struct nvnc_client*, double x,
+ 		double y, enum nvnc_button_mask);
++typedef void (*nvnc_relative_pointer_fn)(struct nvnc_client*, int dx, int dy,
++		enum nvnc_button_mask);
+ typedef void (*nvnc_client_fn)(struct nvnc_client*);
+ typedef void (*nvnc_damage_fn)(struct pixman_region16* damage, void* userdata);
+ typedef void (*nvnc_auth_fn)(struct nvnc_auth_creds*, void* userdata);
+@@ -334,6 +336,15 @@
+ 		nvnc_normalised_pointer_fn);
+ 
+ /**
++ * Set a handler for relative pointer events.
++ *
++ * Used when a client has switched to relative motion (QEMU Pointer Motion
++ * Change). The callback receives signed deltas in logical pixels.
++ */
++void nvnc_set_relative_pointer_fn(struct nvnc* self,
++		nvnc_relative_pointer_fn);
++
++/**
+  * Set a callback that is invoked when a new client connects.
+  */
+ void nvnc_set_new_client_fn(struct nvnc* self, nvnc_client_fn);
+diff -u a/include/rfb-proto.h b/include/rfb-proto.h
+--- a/include/rfb-proto.h
++++ b/include/rfb-proto.h
+@@ -57,6 +57,8 @@
+ 
+ enum rfb_client_to_server_qemu_msg_type {
+ 	RFB_CLIENT_TO_SERVER_QEMU_KEY_EVENT = 0,
++	/* Private: client asks the server to switch the pointer motion mode. */
++	RFB_CLIENT_TO_SERVER_QEMU_POINTER_MODE = 0x4c,
+ };
+ 
+ enum rfb_encodings {
+@@ -70,6 +72,7 @@
+ 	RFB_ENCODING_OPEN_H264 = 50,
+ 	RFB_ENCODING_CURSOR = -239,
+ 	RFB_ENCODING_DESKTOPSIZE = -223,
++	RFB_ENCODING_QEMU_POINTER_MOTION_CHANGE = -257,
+ 	RFB_ENCODING_QEMU_EXT_KEY_EVENT = -258,
+ 	RFB_ENCODING_QEMU_LED_STATE = -261,
+ 	RFB_ENCODING_DESKTOPNAME = -307,
+@@ -230,6 +233,12 @@
+ 	uint16_t y;
+ } RFB_PACKED;
+ 
++struct rfb_client_qemu_pointer_mode_msg {
++	uint8_t type;
++	uint8_t subtype;
++	uint8_t relative;
++} RFB_PACKED;
++
+ struct rfb_ext_client_pointer_event_msg {
+ 	uint8_t type;
+ 	uint8_t button_mask;
+diff -u a/include/server.h b/include/server.h
+--- a/include/server.h
++++ b/include/server.h
+@@ -77,6 +77,7 @@
+ 	nvnc_key_fn key_code_fn;
+ 	nvnc_pointer_fn pointer_fn;
+ 	nvnc_normalised_pointer_fn normalised_pointer_fn;
++	nvnc_relative_pointer_fn relative_pointer_fn;
+ 	nvnc_client_fn new_client_fn;
+ 	nvnc_cut_text_fn cut_text_fn;
+ 	struct cut_text ext_clipboard_provide_msg;
+diff -u a/src/server.c b/src/server.c
+--- a/src/server.c
++++ b/src/server.c
+@@ -854,6 +854,7 @@
+ 		case RFB_ENCODING_DESKTOPSIZE:
+ 		case RFB_ENCODING_DESKTOPNAME:
+ 		case RFB_ENCODING_EXTENDEDDESKTOPSIZE:
++		case RFB_ENCODING_QEMU_POINTER_MOTION_CHANGE:
+ 		case RFB_ENCODING_QEMU_EXT_KEY_EVENT:
+ 		case RFB_ENCODING_QEMU_LED_STATE:
+ 		case RFB_ENCODING_VMWARE_LED_STATE:
+@@ -989,6 +990,7 @@
+ 	case RFB_ENCODING_DESKTOPSIZE: return "desktop-size";
+ 	case RFB_ENCODING_DESKTOPNAME: return "desktop-name";
+ 	case RFB_ENCODING_EXTENDEDDESKTOPSIZE: return "extended-desktop-size";
++	case RFB_ENCODING_QEMU_POINTER_MOTION_CHANGE: return "qemu-pointer-motion-change";
+ 	case RFB_ENCODING_QEMU_EXT_KEY_EVENT: return "qemu-extended-key-event";
+ 	case RFB_ENCODING_QEMU_LED_STATE: return "qemu-led-state";
+ 	case RFB_ENCODING_VMWARE_LED_STATE: return "vmware-led-state";
+@@ -1337,6 +1339,39 @@
+ 		key_code_fn(client, evdev_keycode, !!down_flag);
+ 	else if (key_fn)
+ 		key_fn(client, keysym, !!down_flag);
++
++	return sizeof(*msg);
++}
++
++static int on_client_qemu_pointer_mode(struct nvnc_client* client)
++{
++	struct nvnc* server = client->server;
++
++	struct rfb_client_qemu_pointer_mode_msg* msg =
++	        (struct rfb_client_qemu_pointer_mode_msg*)(client->msg_buffer +
++	                                                   client->buffer_index);
++
++	if (client->buffer_len - client->buffer_index < sizeof(*msg))
++		return 0;
++
++	if (!client_has_encoding(client, RFB_ENCODING_QEMU_POINTER_MOTION_CHANGE))
++		return sizeof(*msg);
++
++	bool relative = msg->relative && server->relative_pointer_fn;
++	client->pointer_relative = relative;
++
++	/* Tell the client how PointerEvent is now interpreted: x == 0 means
++	 * relative deltas, x == 1 means absolute coordinates. */
++	struct rfb_server_fb_update_msg head = {
++		.type = RFB_SERVER_TO_CLIENT_FRAMEBUFFER_UPDATE,
++		.n_rects = htons(1),
++	};
++	struct rfb_server_fb_rect rect = {
++		.x = htons(relative ? 0 : 1),
++		.encoding = htonl(RFB_ENCODING_QEMU_POINTER_MOTION_CHANGE),
++	};
++	stream_write(client->net_stream, &head, sizeof(head));
++	stream_write(client->net_stream, &rect, sizeof(rect));
+ 
+ 	return sizeof(*msg);
+ }
+@@ -1352,6 +1387,8 @@
+ 	switch (subtype) {
+ 	case RFB_CLIENT_TO_SERVER_QEMU_KEY_EVENT:
+ 		return on_client_qemu_key_event(client);
++	case RFB_CLIENT_TO_SERVER_QEMU_POINTER_MODE:
++		return on_client_qemu_pointer_mode(client);
+ 	}
+ 
+ 	nvnc_log(NVNC_LOG_WARNING, "Got uninterpretable qemu message from client: %p",
+@@ -1388,6 +1425,15 @@
+ 
+ 	uint16_t x = ntohs(msg->x);
+ 	uint16_t y = ntohs(msg->y);
++
++	if (client->pointer_relative) {
++		/* 0x7fff means no motion; anything else is an offset from it. */
++		nvnc_relative_pointer_fn rel_fn = server->relative_pointer_fn;
++		if (rel_fn)
++			rel_fn(client, (int)x - 0x7fff, (int)y - 0x7fff,
++					button_mask);
++		return message_size;
++	}
+ 
+ 	nvnc_pointer_fn fn = server->pointer_fn;
+ 	if (fn)
+@@ -2927,7 +2973,13 @@
+ 	int has_ntp = client_has_encoding(client, RFB_ENCODING_NTP);
+ 	int has_ext_mouse_buttons =
+ 		client_has_encoding(client, RFB_ENCODING_EXT_MOUSE_BUTTONS);
+-	int n_rects = has_qemu_ext + has_ntp + has_ext_mouse_buttons;
++	/* Advertise that we can switch to relative pointer deltas; we start in
++	 * absolute mode (x == 1). */
++	int has_pointer_motion =
++		client_has_encoding(client, RFB_ENCODING_QEMU_POINTER_MOTION_CHANGE) &&
++		client->server->relative_pointer_fn;
++	int n_rects = has_qemu_ext + has_ntp + has_ext_mouse_buttons +
++		has_pointer_motion;
+ 	if (n_rects == 0)
+ 		return false;
+ 
+@@ -2940,6 +2992,14 @@
+ 	if (has_qemu_ext) {
+ 		struct rfb_server_fb_rect rect = {
+ 			.encoding = htonl(RFB_ENCODING_QEMU_EXT_KEY_EVENT),
++		};
++		stream_write(client->net_stream, &rect, sizeof(rect));
++	}
++
++	if (has_pointer_motion) {
++		struct rfb_server_fb_rect rect = {
++			.x = htons(1),
++			.encoding = htonl(RFB_ENCODING_QEMU_POINTER_MOTION_CHANGE),
+ 		};
+ 		stream_write(client->net_stream, &rect, sizeof(rect));
+ 	}
+@@ -3084,6 +3144,12 @@
+ }
+ 
+ EXPORT
++void nvnc_set_relative_pointer_fn(struct nvnc* self, nvnc_relative_pointer_fn fn)
++{
++	self->relative_pointer_fn = fn;
++}
++
++EXPORT
+ void nvnc_set_new_client_fn(struct nvnc* self, nvnc_client_fn fn)
+ {
+ 	self->new_client_fn = fn;

@@ -1,0 +1,25 @@
+--- a/include/pointer.h
++++ b/include/pointer.h
+@@ -28,8 +28,9 @@
+
+ 	enum nvnc_button_mask current_mask;
+
+-	uint32_t current_x;
+-	uint32_t current_y;
++	/* Normalised (0..1) like pointer_set()s arguments; integers made every event look like motion. */
++	double current_x;
++	double current_y;
+ };
+
+ int pointer_init(struct pointer* self);
+--- a/src/pointer.c
++++ b/src/pointer.c
+@@ -26,6 +26,8 @@
+
+ int pointer_init(struct pointer* self)
+ {
++	self->current_x = -1.0; /* unknown until the first event */
++	self->current_y = -1.0;
+ 	zwlr_virtual_pointer_v1_axis_source(self->pointer,
+ 					    WL_POINTER_AXIS_SOURCE_WHEEL);
+ 	return 0;

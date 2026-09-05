@@ -38,7 +38,7 @@ use {
 	--config = ":colorscheme solarized8_grey",
 	config = function()
 		--vim.cmd("colorscheme solarized8_grey")
-		vim.cmd("colorscheme catppuccin-macchiato")
+		vim.cmd("colorscheme iridium-ink")
 	end,
 	lazy = false,
 	priority = 100,

@@ -1,0 +1,60 @@
+diff -u a/include/pointer.h b/include/pointer.h
+--- a/include/pointer.h
++++ b/include/pointer.h
+@@ -37,3 +37,5 @@
+ 
+ void pointer_set(struct pointer* self, double x, double y,
+ 		enum nvnc_button_mask button_mask);
++void pointer_move_relative(struct pointer* self, int dx, int dy,
++		enum nvnc_button_mask button_mask);
+diff -u a/src/main.c b/src/main.c
+--- a/src/main.c
++++ b/src/main.c
+@@ -664,6 +664,17 @@
+ 	wv_output_transform_canvas_point(transform, &xf.x, &xf.y);
+ 
+ 	pointer_set(&wv_client->pointer, xf.x, xf.y, button_mask);
++}
++
++static void on_relative_pointer_event(struct nvnc_client* client, int dx, int dy,
++				      enum nvnc_button_mask button_mask)
++{
++	struct wayvnc_client* wv_client = nvnc_client_get_userdata(client);
++
++	if (!wv_client->pointer.pointer)
++		return;
++
++	pointer_move_relative(&wv_client->pointer, dx, dy, button_mask);
+ }
+ 
+ static void on_key_event(struct nvnc_client* client, uint32_t symbol,
+@@ -1294,6 +1305,7 @@
+ 	}
+ 
+ 	nvnc_set_normalised_pointer_fn(self->nvnc, on_pointer_event);
++	nvnc_set_relative_pointer_fn(self->nvnc, on_relative_pointer_event);
+ 
+ 	nvnc_set_key_fn(self->nvnc, on_key_event);
+ 	nvnc_set_key_code_fn(self->nvnc, on_key_code_event);
+diff -u a/src/pointer.c b/src/pointer.c
+--- a/src/pointer.c
++++ b/src/pointer.c
+@@ -103,3 +103,18 @@
+ 
+ 	zwlr_virtual_pointer_v1_frame(self->pointer);
+ }
++
++void pointer_move_relative(struct pointer* self, int dx, int dy,
++			   enum nvnc_button_mask button_mask)
++{
++	uint32_t t = gettime_ms();
++
++	if (dx || dy)
++		zwlr_virtual_pointer_v1_motion(self->pointer, t,
++				wl_fixed_from_int(dx), wl_fixed_from_int(dy));
++
++	if (button_mask != self->current_mask)
++		pointer_set_button_mask(self, t, button_mask);
++
++	zwlr_virtual_pointer_v1_frame(self->pointer);
++}

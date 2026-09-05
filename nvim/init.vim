@@ -420,7 +420,7 @@ lazy.setup(plugin_spec, {
 	install = {
 		missing = true, -- Default
 		--colorscheme = { "solorized8_grey" },
-		colorscheme = { "catppuccin-macchiato" },
+		colorscheme = { "iridium-ink" },
 	},
 })
 

@@ -79,6 +79,12 @@ conf {
 			mods = 'CTRL',
 			action = wezterm.action.SendString('\x1b\x08'),
 		},
+		-- Get rid of the fullscreen key combo so we can do immediate execute in Xonsh.
+		{
+			key = 'Enter',
+			mods = 'ALT',
+			action = wezterm.action.DisableDefaultAssignment,
+		}
 	},
 }
 
@@ -142,7 +148,11 @@ else
 end
 conf {
 	default_prog = { "zsh", "--login" },
-	font = wezterm.font("InconsolataGo Nerd Font Mono"),
+	font = wezterm.font_with_fallback {
+		{ family = "MonoLisa", harfbuzz_features = { 'liga=0', 'clig=0' }},
+		{ family = "InconsolataGo Nerd Mono", harfbuzz_features = { 'liga=0', 'clig=0' } },
+		'Noto Color Emoji',
+	},
 	--font_size = 11.5,
 
 	window_decorations = "TITLE|RESIZE",
