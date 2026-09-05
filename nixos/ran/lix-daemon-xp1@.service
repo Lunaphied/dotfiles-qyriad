@@ -1,0 +1,16 @@
+[Unit]
+Description=Lix Daemon instance (experimental RPC)
+Documentation=man:nix-daemon https://docs.lix.systems/manual/lix/stable
+CollectMode=inactive-or-failed
+RequiresMountsFor=/nix/store
+RequiresMountsFor=/nix/var
+RequiresMountsFor=/nix/var/nix/db
+
+[Service]
+ExecStart=@/nix/store/vcr0mx96dxp3gr3nly2a6p6z54qpyx59-lix-patched-2.96.0-dev-pre20260902-dev_f009349/bin/nix-daemon nix-daemon --for-socket-activation
+CacheDirectory=nix
+LimitNOFILE=1048576
+TasksMax=1048576
+Delegate=yes
+DelegateSubgroup=supervisor
+Slice=system-lix-daemon-xp1.slice

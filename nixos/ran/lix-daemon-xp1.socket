@@ -1,0 +1,14 @@
+[Unit]
+Description=Lix Daemon Socket (experimental RPC)
+Before=multi-user.target
+Conflicts=nix-daemon.service
+RequiresMountsFor=/nix/store
+ConditionPathIsReadWrite=/nix/var/nix/daemon-socket
+
+[Socket]
+ListenStream=/nix/var/nix/daemon-socket/lix-xp-1/socket
+FileDescriptorName=lix-xp-1
+Accept=yes
+
+[Install]
+WantedBy=sockets.target

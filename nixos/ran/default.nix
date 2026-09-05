@@ -467,4 +467,15 @@
 
 	fonts.fontconfig.useEmbeddedBitmaps = true;
 	fonts.fontconfig.subpixel.rgba = "rgb";
+
+	# Enable experimental new RPC protocol.
+	nix = {
+		# Otherwise Nixpkgs will check and not expect this option.
+		settings = {
+			experimental-features = [ "rpc-sockets" ];
+			# This apparently works to make sure we prioritize the experimental RPC protocol.
+			store = "auto?protocol=any";
+		};
+	};
+
 }
