@@ -10,7 +10,6 @@
 	boot.loader = {
 		systemd-boot.enable = true;
 		efi.canTouchEfiVariables = true;
-		efi.efiSysMountPoint = "/boot/efi";
 	};
 
 	# We want sysrqs to work.
@@ -196,11 +195,48 @@
 		isNormalUser = true;
 		description = "Qyriad";
 		extraGroups = lib.mkMerge [
-			[ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "i2c" "input" "pipewire" ]
+			[ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "i2c"
+				"libvirtd" "gamemode" "podman" "input" "pipewire"
+			]
+			(lib.mkIf (options ? age) [ "keys" ])
+		];
+		shell = pkgs.zsh;
+
+		openssh.authorizedKeys.keys = [
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDI6Tdxcbr3XSD2Ok2tUb4RJ3nOszqKklkqXUrgnFM1F cardno:26 907 287"
+		];
+	};
+
+	users.users.lunaphied = {
+		isNormalUser = true;
+		description = "Lunaphied";
+		extraGroups = lib.mkMerge [
+			[ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "i2c"
+				"libvirtd" "gamemode" "podman" "input" "pipewire"
+			]
 			(lib.mkIf (options ? age) [ "keys" ])
 		];
 		shell = pkgs.zsh;
 	};
+
+	users.users.puckipedia = {
+		isNormalUser = true;
+		description = "puck";
+		shell = pkgs.zsh;
+
+		openssh.authorizedKeys.keys = [
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII8MUpzP9HB8xgDRZNPTCEZjSP9ntwn7GFyMbsmKrOQM"
+			"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAi59cUbyB8ZWarlP2arpgz040a+KnhNNOIh8Plp3Nlf"
+		];
+		extraGroups = lib.mkMerge [
+			[ "wheel" "networkmanager" "plugdev" "dialout" "video" "cdrom" "i2c"
+				"libvirtd" "gamemode" "podman" "input" "pipewire"
+			]
+			(lib.mkIf (options ? age) [ "keys" ])
+		];
+
+	};
+
 	users.groups = {
 		plugdev = { };
 		video = { };

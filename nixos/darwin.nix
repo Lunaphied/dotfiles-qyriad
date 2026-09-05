@@ -16,6 +16,12 @@
 		home = "/Users/qyriad";
 	};
 
+	users.users.lunaphied = {
+		name = "lunaphied";
+		description ="Lunahpied";
+		home = "/Users/lunaphied";
+	};
+
 	services.nix-daemon.enable = true;
 
 	fonts.fontDir.enable = true;

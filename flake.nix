@@ -246,6 +246,12 @@
 				];
 				Rosie = rosie;
 
+				ran = mkConfig "x86_64-linux" [
+					./nixos/ran
+					inputs.disko.nixosModules.disko
+				];
+				Ran = ran;
+
 				#minimal-aarch64-linux = mkConfig "aarch64-linux" [
 				#	./nixos/minimal.nix
 				#];

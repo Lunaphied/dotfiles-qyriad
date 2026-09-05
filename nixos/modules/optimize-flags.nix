@@ -23,6 +23,12 @@ let
 			gcc = [ "-march=x86-64-v4" ];
 		};
 
+		"znver3" = {
+			zig = [ "-Dcpu=znver3" ];
+			rust = [ "-C" "target-cpu=znver3" ];
+			gcc = [ "-march=znver3" "-mtune=znver3" ];
+		};
+
 		"znver4" = {
 			zig = [ "-Dcpu=znver4" ];
 			rust = [ "-C" "target-cpu=znver4" ];

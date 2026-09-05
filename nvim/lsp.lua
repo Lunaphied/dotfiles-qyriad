@@ -292,7 +292,7 @@ function on_lsp_attach(bufnr, client_id)
 	-- then there's probably something the tags are giving us that LSP is not.
 	vim.bo.tagfunc = ""
 
-	--vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+	vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 
 	--if client.name == 'nil_ls' then
 	--	client.server_capabilities.semanticTokensProvider = nil

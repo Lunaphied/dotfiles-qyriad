@@ -10,3 +10,6 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6017", GROUP="plu
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="615b", GROUP="plugdev"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="615c", GROUP="plugdev"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="05a5", GROUP="plugdev"
+
+# Actually, we are USB develospers, just give everyone with a session access
+SUBSYSTEMS=="usb", TAG+="uaccess"
